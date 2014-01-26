@@ -14,6 +14,8 @@ d3.json('device-data.json', function(data) {
   $('#tidelineNavForward').on('click', container.panForward);
   $('#tidelineNavBack').on('click', container.panBack);
 
+  console.log(new Date(container.endpoints[0]), new Date(container.endpoints[1]));
+
   // start setting up pools
   // blood glucose data pool
   var poolBG = container.newPool().defaults()
@@ -49,7 +51,7 @@ module.exports = function() {
     pad,
     nav = {},
     pools = [], gutter,
-    xScale = d3.time.scale(),
+    xScale = d3.time.scale.utc(),
     xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0),
     beginningOfData, endOfData, data, endpoints, outerEndpoints, initialEndpoints,
     mainGroup, poolGroup, scrollNav;
@@ -91,7 +93,7 @@ module.exports = function() {
       });
 
       // set the domain and range for the main tideline x-scale
-      xScale.domain([Date.parse(currentData[0].time), Date.parse(currentData[currentData.length - 1].time)])
+      xScale.domain([container.initialEndpoints[0], container.initialEndpoints[1]])
         .range([0, width]);
 
       mainGroup.append('g')
@@ -166,15 +168,25 @@ module.exports = function() {
   container.panForward = function() {
     console.log('Jumped forward a day.');
     nav.currentTranslation -= width;
-    nav.pan.translate([nav.currentTranslation, 0]);
-    nav.pan.event(mainGroup.transition().duration(500));
+    mainGroup.transition().duration(2000).tween('zoom', function() {
+      var ix = d3.interpolate(nav.currentTranslation + width, nav.currentTranslation);
+      return function(t) {
+        nav.pan.translate([ix(t), 0]);
+        nav.pan.event(mainGroup);
+      };
+    });
   };
 
   container.panBack = function() {
     console.log('Jumped back a day.');
     nav.currentTranslation += width;
-    nav.pan.translate([nav.currentTranslation, 0]);
-    nav.pan.event(mainGroup.transition().duration(500));
+    mainGroup.transition().duration(2000).tween('zoom', function() {
+      var ix = d3.interpolate(nav.currentTranslation - width, nav.currentTranslation);
+      return function(t) {
+        nav.pan.translate([ix(t), 0]);
+        nav.pan.event(mainGroup);
+      };
+    });
   };
 
   container.newPool = function() {
@@ -560,8 +572,10 @@ module.exports = function(pool, opts) {
           'cy': function(d) {
             return opts.yScale(d.value);
           },
-          // move to LESS
-          'r': 2.5
+          'r': 2.5,
+          'id': function(d) {
+            return d.time + ' ' + d.value;
+          }
         })
         .classed({'d3-circle': true, 'cbg': true});
       circles.exit().remove();
@@ -641,7 +655,7 @@ module.exports = function(pool, opts) {
     for(var i = 0; i < hourBreaks.length; i++) {
       var br = hourBreaks[i];
       var nextBr = hourBreaks[i + 1];
-      if ((date.getHours() > br) && (date.getHours() < nextBr)) {
+      if ((date.getHours() >= br) && (date.getHours() < nextBr)) {
         nearest = new Date(date.getFullYear(), date.getMonth(), date.getDate(), br, 0, 0);
       }
     }
