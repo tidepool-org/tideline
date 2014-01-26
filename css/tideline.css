@@ -2,21 +2,45 @@ svg {
   display: block;
   margin: 0 auto;
 }
-
-.axis path, .axis line {
+.axis path,
+.axis line {
   fill: none;
   stroke: black;
   shape-rendering: crispEdges;
 }
-
 .axis text {
   font-family: sans-serif;
   font-size: .5em;
 }
-
 .d3-pool-label {
   font-family: sans-serif;
-  font-variant: small-caps;
-  font-size: .6em;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 16px;
+  fill: #4e4e4f;
   baseline-shift: super;
+}
+.d3-rect-fill.darkest {
+  fill: #dce4e7;
+}
+.d3-rect-fill.dark {
+  fill: #e3eaed;
+}
+.d3-rect-fill.light {
+  fill: #f2f4f6;
+}
+.d3-rect-fill.lighter {
+  fill: #e9eff1;
+}
+.d3-rect-fill.lightest {
+  fill: #f8f9fa;
+}
+.cbg.low {
+  fill: #ff8b7c;
+}
+.cbg.target {
+  fill: #9ad859;
+}
+.cbg.high {
+  fill: #bb9ae7;
 }
