@@ -17,6 +17,13 @@ d3.json('device-data.json', function(data) {
   console.log(new Date(container.endpoints[0]), new Date(container.endpoints[1]));
 
   // start setting up pools
+  // messages pool
+  var poolMessages = container.newPool().defaults()
+    .id('poolMessages')
+    .label('')
+    .index(container.pools().indexOf(poolMessages))
+    .weight(0.5);
+
   // blood glucose data pool
   var poolBG = container.newPool().defaults()
     .id('poolBG')
@@ -24,20 +31,94 @@ d3.json('device-data.json', function(data) {
     .index(container.pools().indexOf(poolBG))
     .weight(1.5);
 
+  // carbs and boluses data pool
+  var poolBolus = container.newPool().defaults()
+    .id('poolBolus')
+    .label('Bolus & Carbohydrates')
+    .index(container.pools().indexOf(poolBolus))
+    .weight(1.0);
+  
+  // basal data pool
+  var poolBasal = container.newPool().defaults()
+    .id('poolBasal')
+    .label('Basal Rates')
+    .index(container.pools().indexOf(poolBasal))
+    .weight(1.0);
+
   container.arrangePools();
 
+  var fill = require('../js/plot/fill');
+
+  var scales = require('../js/plot/scales');
+
+  // BG pool
+  var scaleBG = scales.bg(_.where(data, {'type': 'cbg'}), poolBG);
+  // set up y-axis
+  poolBG.yAxis(d3.svg.axis()
+    .scale(scaleBG)
+    .orient('left')
+    .outerTickSize(0)
+    .tickValues([40, 80, 120, 180, 300]));
   // add background fill rectangles to BG pool
-  poolBG.addPlotType('fill', require('../js/plot/fill')(poolBG, {endpoints: container.endpoints}));
+  poolBG.addPlotType('fill', fill(poolBG, {endpoints: container.endpoints}));
 
   // add CBG data to BG pool
-  poolBG.addPlotType('cbg', require('../js/plot/cbg')(poolBG));
+  poolBG.addPlotType('cbg', require('../js/plot/cbg')(poolBG, {yScale: scaleBG}));
+
+  // add SMBG data to BG pool
+  poolBG.addPlotType('smbg', require('../js/plot/smbg')(poolBG, {yScale: scaleBG}));
+
+  // bolus & carbs pool
+  var scaleBolus = scales.bolus(_.where(data, {'type': 'bolus'}), poolBolus);
+  var scaleCarbs = scales.carbs(_.where(data, {'type': 'carbs'}), poolBolus);
+  // set up y-axis for bolus
+  poolBolus.yAxis(d3.svg.axis()
+    .scale(scaleBolus)
+    .orient('left')
+    .outerTickSize(0)
+    .ticks(3));
+  // set up y-axis for carbs
+  poolBolus.yAxis(d3.svg.axis()
+    .scale(scaleCarbs)
+    .orient('left')
+    .outerTickSize(0)
+    .ticks(3));
+  // add background fill rectangles to bolus pool
+  poolBolus.addPlotType('fill', fill(poolBolus, {endpoints: container.endpoints}));
+
+  // add carbs data to bolus pool
+  poolBolus.addPlotType('carbs', require('../js/plot/carbs')(poolBolus, {yScale: scaleCarbs}));
+
+  // add bolus data to bolus pool
+  poolBolus.addPlotType('bolus', require('../js/plot/bolus')(poolBolus, {yScale: scaleBolus}));
+
+  // basal pool
+  // add background fill rectangles to basal pool
+  poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: container.endpoints}));
+
+  // messages pool
+  // add background fill rectangles to messages pool
+  poolMessages.addPlotType('fill', fill(poolMessages, {endpoints: container.endpoints}));
 
   var poolGroup = d3.select('#tidelinePools');
 
+  var initialData = container.getData(container.initialEndpoints, 'both');
+
+  container.allData(initialData);
+
   // render BG pool
-  poolBG(poolGroup, container.getData(container.initialEndpoints, 'both'));
+  poolBG(poolGroup, initialData);
+
+  // render bolus pool
+  poolBolus(poolGroup, initialData);
+
+  // render basal pool
+  poolBasal(poolGroup, initialData);
+
+  //render messages pool
+  poolMessages(poolGroup, initialData);
 });
-},{"../js/container":2,"../js/plot/cbg":3,"../js/plot/fill":4}],2:[function(require,module,exports){
+},{"../js/container":2,"../js/plot/bolus":3,"../js/plot/carbs":4,"../js/plot/cbg":5,"../js/plot/fill":6,"../js/plot/scales":7,"../js/plot/smbg":8}],2:[function(require,module,exports){
 var pool = require('./pool');
 
 module.exports = function() {
@@ -48,13 +129,15 @@ module.exports = function() {
     id,
     width, minWidth,
     height, minHeight,
+    gutter,
+    axisGutter,
     pad,
     nav = {},
     pools = [], gutter,
     xScale = d3.time.scale.utc(),
     xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0),
-    beginningOfData, endOfData, data, endpoints, outerEndpoints, initialEndpoints,
-    mainGroup, poolGroup, scrollNav;
+    beginningOfData, endOfData, data, allData = [], buffer, endpoints, outerEndpoints, initialEndpoints,
+    mainGroup, poolGroup, scrollNav, scrollHandleTrigger = true;
 
   var defaults = {
     bucket: $('#tidelineContainer'),
@@ -65,11 +148,13 @@ module.exports = function() {
     nav: {
       minNavHeight: 30,
       scrollNav: true,
-      scrollNavHeight: 30,
+      scrollNavHeight: 40,
       latestTranslation: 0,
       currentTranslation: 0
     },
-    gutter: 10
+    axisGutter: 40,
+    gutter: 30,
+    buffer: 5
   };
 
   function container(selection) {
@@ -94,10 +179,10 @@ module.exports = function() {
 
       // set the domain and range for the main tideline x-scale
       xScale.domain([container.initialEndpoints[0], container.initialEndpoints[1]])
-        .range([0, width]);
+        .range([container.axisGutter(), width]);
 
       mainGroup.append('g')
-        .attr('class', 'x axis')
+        .attr('class', 'd3-x d3-axis')
         .attr('id', 'tidelineXAxis')
         .attr('transform', 'translate(0,' + nav.axisHeight + ')')
         .call(xAxis);
@@ -122,14 +207,32 @@ module.exports = function() {
       mainGroup.append('g')
         .attr('id', 'tidelineLabels');
 
+      mainGroup.append('g')
+        .attr('id', 'tidelineYAxes')
+        .append('rect')
+        .attr({
+          'id': 'yAxesInvisibleRect',
+          'height': function() {
+            if (nav.scrollNav) {
+              return (height - nav.scrollNavHeight);
+            }
+            else {
+              return height;
+            }
+          },
+          'width': container.axisGutter(),
+          'opacity': 1,
+          'fill': 'white'
+        });
+
       if (nav.scrollNav) {
         scrollNav = mainGroup.append('g')
           .attr('class', 'x scroll')
           .attr('id', 'tidelineScrollNav');
 
-        nav.scrollScale = d3.time.scale()
+        nav.scrollScale = d3.time.scale.utc()
           .domain([Date.parse(data[0].time), Date.parse(currentData[0].time)])
-          .range([0, width]);
+          .range([container.axisGutter(), width]);
       }
     });
   }
@@ -167,9 +270,9 @@ module.exports = function() {
 
   container.panForward = function() {
     console.log('Jumped forward a day.');
-    nav.currentTranslation -= width;
-    mainGroup.transition().duration(2000).tween('zoom', function() {
-      var ix = d3.interpolate(nav.currentTranslation + width, nav.currentTranslation);
+    nav.currentTranslation -= width - container.axisGutter();
+    mainGroup.transition().duration(500).tween('zoom', function() {
+      var ix = d3.interpolate(nav.currentTranslation + width - container.axisGutter(), nav.currentTranslation);
       return function(t) {
         nav.pan.translate([ix(t), 0]);
         nav.pan.event(mainGroup);
@@ -179,9 +282,9 @@ module.exports = function() {
 
   container.panBack = function() {
     console.log('Jumped back a day.');
-    nav.currentTranslation += width;
-    mainGroup.transition().duration(2000).tween('zoom', function() {
-      var ix = d3.interpolate(nav.currentTranslation - width, nav.currentTranslation);
+    nav.currentTranslation += width - container.axisGutter();
+    mainGroup.transition().duration(500).tween('zoom', function() {
+      var ix = d3.interpolate(nav.currentTranslation - width + container.axisGutter(), nav.currentTranslation);
       return function(t) {
         nav.pan.translate([ix(t), 0]);
         nav.pan.event(mainGroup);
@@ -190,7 +293,7 @@ module.exports = function() {
   };
 
   container.newPool = function() {
-    var p = pool(container);
+    var p = new pool(container);
     pools.push(p);
     return p;
   };
@@ -201,8 +304,9 @@ module.exports = function() {
     pools.forEach(function(pool) {
       cumWeight += pool.weight();
     });
-    var totalPoolsHeight = container.height() - container.axisHeight() - container.scrollNavHeight() - (numPools - 1) * container.gutter();
-    var poolScaleHeight = totalPoolsHeight/numPools;
+    var totalPoolsHeight = 
+      container.height() - container.axisHeight() - container.scrollNavHeight() - numPools * container.gutter();
+    var poolScaleHeight = totalPoolsHeight/cumWeight;
     var actualPoolsHeight = 0;
     pools.forEach(function(pool) {
       pool.height(poolScaleHeight);
@@ -210,11 +314,14 @@ module.exports = function() {
     });
     actualPoolsHeight += (numPools - 1) * container.gutter();
     var baseline = container.height() - container.scrollNavHeight();
-    var topline = container.axisHeight();
+    var topline = container.axisHeight() + container.gutter();
     var content = baseline - topline;
     var meridian = content/2 + topline;
     var difference = content - actualPoolsHeight;
     var offset = difference/2;
+    if (offset < 0) {
+      offset = 0;
+    }
     var currentYPosition = topline;
     pools.forEach(function(pool) {
       pool.yPosition(offset + currentYPosition);
@@ -241,7 +348,9 @@ module.exports = function() {
     this.minHeight(properties.minHeight).height(properties.minHeight);
     this.latestTranslation(properties.nav.latestTranslation)
       .currentTranslation(properties.nav.currentTranslation);
+    this.axisGutter(properties.axisGutter);
     this.gutter(properties.gutter);
+    this.buffer(properties.buffer);
 
     return container;
   };
@@ -251,40 +360,54 @@ module.exports = function() {
       .scaleExtent([1, 1])
       .x(xScale)
       .on('zoom', function() {
-        if ((endOfData - xScale.domain()[1] < MS_IN_24) && !(endOfData.getTime() > outerEndpoints[1])) {
+        if ((endOfData - xScale.domain()[1] < MS_IN_24) && !(endOfData.getTime() === endpoints[1])) {
           console.log('Fetching new data! (right)');
-          for (j = 0; j < pools.length; j++) {
-            var plusOne = new Date(container.endOfData());
-            plusOne.setDate(plusOne.getDate() + 1);
-            pools[j](poolGroup, container.getData([endOfData, plusOne], 'right'));
-          }
+          var plusOne = new Date(container.endOfData());
+          plusOne.setDate(plusOne.getDate() + 1);
+          var newData = container.getData([endOfData, plusOne], 'right');
           // update endOfData
-          container.endOfData(plusOne);
-        }
-        else if ((xScale.domain()[0] - beginningOfData < MS_IN_24) && !(beginningOfData.getTime() < outerEndpoints[0])) {
-          console.log('Fetching new data! (left)');
-          for (j = 0; j < pools.length; j++) {
-            var plusOne = new Date(container.beginningOfData());
-            plusOne.setDate(plusOne.getDate() - 1);
-            pools[j](poolGroup, container.getData([plusOne, beginningOfData], 'left'));
+          if (plusOne <= endpoints[1]) {
+            container.endOfData(plusOne); 
           }
+          else {
+            container.endOfData(endpoints[1]);
+          }
+          container.allData(newData);
+          for (j = 0; j < pools.length; j++) {
+            pools[j](poolGroup, container.allData());
+          }
+        }
+        if ((xScale.domain()[0] - beginningOfData < MS_IN_24) && !(beginningOfData.getTime() === endpoints[0])) {
+          console.log('Fetching new data! (left)');
+          var plusOne = new Date(container.beginningOfData());
+          plusOne.setDate(plusOne.getDate() - 1);
+          var newData = container.getData([plusOne, beginningOfData], 'left');
           // update beginningOfData
-          container.beginningOfData(plusOne);
+          if (plusOne >= endpoints[0]) {
+            container.beginningOfData(plusOne);
+          }
+          else {
+            container.beginningOfData(endpoints[0]);
+          }
+          container.allData(newData);
+          for (j = 0; j < pools.length; j++) {
+            pools[j](poolGroup, container.allData());
+          }
         }
         for (var i = 0; i < pools.length; i++) {
           pools[i].pan(d3.event);
         }
-        d3.select('.x.axis').call(xAxis);
+        d3.select('.d3-x.d3-axis').call(xAxis);
+        if (scrollHandleTrigger) {
+          d3.select('#scrollHandle').transition().ease('linear').attr('cx', function(d) {
+            d.x = nav.scrollScale(xScale.domain()[0]);
+            return d.x;
+          });       
+        }
       })
       .on('zoomend', function() {
-        // TODO: find a way to put transition of #scrollHandle back in 'zoom'
-        // BUG: after click-and-drag, weird jump first time perform panBack or panForward
-        d3.select('#scrollHandle').transition().ease('linear').attr('cx', function(d) {
-          d.x = nav.scrollScale(xScale.domain()[0]);
-          return d.x;
-        });
         container.currentTranslation(nav.latestTranslation);
-        console.log('Current translation ' + nav.currentTranslation);
+        scrollHandleTrigger = true;
       });
 
     mainGroup.call(nav.pan);
@@ -293,7 +416,7 @@ module.exports = function() {
   };
 
   container.setScrollNav = function() {
-    scrollNav.attr('transform', 'translate(0,' + (height - nav.scrollNavHeight/2) + ')')
+    scrollNav.attr('transform', 'translate(0,' + (height - nav.scrollNavHeight/4) + ')')
       .append('line')
       .attr({
         'x1': nav.scrollScale(endpoints[0]),
@@ -301,6 +424,7 @@ module.exports = function() {
         'y1': 0,
         'y2': 0,
         'stroke-width': 1,
+        // TODO: move to LESS
         'stroke': '#989897',
         'shape-rendering': 'crispEdges'
       });
@@ -317,6 +441,7 @@ module.exports = function() {
         d3.select(this).attr('cx', function(d) { return d.x; });
         var date = nav.scrollScale.invert(d.x);
         nav.currentTranslation += -xScale(date);
+        scrollHandleTrigger = false;
         nav.pan.translate([nav.currentTranslation, 0]);
         nav.pan.event(mainGroup);
       });
@@ -473,6 +598,12 @@ module.exports = function() {
     return container;
   };
 
+  container.axisGutter = function(x) {
+    if (!arguments.length) return axisGutter;
+    axisGutter = x;
+    return container;
+  };
+
   container.gutter = function(x) {
     if (!arguments.length) return gutter;
     gutter = x;
@@ -525,9 +656,131 @@ module.exports = function() {
     return container;
   };
 
+  container.allData = function(x) {
+    if (!arguments.length) return allData;
+    allData = allData.concat(x);
+    console.log('Length of allData array is', allData.length);
+    var plus = new Date(xScale.domain()[1]);
+    plus.setDate(plus.getDate() + container.buffer());
+    var minus = new Date(xScale.domain()[0]);
+    minus.setDate(minus.getDate() - container.buffer());
+    if (beginningOfData < minus) {
+      container.beginningOfData(minus); 
+      allData = _.filter(allData, function(datapoint) {
+        var t = Date.parse(datapoint.time);
+        if (t >= minus) {
+          return t;
+        }
+      });
+    }
+    if (endOfData > plus) {
+      container.endOfData(plus);
+      allData = _.filter(allData, function(datapoint) {
+        var t = Date.parse(datapoint.time);
+        if (t <= plus) {
+          return t;
+        }
+      });
+    }
+    allData = _.sortBy(allData, 'time');
+    return pool;
+  };
+
+  container.buffer = function(x) {
+    if (!arguments.length) return buffer;
+    buffer = x;
+    return pool;
+  };
+
   return container;
 };
-},{"./pool":5}],3:[function(require,module,exports){
+},{"./pool":9}],3:[function(require,module,exports){
+module.exports = function(pool, opts) {
+
+  var opts = opts || {};
+
+  var defaults = {
+    xScale: pool.xScale().copy(),
+    width: 8
+  };
+
+  _.defaults(opts, defaults);
+
+  function carbs(selection) {
+    selection.each(function(currentData) {
+      var rects = d3.select(this)
+        .selectAll('rect')
+        .data(currentData, function(d) {
+          // leveraging the timestamp of each datapoint as the ID for D3's binding
+          return d.time;
+        });
+      rects.enter()
+        .append('rect')
+        .attr({
+          'x': function(d) {
+            return opts.xScale(Date.parse(d.time)) - opts.width/2;
+          },
+          'y': function(d) {
+            return opts.yScale(d.value);
+          },
+          'width': opts.width,
+          'height': function(d) {
+            return opts.yScale.range()[0] - opts.yScale(d.value);
+          },
+          'class': 'd3-rect-bolus d3-bolus',
+          'id': function(d) {
+            return d.time + ' ' + d.value;
+          }
+        });
+        rects.exit().remove();
+    });
+  }
+
+  return carbs; 
+};
+},{}],4:[function(require,module,exports){
+module.exports = function(pool, opts) {
+
+  var opts = opts || {};
+
+  var defaults = {
+    xScale: pool.xScale().copy(),
+    width: 8
+  };
+
+  _.defaults(opts, defaults);
+
+  function carbs(selection) {
+    selection.each(function(currentData) {
+      var rects = d3.select(this)
+        .selectAll('rect')
+        .data(currentData, function(d) {
+          // leveraging the timestamp of each datapoint as the ID for D3's binding
+          return d.time;
+        });
+      rects.enter()
+        .append('rect')
+        .attr({
+          'x': function(d) {
+            return opts.xScale(Date.parse(d.time)) - opts.width/2;
+          },
+          'y': 0,
+          'width': opts.width,
+          'height': function(d) {
+            return opts.yScale(d.value);
+          },
+          'class': 'd3-rect-carbs d3-carbs',
+          'id': function(d) {
+            return d.time + ' ' + d.value;
+          }
+        });
+        rects.exit().remove();
+    });
+  }
+
+  return carbs; 
+};
+},{}],5:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -537,6 +790,180 @@ module.exports = function(pool, opts) {
       'low': 80,
       'target': 180,
       'high': 200
+    },
+    xScale: pool.xScale().copy()
+  };
+
+  _.defaults(opts, defaults);
+
+  function cbg(selection) {
+    selection.each(function(currentData) {
+      var circles = d3.select(this)
+        .selectAll('circle')
+        .data(currentData, function(d) {
+          // leveraging the timestamp of each datapoint as the ID for D3's binding
+          return d.time;
+        });
+      circles.enter()
+        .append('circle')
+        .attr({
+          'cx': function(d) {
+            return opts.xScale(Date.parse(d.time));
+          },
+          'class': function(d) {
+            if (d.value < opts.classes['low']) {
+              return 'd3-bg-low';
+            }
+            else if (d.value < opts.classes['target']) {
+              return 'd3-bg-target';
+            }
+            else {
+              return 'd3-bg-high'
+            }
+          },
+          'cy': function(d) {
+            return opts.yScale(d.value);
+          },
+          'r': 2.5,
+          'id': function(d) {
+            return d.time + ' ' + d.value;
+          }
+        })
+        .classed({'d3-circle': true, 'd3-cbg': true});
+      circles.exit().remove();
+    });
+  }
+
+  return cbg; 
+};
+},{}],6:[function(require,module,exports){
+module.exports = function(pool, opts) {
+
+  var first = new Date(opts.endpoints[0]),
+    last = new Date(opts.endpoints[1]),
+    nearest, fills = [];
+
+  first.setMinutes(first.getMinutes() + first.getTimezoneOffset());
+  last.setMinutes(last.getMinutes() + last.getTimezoneOffset());
+
+  var defaults = {
+    classes: {
+      0: 'darkest',
+      3: 'dark',
+      6: 'lighter',
+      9: 'light',
+      12: 'lightest',
+      15: 'lighter',
+      18: 'dark',
+      21: 'darkest'
+    },
+    duration: 3,
+    scale: pool.xScale().copy()
+  };
+
+  _.defaults(opts || {}, defaults);
+
+  function fill(selection) {
+    fill.findNearest(opts.endpoints[1]);
+    var otherNear = new Date(nearest);
+    otherNear.setMinutes(otherNear.getMinutes() - otherNear.getTimezoneOffset());
+    fills.push({
+      width: opts.scale(last) - opts.scale(nearest),
+      x: opts.scale(otherNear),
+      fill: opts.classes[nearest.getHours()]
+    });
+    current = new Date(nearest);
+    while (current > first) {
+      var next = new Date(current);
+      next.setHours(current.getHours() - opts.duration);
+      var otherNext = new Date(next);
+      otherNext.setMinutes(otherNext.getMinutes() - otherNext.getTimezoneOffset());
+      fills.push({
+        width: opts.scale(current) - opts.scale(next),
+        x: opts.scale(otherNext),
+        fill: opts.classes[next.getHours()]
+      });
+      current = next;
+    }
+    selection.selectAll('rect')
+      .data(fills)
+      .enter()
+      .append('rect')
+      .attr({
+        'x': function(d) {
+          return d.x;
+        },
+        'y': 0,
+        'width': function(d) {
+          return d.width;
+        },
+        'height': pool.height(),
+        'class': function(d) {
+          return 'd3-rect-fill d3-fill-' + d.fill;
+        }
+      });
+  }
+
+  fill.findNearest = function(d) {
+    var date = new Date(d);
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+    var hourBreaks = [];
+    var i = 0;
+    while (i <= 24) {
+      hourBreaks.push(i);
+      i += opts.duration;
+    }
+    for(var i = 0; i < hourBreaks.length; i++) {
+      var br = hourBreaks[i];
+      var nextBr = hourBreaks[i + 1];
+      if ((date.getHours() >= br) && (date.getHours() < nextBr)) {
+        nearest = new Date(date.getFullYear(), date.getMonth(), date.getDate(), br, 0, 0);
+      }
+    }
+  };
+  
+  return fill;  
+};
+},{}],7:[function(require,module,exports){
+var bg = function(data, pool) {
+  var scale = d3.scale.linear()
+    .domain([0, d3.max(data, function(d) { return d.value; })])
+    .range([pool.height(), 0]);
+
+  return scale;
+};
+
+var carbs = function(data, pool) {
+  var scale = d3.scale.linear()
+    .domain([0, d3.max(data, function(d) { return d.value; })])
+    .range([0, 0.475 * pool.height()]);
+
+  return scale;
+};
+
+var bolus = function(data, pool) {
+  var scale = d3.scale.linear()
+    .domain([0, d3.max(data, function(d) { return d.value; })])
+    .range([pool.height(), 0.525 * pool.height()]);
+
+  return scale;
+};
+
+module.exports.bg = bg;
+module.exports.carbs = carbs;
+module.exports.bolus = bolus;
+},{}],8:[function(require,module,exports){
+module.exports = function(pool, opts) {
+
+  var opts = opts || {};
+
+  var defaults = {
+    classes: {
+      'very-low': 60,
+      'low': 80,
+      'target': 180,
+      'high': 200,
+      'very-high': 300
     },
     xScale: pool.xScale().copy(),
     yScale: d3.scale.linear().domain([0, 400]).range([pool.height(), 0])
@@ -560,142 +987,64 @@ module.exports = function(pool, opts) {
           },
           'class': function(d) {
             if (d.value < opts.classes['low']) {
-              return 'low';
+              return 'd3-bg-low';
             }
             else if (d.value < opts.classes['target']) {
-              return 'target';
+              return 'd3-bg-target';
             }
             else {
-              return 'high'
+              return 'd3-bg-high'
             }
           },
           'cy': function(d) {
             return opts.yScale(d.value);
           },
-          'r': 2.5,
+          'r': 7,
           'id': function(d) {
             return d.time + ' ' + d.value;
           }
         })
-        .classed({'d3-circle': true, 'cbg': true});
+        .classed({'d3-circle': true, 'd3-smbg': true});
       circles.exit().remove();
     });
   }
 
   return cbg; 
 };
-},{}],4:[function(require,module,exports){
-module.exports = function(pool, opts) {
-
-  var first = new Date(opts.endpoints[0]),
-    nearest, fills = [];
-
-  var defaults = {
-    classes: {
-      0: 'darkest',
-      3: 'dark',
-      6: 'lighter',
-      9: 'light',
-      12: 'lightest',
-      15: 'lighter',
-      18: 'dark',
-      21: 'darkest'
-    },
-    duration: 3,
-    scale: pool.xScale().copy()
-  };
-
-  _.defaults(opts || {}, defaults);
-
-  function fill(selection) {
-    fill.findNearest(opts.endpoints[1]);
-    fills.push({
-      width: opts.scale(opts.endpoints[1]) - opts.scale(nearest),
-      x: opts.scale(nearest),
-      fill: opts.classes[nearest.getHours()]
-    });
-    current = new Date(nearest);
-    while (current > first) {
-      var next = new Date(current);
-      next.setHours(current.getHours() - opts.duration);
-      fills.push({
-        width: opts.scale(current) - opts.scale(next),
-        x: opts.scale(next),
-        fill: opts.classes[next.getHours()]
-      });
-      current = next;
-    }
-    selection.selectAll('rect')
-      .data(fills)
-      .enter()
-      .append('rect')
-      .attr({
-        'x': function(d) {
-          return d.x;
-        },
-        'y': 0,
-        'width': function(d) {
-          return d.width;
-        },
-        'height': pool.height(),
-        'class': function(d) {
-          return 'd3-rect-fill ' + d.fill;
-        }
-      });
-  }
-
-  fill.findNearest = function(d) {
-    var date = new Date(d);
-    var hourBreaks = [];
-    var i = 0;
-    while (i < 24) {
-      hourBreaks.push(i);
-      i += opts.duration;
-    }
-    for(var i = 0; i < hourBreaks.length; i++) {
-      var br = hourBreaks[i];
-      var nextBr = hourBreaks[i + 1];
-      if ((date.getHours() >= br) && (date.getHours() < nextBr)) {
-        nearest = new Date(date.getFullYear(), date.getMonth(), date.getDate(), br, 0, 0);
-      }
-    }
-  };
-  
-  return fill;  
-};
-},{}],5:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 module.exports = function(container) {
 
   // TMP: colors, etc. for demo-ing
   var colors = d3.scale.category20(),
     grays = ['#636363', '#969696', '#bdbdbd', '#d9d9d9', '#d9d9d9', '#bdbdbd', '#969696', '#636363'];
 
-  var allData = [],
+  var data,
     id, label,
     index, weight, yPosition,
     height, minHeight, maxHeight,
     group,
     mainSVG = d3.select(container.id()),
     xScale = container.xScale().copy(),
+    yAxis = [],
     plotTypes = [];
 
   var defaults = {
-    minHeight: 100,
+    minHeight: 40,
     maxHeight: 300
   };
 
   function pool(selection, poolData) {
-    pool.allData(poolData);
     // select the pool group if it already exists
-    group = selection.selectAll('#' + id).data([allData]);
+    group = selection.selectAll('#' + id).data([poolData]);
     // otherwise create a new pool group
     group.enter().append('g').attr({
       'id': id,
       'transform': 'translate(0,' + yPosition + ')'
     });
+    var dataFill = {'cbg': true, 'smbg': true, 'carbs': true, 'bolus': true, 'fill': false};
     plotTypes.forEach(function(plotType) {
-      if (allData.length) {
-        plotType.data = _.where(allData, {'type': plotType.type});
+      if (dataFill[plotType.type]) {
+        plotType.data = _.where(poolData, {'type': plotType.type});
         dataGroup = group.selectAll('#' + id + '_' + plotType.type).data([plotType.data]);
         dataGroup.enter().append('g').attr('id', id + '_' + plotType.type);
         dataGroup.call(plotType.plot);
@@ -704,6 +1053,7 @@ module.exports = function(container) {
         pool.noDataFill(plotType);
       }
     });
+    pool.drawAxis();
     pool.drawLabel();
   }
 
@@ -722,8 +1072,9 @@ module.exports = function(container) {
 
   pool.pan = function(e) {
     container.latestTranslation(e.translate[0]);
-    d3.selectAll('.d3-circle').attr('transform', 'translate(' + e.translate[0] + ',0)');
-    d3.selectAll('.d3-rect-fill').attr('transform', 'translate(' + e.translate[0] + ',0)');
+    plotTypes.forEach(function(plotType) {
+      d3.select('#' + id + '_' + plotType.type).attr('transform', 'translate(' + e.translate[0] + ',0)');
+    });
   };
 
   // only once methods
@@ -733,9 +1084,21 @@ module.exports = function(container) {
       .attr({
         'id': 'pool_' + id + '_label',
         'class': 'd3-pool-label',
-        'transform': 'translate(0,' + yPosition + ')'
+        'transform': 'translate(' + container.axisGutter() + ',' + yPosition + ')'
       })
       .text(label);
+    return pool
+  });
+
+  pool.drawAxis = _.once(function() {
+    var axisGroup = d3.select('#tidelineYAxes');
+    yAxis.forEach(function(axis, i) {
+      axisGroup.append('g')
+        .attr('class', 'd3-y d3-axis')
+        .attr('id', 'pool_' + id + '_yAxis_' + i)
+        .attr('transform', 'translate(' + container.axisGutter() + ',' + yPosition + ')')
+        .call(axis);
+      });
     return pool;
   });
 
@@ -745,37 +1108,6 @@ module.exports = function(container) {
   });
 
   // getters & setters
-  pool.allData = function(x) {
-    if (!arguments.length) return allData;
-    allData = allData.concat(x);
-    var currentDomain = container.xScale().domain();
-    // TODO: parametrize what the buffer is with a buffer variable that sets number of days for minus and plus
-    var plusTwo = new Date(currentDomain[1]);
-    plusTwo.setDate(plusTwo.getDate() + 2);
-    var minusTwo = new Date(currentDomain[0]);
-    minusTwo.setDate(minusTwo.getDate() - 2);
-    if (currentDomain[0] < minusTwo) {
-      container.beginningOfData(minusTwo); 
-      allData = _.filter(allData, function(datapoint) {
-        var t = Date.parse(datapoint.time);
-        if (t > minusTwo) {
-          return t;
-        }
-      });
-    }
-    if (plusTwo > currentDomain[1]) {
-      container.endOfData(plusTwo);
-      allData = _.filter(allData, function(datapoint) {
-        var t = Date.parse(datapoint.time);
-        if (t < plusTwo) {
-          return t;
-        }
-      });
-    }
-    allData = _.sortBy(allData, 'time');
-    return pool;
-  };
-
   pool.id = function(x) {
     if (!arguments.length) return id;
     id = x;
@@ -844,6 +1176,13 @@ module.exports = function(container) {
   pool.xScale = function(f) {
     if (!arguments.length) return xScale;
     xScale = f;
+    return pool;
+  };
+
+  // TODO: replace
+  pool.yAxis = function(x) {
+    if (!arguments.length) return yAxis;
+    yAxis.push(x);
     return pool;
   };
 
