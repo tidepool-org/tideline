@@ -159,9 +159,14 @@ var print = function(arg, d) {
   console.log(arg, d.toUTCString().replace(' GMT', ''));
 };
 
+var strip = function(d) {
+  return d.toUTCString().replace(' GMT', '');
+};
+
 module.exports.data = data;
 module.exports.normalize = normalize;
 module.exports.print = print;
+module.exports.strip = strip;
 },{}],3:[function(require,module,exports){
 var pool = require('./pool');
 
@@ -1002,7 +1007,7 @@ module.exports = function(pool, opts) {
       messages.enter()
         .append('image')
         .attr({ 
-          'xlink:href': '../img/post_it.svg',
+          'xlink:href': '../img/message/post_it.svg',
           'x': function(d) {
             return opts.xScale(Date.parse(d.normalTime)) - opts.size / 2;
           },
