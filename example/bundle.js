@@ -2,8 +2,18 @@
 d3.json('device-data.json', function(data) {
   var container = require('../js/container')();
 
+  var watson = require('./watson');
+
+  // Watson the data
+  data = watson.data(data);
+  data = watson.normalize(data);
+  data = _.sortBy(data, 'normalTime');
+
   // set up main one-day container
   container.data(data).defaults().width(1000).height(700);
+
+  watson.print('Start', new Date(container.endpoints[0]));
+  watson.print('End', new Date(container.endpoints[1]));
 
   d3.select('#tidelineContainer').datum(container.getData()).call(container);
 
@@ -13,8 +23,6 @@ d3.json('device-data.json', function(data) {
   // attach click handlers to set up programmatic pan
   $('#tidelineNavForward').on('click', container.panForward);
   $('#tidelineNavBack').on('click', container.panBack);
-
-  console.log(new Date(container.endpoints[0]), new Date(container.endpoints[1]));
 
   // start setting up pools
   // messages pool
@@ -36,7 +44,7 @@ d3.json('device-data.json', function(data) {
     .id('poolBolus')
     .label('Bolus & Carbohydrates')
     .index(container.pools().indexOf(poolBolus))
-    .weight(1.0);
+    .weight(1.5);
   
   // basal data pool
   var poolBasal = container.newPool().defaults()
@@ -100,6 +108,9 @@ d3.json('device-data.json', function(data) {
   // add background fill rectangles to messages pool
   poolMessages.addPlotType('fill', fill(poolMessages, {endpoints: container.endpoints}));
 
+  // add message images to messages pool
+  poolMessages.addPlotType('message', require('../js/plot/message')(poolMessages, {size: 30}));
+
   var poolGroup = d3.select('#tidelinePools');
 
   var initialData = container.getData(container.initialEndpoints, 'both');
@@ -118,7 +129,40 @@ d3.json('device-data.json', function(data) {
   //render messages pool
   poolMessages(poolGroup, initialData);
 });
-},{"../js/container":2,"../js/plot/bolus":3,"../js/plot/carbs":4,"../js/plot/cbg":5,"../js/plot/fill":6,"../js/plot/scales":7,"../js/plot/smbg":8}],2:[function(require,module,exports){
+},{"../js/container":3,"../js/plot/bolus":4,"../js/plot/carbs":5,"../js/plot/cbg":6,"../js/plot/fill":7,"../js/plot/message":8,"../js/plot/scales":9,"../js/plot/smbg":10,"./watson":2}],2:[function(require,module,exports){
+// 'Good old Watson! You are the one fixed point in a changing age.' - Sherlock Holmes, His Last Bow
+
+var data = function(a) {
+  messages = _.where(a, {'type': 'message'});
+  watson = _.map(_.reject(a, function(i) {
+    if (i.type === 'message') {
+      return i;
+    }}), function(i) {
+      i.deviceTime = i.deviceTime + 'Z';
+      return i;
+  });
+
+  return watson.concat(messages);
+};
+
+var normalize = function(a) {
+  return _.map(a, function(i) {
+    i.normalTime = i.deviceTime;
+    if (!i.normalTime) {
+      i.normalTime = i.utcTime;
+    }
+    return i;
+  });
+};
+
+var print = function(arg, d) {
+  console.log(arg, d.toUTCString().replace(' GMT', ''));
+};
+
+module.exports.data = data;
+module.exports.normalize = normalize;
+module.exports.print = print;
+},{}],3:[function(require,module,exports){
 var pool = require('./pool');
 
 module.exports = function() {
@@ -231,7 +275,7 @@ module.exports = function() {
           .attr('id', 'tidelineScrollNav');
 
         nav.scrollScale = d3.time.scale.utc()
-          .domain([Date.parse(data[0].time), Date.parse(currentData[0].time)])
+          .domain([Date.parse(data[0].normalTime), Date.parse(currentData[0].normalTime)])
           .range([container.axisGutter(), width]);
       }
     });
@@ -247,7 +291,7 @@ module.exports = function() {
     var end = new Date(endpoints[1]);
 
     readings = _.filter(data, function(datapoint) {
-      t = Date.parse(datapoint.time);
+      t = Date.parse(datapoint.normalTime);
       if (direction == 'both') {
         if ((t >= start) && (t <= end)) {
           return datapoint;
@@ -639,8 +683,8 @@ module.exports = function() {
   container.data = function(a) {
     if (!arguments.length) return data;
     data = a;
-    var first = Date.parse(a[0].time);
-    var last = Date.parse(a[a.length - 1].time);
+    var first = Date.parse(a[0].normalTime);
+    var last = Date.parse(a[a.length - 1].normalTime);
     var minusOne = new Date(last);
     minusOne.setDate(minusOne.getDate() - 1);
     initialEndpoints = [minusOne, last];
@@ -667,7 +711,7 @@ module.exports = function() {
     if (beginningOfData < minus) {
       container.beginningOfData(minus); 
       allData = _.filter(allData, function(datapoint) {
-        var t = Date.parse(datapoint.time);
+        var t = Date.parse(datapoint.normalTime);
         if (t >= minus) {
           return t;
         }
@@ -676,13 +720,13 @@ module.exports = function() {
     if (endOfData > plus) {
       container.endOfData(plus);
       allData = _.filter(allData, function(datapoint) {
-        var t = Date.parse(datapoint.time);
+        var t = Date.parse(datapoint.normalTime);
         if (t <= plus) {
           return t;
         }
       });
     }
-    allData = _.sortBy(allData, 'time');
+    allData = _.sortBy(allData, 'normalTime');
     return pool;
   };
 
@@ -694,7 +738,7 @@ module.exports = function() {
 
   return container;
 };
-},{"./pool":9}],3:[function(require,module,exports){
+},{"./pool":11}],4:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -706,39 +750,48 @@ module.exports = function(pool, opts) {
 
   _.defaults(opts, defaults);
 
-  function carbs(selection) {
+  function bolus(selection) {
     selection.each(function(currentData) {
-      var rects = d3.select(this)
-        .selectAll('rect')
+      var boluses = d3.select(this)
+        .selectAll('g')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
-          return d.time;
+          return d.normalTime;
         });
-      rects.enter()
-        .append('rect')
+      var bolusGroups = boluses.enter()
+        .append('g')
+        .attr({
+          'class': 'd3-bolus-group'
+        });
+      var top = opts.yScale.range()[0];
+      bolusGroups.append('rect')
         .attr({
           'x': function(d) {
-            return opts.xScale(Date.parse(d.time)) - opts.width/2;
+            return bolus.x(d);
           },
           'y': function(d) {
             return opts.yScale(d.value);
           },
           'width': opts.width,
           'height': function(d) {
-            return opts.yScale.range()[0] - opts.yScale(d.value);
+            return top - opts.yScale(d.value);
           },
           'class': 'd3-rect-bolus d3-bolus',
           'id': function(d) {
-            return d.time + ' ' + d.value;
+            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
           }
         });
-        rects.exit().remove();
+      boluses.exit().remove();
     });
   }
+  
+  bolus.x = function(d) {
+    return opts.xScale(Date.parse(d.normalTime)) - opts.width/2;
+  };
 
-  return carbs; 
+  return bolus; 
 };
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -756,13 +809,13 @@ module.exports = function(pool, opts) {
         .selectAll('rect')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
-          return d.time;
+          return d.normalTime;
         });
       rects.enter()
         .append('rect')
         .attr({
           'x': function(d) {
-            return opts.xScale(Date.parse(d.time)) - opts.width/2;
+            return opts.xScale(Date.parse(d.normalTime)) - opts.width/2;
           },
           'y': 0,
           'width': opts.width,
@@ -771,7 +824,7 @@ module.exports = function(pool, opts) {
           },
           'class': 'd3-rect-carbs d3-carbs',
           'id': function(d) {
-            return d.time + ' ' + d.value;
+            return d.normalTime + ' ' + d.value;
           }
         });
         rects.exit().remove();
@@ -780,7 +833,7 @@ module.exports = function(pool, opts) {
 
   return carbs; 
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -802,13 +855,13 @@ module.exports = function(pool, opts) {
         .selectAll('circle')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
-          return d.time;
+          return d.normalTime;
         });
       circles.enter()
         .append('circle')
         .attr({
           'cx': function(d) {
-            return opts.xScale(Date.parse(d.time));
+            return opts.xScale(Date.parse(d.normalTime));
           },
           'class': function(d) {
             if (d.value < opts.classes['low']) {
@@ -826,7 +879,7 @@ module.exports = function(pool, opts) {
           },
           'r': 2.5,
           'id': function(d) {
-            return d.time + ' ' + d.value;
+            return d.normalTime + ' ' + d.value;
           }
         })
         .classed({'d3-circle': true, 'd3-cbg': true});
@@ -836,7 +889,7 @@ module.exports = function(pool, opts) {
 
   return cbg; 
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var first = new Date(opts.endpoints[0]),
@@ -924,7 +977,50 @@ module.exports = function(pool, opts) {
   
   return fill;  
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+module.exports = function(pool, opts) {
+
+  var opts = opts || {};
+
+  var defaults = {
+    xScale: pool.xScale().copy()
+  };
+
+  _.defaults(opts, defaults);
+
+  function cbg(selection) {
+    selection.each(function(currentData) {
+      var messages = d3.select(this)
+        .selectAll('image')
+        .data(currentData, function(d) {
+          // leveraging the timestamp of each datapoint as the ID for D3's binding
+          // only top-level message get an icon on the timeline
+          if (d.parentMessage === '') {
+            return d.normalTime;
+          }
+        });
+      messages.enter()
+        .append('image')
+        .attr({ 
+          'xlink:href': '../img/post_it.svg',
+          'x': function(d) {
+            return opts.xScale(Date.parse(d.normalTime)) - opts.size / 2;
+          },
+          'y': pool.height() / 2 - opts.size / 2,
+          'width': opts.size,
+          'height': opts.size,
+          'id': function(d) {
+            return d.id;
+          }
+        })
+        .classed({'d3-image': true, 'd3-message': true});
+      messages.exit().remove();
+    });
+  }
+
+  return cbg; 
+};
+},{}],9:[function(require,module,exports){
 var bg = function(data, pool) {
   var scale = d3.scale.linear()
     .domain([0, d3.max(data, function(d) { return d.value; })])
@@ -952,7 +1048,7 @@ var bolus = function(data, pool) {
 module.exports.bg = bg;
 module.exports.carbs = carbs;
 module.exports.bolus = bolus;
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -977,13 +1073,13 @@ module.exports = function(pool, opts) {
         .selectAll('circle')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
-          return d.time;
+          return d.normalTime;
         });
       circles.enter()
         .append('circle')
         .attr({
           'cx': function(d) {
-            return opts.xScale(Date.parse(d.time));
+            return opts.xScale(Date.parse(d.normalTime));
           },
           'class': function(d) {
             if (d.value < opts.classes['low']) {
@@ -1001,7 +1097,7 @@ module.exports = function(pool, opts) {
           },
           'r': 7,
           'id': function(d) {
-            return d.time + ' ' + d.value;
+            return d.normalTime + ' ' + d.value;
           }
         })
         .classed({'d3-circle': true, 'd3-smbg': true});
@@ -1011,7 +1107,7 @@ module.exports = function(pool, opts) {
 
   return cbg; 
 };
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = function(container) {
 
   // TMP: colors, etc. for demo-ing
@@ -1029,7 +1125,7 @@ module.exports = function(container) {
     plotTypes = [];
 
   var defaults = {
-    minHeight: 40,
+    minHeight: 35,
     maxHeight: 300
   };
 
@@ -1041,7 +1137,8 @@ module.exports = function(container) {
       'id': id,
       'transform': 'translate(0,' + yPosition + ')'
     });
-    var dataFill = {'cbg': true, 'smbg': true, 'carbs': true, 'bolus': true, 'fill': false};
+    // TODO: this is diabetes-data specific, doesn't belong here, factor out into example.js/passed arguments
+    var dataFill = {'cbg': true, 'smbg': true, 'carbs': true, 'bolus': true, 'fill': false, 'message': true};
     plotTypes.forEach(function(plotType) {
       if (dataFill[plotType.type]) {
         plotType.data = _.where(poolData, {'type': plotType.type});

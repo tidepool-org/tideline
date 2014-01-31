@@ -52,7 +52,7 @@ svg {
 .d3-rect-carbs {
   fill: #ffd382;
 }
-.d3-rect-bolus {
+.d3-bolus.d3-rect-bolus {
   fill: #79d0f2;
 }
 .d3-cbg.d3-bg-low,
