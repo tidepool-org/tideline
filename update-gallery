@@ -1,0 +1,10 @@
+#!/bin/bash
+
+FILE="$1"
+CSS=".css"
+JS=".js"
+HTML=".html"
+cp ../css/tideline.css example/$FILE$CSS
+cp ../example/bundle.js example/$FILE$JS
+cp ../example/device-data.json example/
+cp ../example/index.html example/$FILE$HTML
