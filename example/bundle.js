@@ -744,13 +744,17 @@ module.exports = function() {
   return container;
 };
 },{"./pool":11}],4:[function(require,module,exports){
+var watson = require('../../example/watson');
+
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
 
   var defaults = {
     xScale: pool.xScale().copy(),
-    width: 8
+    width: 12,
+    bolusStroke: 2,
+    triangleSize: 6
   };
 
   _.defaults(opts, defaults);
@@ -769,6 +773,7 @@ module.exports = function(pool, opts) {
           'class': 'd3-bolus-group'
         });
       var top = opts.yScale.range()[0];
+      // boluses where delivered = recommended
       bolusGroups.append('rect')
         .attr({
           'x': function(d) {
@@ -786,6 +791,102 @@ module.exports = function(pool, opts) {
             return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
           }
         });
+      // boluses where recommendation and delivery differ
+      var bottom = top - opts.bolusStroke / 2;
+      // boluses where recommended > delivered
+      var underride = bolusGroups.filter(function(d) {
+        if (d.recommended > d.value) {
+          return d;
+        }
+      });
+      underride.append('rect')
+        .attr({
+          'x': function(d) {
+            return bolus.x(d);
+          },
+          'y': function(d) {
+            return opts.yScale(d.recommended);
+          },
+          'width': opts.width,
+          'height': function(d) {
+            return opts.yScale(d.value) - opts.yScale(d.recommended);
+          },
+          'class': 'd3-rect-recommended d3-bolus',
+          'id': function(d) {
+            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+          }
+        });
+      // boluses where delivered > recommended
+      var override = bolusGroups.filter(function(d) {
+        if (d.value > d.recommended) {
+          return d;
+        }
+      });
+      override.append('rect')
+        .attr({
+          'x': function(d) {
+            return bolus.x(d);
+          },
+          'y': function(d) {
+            return opts.yScale(d.recommended);
+          },
+          'width': opts.width,
+          'height': function(d) {
+            return top - opts.yScale(d.recommended);
+          },
+          'stroke-width': opts.bolusStroke,
+          'class': 'd3-rect-recommended d3-bolus',
+          'id': function(d) {
+            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+          }
+        });
+      override.append('path')
+        .attr({
+          'd': function(d) {
+            var leftEdge = bolus.x(d) + opts.bolusStroke / 2;
+            var rightEdge = leftEdge + opts.width - opts.bolusStroke;
+            var bolusHeight = opts.yScale(d.value) + opts.bolusStroke / 2;
+            return "M" + leftEdge + ' ' + bottom + "L" + rightEdge + ' ' + bottom + "L" + rightEdge + ' ' + bolusHeight + "L" + leftEdge + ' ' + bolusHeight + "Z";
+          },
+          'stroke-width': opts.bolusStroke,
+          'class': 'd3-path-bolus d3-bolus',
+          'id': function(d) {
+            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+          }
+        });
+      // square- and dual-wave boluses
+      var extendedBoluses = bolusGroups.filter(function(d) {
+        if (d.extended) {
+          return d;
+        }
+      });
+      extendedBoluses.append('path')
+        .attr({
+          'd': function(d) {
+            var rightEdge = bolus.x(d) + opts.width;
+            var doseHeight = opts.yScale(d.extendedDelivery) + opts.bolusStroke / 2;
+            var doseEnd = opts.xScale(Date.parse(d.normalTime) + d.duration) - opts.triangleSize / 2;
+            return "M" + rightEdge + ' ' + doseHeight + "L" + doseEnd + ' ' + doseHeight;
+          },
+          'stroke-width': opts.bolusStroke,
+          'class': 'd3-path-extended d3-bolus',
+          'id': function(d) {
+            return d.normalTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+          }
+        });
+      extendedBoluses.append('path')
+        .attr({
+          'd': function(d) {      
+            var doseHeight = opts.yScale(d.extendedDelivery) + opts.bolusStroke / 2;
+            var doseEnd = opts.xScale(Date.parse(d.normalTime) + d.duration) - opts.triangleSize;
+            return bolus.triangle(doseEnd, doseHeight);
+          },
+          'stroke-width': opts.bolusStroke,
+          'class': 'd3-path-extended-triangle d3-bolus',
+          'id': function(d) {
+            return d.normalTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+          }
+        });
       boluses.exit().remove();
     });
   }
@@ -794,16 +895,24 @@ module.exports = function(pool, opts) {
     return opts.xScale(Date.parse(d.normalTime)) - opts.width/2;
   };
 
+  bolus.triangle = function(x, y) {
+    var top = (x + opts.triangleSize) + ' ' + (y + opts.triangleSize/2);
+    var bottom = (x + opts.triangleSize) + ' ' + (y - opts.triangleSize/2);
+    var point = x + ' ' + y;
+    return "M" + top + "L" + bottom + "L" + point + "Z";
+  };
+
   return bolus; 
 };
-},{}],5:[function(require,module,exports){
+
+},{"../../example/watson":2}],5:[function(require,module,exports){
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
 
   var defaults = {
     xScale: pool.xScale().copy(),
-    width: 8
+    width: 12
   };
 
   _.defaults(opts, defaults);
@@ -1066,51 +1175,59 @@ module.exports = function(pool, opts) {
       'high': 200,
       'very-high': 300
     },
+    size: 16,
     xScale: pool.xScale().copy(),
     yScale: d3.scale.linear().domain([0, 400]).range([pool.height(), 0])
   };
 
   _.defaults(opts, defaults);
 
-  function cbg(selection) {
+  function smbg(selection) {
     selection.each(function(currentData) {
       var circles = d3.select(this)
-        .selectAll('circle')
+        .selectAll('image')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
           return d.normalTime;
         });
       circles.enter()
-        .append('circle')
+        .append('image')
         .attr({
-          'cx': function(d) {
-            return opts.xScale(Date.parse(d.normalTime));
-          },
-          'class': function(d) {
-            if (d.value < opts.classes['low']) {
-              return 'd3-bg-low';
+          'xlink:href': function(d) {
+            if (d.value <= opts.classes['very-low']) {
+              return '../img/smbg/very_low.svg';
             }
-            else if (d.value < opts.classes['target']) {
-              return 'd3-bg-target';
+            else if ((d.value > opts.classes['very-low']) && (d.value <= opts.classes['low'])) {
+              return '../img/smbg/low.svg';
             }
-            else {
-              return 'd3-bg-high'
+            else if ((d.value > opts.classes['low']) && (d.value <= opts.classes['target'])) {
+              return '../img/smbg/target.svg';
+            }
+            else if ((d.value > opts.classes['target']) && (d.value <= opts.classes['high'])) {
+              return '../img/smbg/high.svg';
+            }
+            else if (d.value > opts.classes['high']) {
+              return '../img/smbg/very_high.svg';
             }
           },
-          'cy': function(d) {
-            return opts.yScale(d.value);
+          'x': function(d) {
+            return opts.xScale(Date.parse(d.normalTime)) - opts.size / 2;
           },
-          'r': 7,
+          'y': function(d) {
+            return opts.yScale(d.value) - opts.size / 2;
+          },
+          'width': opts.size,
+          'height': opts.size,
           'id': function(d) {
             return d.normalTime + ' ' + d.value;
           }
         })
-        .classed({'d3-circle': true, 'd3-smbg': true});
+        .classed({'d3-image': true, 'd3-smbg': true, 'd3-smbg-image': true});
       circles.exit().remove();
     });
   }
 
-  return cbg; 
+  return smbg; 
 };
 },{}],11:[function(require,module,exports){
 module.exports = function(container) {
