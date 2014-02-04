@@ -66,20 +66,21 @@ svg {
 .d3-bolus.d3-rect-recommended {
   fill: #bcecfa;
 }
-.d3-cbg.d3-bg-low,
-.d3-smbg.d3-bg-low {
+.d3-cbg.d3-circle-cbg {
+  pointer-events: all;
+}
+.d3-cbg.d3-circle-cbg.d3-bg-low {
   fill: #ff8b7c;
 }
-.d3-cbg.d3-bg-target,
-.d3-smbg.d3-bg-target {
+.d3-cbg.d3-circle-cbg.d3-bg-target {
   fill: #9ad859;
 }
-.d3-cbg.d3-bg-high,
-.d3-smbg.d3-bg-high {
+.d3-cbg.d3-circle-cbg.d3-bg-high {
   fill: #bb9ae7;
 }
-.d3-cbg.d3-smbg-image,
-.d3-smbg.d3-smbg-image {
-  width: 16;
-  height: 16;
+.d3-tooltip .d3-tooltip-text {
+  fill: #989897;
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: central;
 }

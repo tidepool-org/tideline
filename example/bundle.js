@@ -3,9 +3,9 @@ d3.json('device-data.json', function(data) {
   var container = require('../js/container')();
 
   var watson = require('./watson');
+  watson = new watson();
 
   // Watson the data
-  data = watson.data(data);
   data = watson.normalize(data);
   data = _.sortBy(data, 'normalTime');
 
@@ -16,6 +16,9 @@ d3.json('device-data.json', function(data) {
   watson.print('End', new Date(container.endpoints[1]));
 
   d3.select('#tidelineContainer').datum(container.getData()).call(container);
+
+  // set up tooltips group
+  container.setTooltip();
 
   // set up click-and-drag and scroll navigation
   container.setNav().setScrollNav();
@@ -128,47 +131,51 @@ d3.json('device-data.json', function(data) {
 
   //render messages pool
   poolMessages(poolGroup, initialData);
+
+  // add tooltips
+  container.tooltips.addGroup(d3.select('#' + poolBG.id()), 'cbg');
+  container.tooltips.addGroup(d3.select('#' + poolBG.id()), 'smbg');
+  container.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'carbs');
+  container.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'bolus');
+  container.tooltips.addGroup(d3.select('#' + poolBasal.id()), 'basal');
 });
 },{"../js/container":3,"../js/plot/bolus":4,"../js/plot/carbs":5,"../js/plot/cbg":6,"../js/plot/fill":7,"../js/plot/message":8,"../js/plot/scales":9,"../js/plot/smbg":10,"./watson":2}],2:[function(require,module,exports){
-// 'Good old Watson! You are the one fixed point in a changing age.' - Sherlock Holmes, His Last Bow
+// 'Good old Watson! You are the one fixed point in a changing age.' - Sherlock Holmes, "His Last Bow"
 
-var data = function(a) {
-  messages = _.where(a, {'type': 'message'});
-  watson = _.map(_.reject(a, function(i) {
-    if (i.type === 'message') {
+module.exports = function() {
+
+  function watson() {
+    console.log("Start her up, Watson, for it's time that we were on our way.");
+  }
+
+  watson.normalize = function(a) {
+    return _.map(a, function(i) {
+      i.normalTime = i.deviceTime + 'Z';
+      if (i.utcTime) {
+        var d = new Date(i.utcTime);
+        var offsetMinutes = d.getTimezoneOffset();
+        d.setMinutes(d.getMinutes() - offsetMinutes);
+        i.normalTime = d.toISOString();
+      }
       return i;
-    }}), function(i) {
-      i.deviceTime = i.deviceTime + 'Z';
-      return i;
-  });
+    });
+  };
 
-  return watson.concat(messages);
+  watson.print = function(arg, d) {
+    console.log(arg, d.toUTCString().replace(' GMT', ''));
+    return;
+  };
+
+  watson.strip = function(d) {
+    return d.toUTCString().replace(' GMT', '');
+  };
+
+  return watson;
 };
-
-var normalize = function(a) {
-  return _.map(a, function(i) {
-    i.normalTime = i.deviceTime;
-    if (!i.normalTime) {
-      i.normalTime = i.utcTime;
-    }
-    return i;
-  });
-};
-
-var print = function(arg, d) {
-  console.log(arg, d.toUTCString().replace(' GMT', ''));
-};
-
-var strip = function(d) {
-  return d.toUTCString().replace(' GMT', '');
-};
-
-module.exports.data = data;
-module.exports.normalize = normalize;
-module.exports.print = print;
-module.exports.strip = strip;
 },{}],3:[function(require,module,exports){
 var pool = require('./pool');
+
+var tooltip = require('./plot/tooltip');
 
 module.exports = function() {
 
@@ -186,7 +193,7 @@ module.exports = function() {
     xScale = d3.time.scale.utc(),
     xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0),
     beginningOfData, endOfData, data, allData = [], buffer, endpoints, outerEndpoints, initialEndpoints,
-    mainGroup, poolGroup, scrollNav, scrollHandleTrigger = true;
+    mainGroup, poolGroup, scrollNav, scrollHandleTrigger = true, tooltips;
 
   var defaults = {
     bucket: $('#tidelineContainer'),
@@ -203,7 +210,8 @@ module.exports = function() {
     },
     axisGutter: 40,
     gutter: 30,
-    buffer: 5
+    buffer: 5,
+    tooltip: true
   };
 
   function container(selection) {
@@ -226,18 +234,6 @@ module.exports = function() {
         }
       });
 
-      // set the domain and range for the main tideline x-scale
-      xScale.domain([container.initialEndpoints[0], container.initialEndpoints[1]])
-        .range([container.axisGutter(), width]);
-
-      mainGroup.append('g')
-        .attr('class', 'd3-x d3-axis')
-        .attr('id', 'tidelineXAxis')
-        .attr('transform', 'translate(0,' + nav.axisHeight + ')')
-        .call(xAxis);
-
-      poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
-
       mainGroup.append('rect')
         .attr({
           'id': 'poolsInvisibleRect',
@@ -252,6 +248,18 @@ module.exports = function() {
           },
           'opacity': 0.0
         });
+
+      // set the domain and range for the main tideline x-scale
+      xScale.domain([container.initialEndpoints[0], container.initialEndpoints[1]])
+        .range([container.axisGutter(), width]);
+
+      mainGroup.append('g')
+        .attr('class', 'd3-x d3-axis')
+        .attr('id', 'tidelineXAxis')
+        .attr('transform', 'translate(0,' + nav.axisHeight + ')')
+        .call(xAxis);
+
+      poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
 
       mainGroup.append('g')
         .attr('id', 'tidelineLabels');
@@ -400,6 +408,7 @@ module.exports = function() {
     this.axisGutter(properties.axisGutter);
     this.gutter(properties.gutter);
     this.buffer(properties.buffer);
+    this.tooltips(properties.tooltips);
 
     return container;
   };
@@ -446,6 +455,8 @@ module.exports = function() {
         for (var i = 0; i < pools.length; i++) {
           pools[i].pan(d3.event);
         }
+        // TODO: check if container has tooltips before transforming them
+        d3.select('#d3-tooltip-group').attr('transform', 'translate(' + d3.event.translate[0] + ',0)');
         d3.select('.d3-x.d3-axis').call(xAxis);
         if (scrollHandleTrigger) {
           d3.select('#scrollHandle').transition().ease('linear').attr('cx', function(d) {
@@ -507,6 +518,13 @@ module.exports = function() {
       })
       .call(drag);
 
+    return container;
+  };
+
+  container.setTooltip = function() {
+    var tooltipGroup = mainGroup.append('g')
+      .attr('id', 'd3-tooltip-group');
+    container.tooltips = new tooltip(container, tooltipGroup).id(tooltipGroup.attr('id'));
     return container;
   };
 
@@ -732,19 +750,26 @@ module.exports = function() {
       });
     }
     allData = _.sortBy(allData, 'normalTime');
-    return pool;
+    return container;
   };
 
   container.buffer = function(x) {
     if (!arguments.length) return buffer;
     buffer = x;
-    return pool;
+    return container;
+  };
+
+  container.tooltips = function(b) {
+    if (!arguments.length) return tooltips;
+    tooltips = b;
+    return container;
   };
 
   return container;
 };
-},{"./pool":11}],4:[function(require,module,exports){
+},{"./plot/tooltip":11,"./pool":12}],4:[function(require,module,exports){
 var watson = require('../../example/watson');
+watson = new watson();
 
 module.exports = function(pool, opts) {
 
@@ -813,7 +838,7 @@ module.exports = function(pool, opts) {
           },
           'class': 'd3-rect-recommended d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return d.deviceTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
           }
         });
       // boluses where delivered > recommended
@@ -851,7 +876,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-bolus d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return d.deviceTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
           }
         });
       // square- and dual-wave boluses
@@ -871,7 +896,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-extended d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+            return d.deviceTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
           }
         });
       extendedBoluses.append('path')
@@ -884,7 +909,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-extended-triangle d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+            return d.deviceTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
           }
         });
       boluses.exit().remove();
@@ -952,54 +977,138 @@ module.exports = function(pool, opts) {
 
   var opts = opts || {};
 
+  var cbgCircles, tooltips = pool.tooltips();
+
   var defaults = {
     classes: {
-      'low': 80,
-      'target': 180,
-      'high': 200
+      'low': {'boundary': 80, 'tooltip': 'cbg_tooltip_low.svg'},
+      'target': {'boundary': 180, 'tooltip': 'cbg_tooltip_target.svg'},
+      'high': {'boundary': 200, 'tooltip': 'cbg_tooltip_high.svg'}
     },
-    xScale: pool.xScale().copy()
+    xScale: pool.xScale().copy(),
+    tooltipSize: 24
   };
 
   _.defaults(opts, defaults);
 
   function cbg(selection) {
     selection.each(function(currentData) {
-      var circles = d3.select(this)
-        .selectAll('circle')
+      var allCBG = d3.select(this).selectAll('circle')
         .data(currentData, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
           return d.normalTime;
         });
-      circles.enter()
+      var cbgGroups = allCBG.enter()
         .append('circle')
-        .attr({
+        .attr('class', 'd3-cbg');
+      var cbgLow = cbgGroups.filter(function(d) {
+        if (d.value <= opts.classes['low']['boundary']) {
+          return d;
+        }
+      });
+      var cbgTarget = cbgGroups.filter(function(d) {
+        if ((d.value > opts.classes['low']['boundary']) && (d.value <= opts.classes['target']['boundary'])) {
+          return d;
+        }
+      });
+      var cbgHigh = cbgGroups.filter(function(d) {
+        if (d.value > opts.classes['target']['boundary']) {
+          return d;
+        }
+      });
+      cbgLow.attr({
           'cx': function(d) {
             return opts.xScale(Date.parse(d.normalTime));
-          },
-          'class': function(d) {
-            if (d.value < opts.classes['low']) {
-              return 'd3-bg-low';
-            }
-            else if (d.value < opts.classes['target']) {
-              return 'd3-bg-target';
-            }
-            else {
-              return 'd3-bg-high'
-            }
           },
           'cy': function(d) {
             return opts.yScale(d.value);
           },
           'r': 2.5,
           'id': function(d) {
-            return d.normalTime + ' ' + d.value;
+            return 'cbg_' + d.id;
           }
         })
-        .classed({'d3-circle': true, 'd3-cbg': true});
-      circles.exit().remove();
+        .datum(function(d) {
+          return d;
+        })
+        .classed({'d3-circle-cbg': true, 'd3-bg-low': true});
+      cbgTarget.attr({
+          'cx': function(d) {
+            return opts.xScale(Date.parse(d.normalTime));
+          },
+          'cy': function(d) {
+            return opts.yScale(d.value);
+          },
+          'r': 2.5,
+          'id': function(d) {
+            return 'cbg_' + d.id;
+          }
+        })
+        .classed({'d3-circle-cbg': true, 'd3-bg-target': true});
+      cbgHigh.attr({
+          'cx': function(d) {
+            return opts.xScale(Date.parse(d.normalTime));
+          },
+          'cy': function(d) {
+            return opts.yScale(d.value);
+          },
+          'r': 2.5,
+          'id': function(d) {
+            return 'cbg_' + d.id;
+          }
+        })
+        .classed({'d3-circle-cbg': true, 'd3-bg-high': true});
+
+      // tooltips
+      d3.selectAll('.d3-circle-cbg').on('mouseover', function() {
+        if (d3.select(this).classed('d3-bg-low')) {
+          cbg.addTooltip(d3.select(this).datum(), 'low'); 
+        }
+        else if (d3.select(this).classed('d3-bg-target')) {
+          cbg.addTooltip(d3.select(this).datum(), 'target'); 
+        }
+        else {
+          cbg.addTooltip(d3.select(this).datum(), 'high'); 
+        }
+      });
+      d3.selectAll('.d3-circle-cbg').on('mouseout', function() {
+        var id = d3.select(this).attr('id').replace('cbg_', 'tooltip_');
+        d3.select('#' + id).remove();
+      });
+      allCBG.exit().remove();
     });
   }
+
+  cbg.addTooltip = function(d, category) {
+    d3.select('#' + 'd3-tooltip-group_cbg')
+      .call(tooltips, 
+        d,
+        'cbg',
+        opts.classes[category]['tooltip'], 
+        opts.tooltipSize, 
+        // imageX
+        opts.xScale(Date.parse(d.normalTime)), 
+        // imageY
+        function() {
+          if ((category === 'low') || (category === 'target')) {
+            return opts.yScale(d.value) - opts.tooltipSize; 
+          }
+          else {
+            return opts.yScale(d.value);
+          }
+        },
+        // textX
+        opts.xScale(Date.parse(d.normalTime)) + opts.tooltipSize / 2,
+        // textY
+        function() {
+          if ((category === 'low') || (category === 'target')) {
+            return opts.yScale(d.value) - opts.tooltipSize / 2; 
+          }
+          else {
+            return opts.yScale(d.value) + opts.tooltipSize / 2;
+          }
+        });
+  };
 
   return cbg; 
 };
@@ -1230,6 +1339,55 @@ module.exports = function(pool, opts) {
   return smbg; 
 };
 },{}],11:[function(require,module,exports){
+module.exports = function(container, tooltipsGroup) {
+
+  var id;
+
+  function tooltip(selection, d, path, image, tooltipSize, imageX, imageY, textX, textY) {
+    console.log('Adding a tooltip...');
+    var tooltipGroup = selection.append('g')
+      .attr('class', 'd3-tooltip')
+      .attr('id', 'tooltip_' + d.id);
+
+    tooltipGroup.append('image')
+      .attr({
+        'xlink:href': '../img/' + path + '/' + image,
+        'x': imageX,
+        'y': imageY,
+        'width': tooltipSize,
+        'height': tooltipSize,
+        'class': 'd3-tooltip-image'
+      });
+
+    tooltipGroup.append('text')
+      .attr({
+        'x': textX,
+        'y': textY,
+        'class': function() {
+          return 'd3-tooltip-text'
+        }
+      })
+      .text(function() {
+        return d.value;
+      });
+  }
+
+  tooltip.addGroup = function(pool, type) {
+    tooltipsGroup.append('g')
+      .attr('id', tooltip.id() + '_' + type)
+      .attr('transform', pool.attr('transform'));
+  };
+
+  // getters & setters
+  tooltip.id = function(x) {
+    if (!arguments.length) return id;
+    id = tooltipsGroup.attr('id');
+    return tooltip;
+  };
+
+  return tooltip;
+};
+},{}],12:[function(require,module,exports){
 module.exports = function(container) {
 
   // TMP: colors, etc. for demo-ing
@@ -1285,6 +1443,7 @@ module.exports = function(container) {
       properties = obj;
     }
     this.minHeight(properties.minHeight).maxHeight(properties.maxHeight);
+    this.tooltips(container.tooltips);
 
     return pool;
   };
@@ -1411,6 +1570,12 @@ module.exports = function(container) {
       plot: plotFunction
     });
     return pool;
+  };
+
+  pool.tooltips = function(x) {
+    if (!arguments.length) return tooltips;
+    tooltips = x;
+    return tooltips;
   };
 
   return pool;
