@@ -84,3 +84,11 @@ svg {
   text-anchor: middle;
   dominant-baseline: central;
 }
+.d3-tooltip .d3-tooltip-text.d3-smbg {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip .d3-tooltip-rect {
+  fill: #f8f9fa;
+  opacity: 0.5;
+}
