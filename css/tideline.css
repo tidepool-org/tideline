@@ -1,28 +1,60 @@
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
 svg {
   display: block;
   margin: 0 auto;
 }
-.d3-axis path,
-.d3-axis line {
-  fill: none;
+.d3-axis {
   shape-rendering: crispEdges;
 }
-.d3-axis text {
-  fill: #808080;
-}
-.d3-x.d3-axis path,
-.d3-x.d3-axis line {
-  stroke: #808080;
-}
-.d3-x.d3-axis text {
-  font-size: 14px;
-}
-.d3-y.d3-axis path,
-.d3-y.d3-axis line {
+.d3-axis path {
   stroke: white;
 }
-.d3-y.d3-axis text {
+.d3-axis line {
+  stroke: #bac9d1;
+}
+.d3-axis text {
   font-size: 14px;
+  fill: #989897;
+  text-transform: lowercase;
+}
+.d3-axis.d3-y text {
+  fill: #808080;
+}
+.scroll line {
+  stroke: #989897;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
 }
 .d3-pool-label {
   text-transform: uppercase;
@@ -66,9 +98,6 @@ svg {
 .d3-bolus.d3-rect-recommended {
   fill: #bcecfa;
 }
-.d3-cbg.d3-circle-cbg {
-  pointer-events: all;
-}
 .d3-cbg.d3-circle-cbg.d3-bg-low {
   fill: #ff8b7c;
 }
@@ -78,11 +107,22 @@ svg {
 .d3-cbg.d3-circle-cbg.d3-bg-high {
   fill: #bb9ae7;
 }
+.d3-smbg-numbers.d3-rect-smbg {
+  fill: #f8f9fa;
+  opacity: 0.5;
+}
+.d3-smbg-numbers.d3-text-smbg {
+  text-anchor: middle;
+  fill: #808080;
+  font-size: 14px;
+  font-weight: bold;
+}
 .d3-tooltip .d3-tooltip-text {
   fill: #989897;
   font-size: 11px;
   text-anchor: middle;
   dominant-baseline: central;
+  text-transform: lowercase;
 }
 .d3-tooltip .d3-tooltip-text.d3-smbg {
   font-size: 14px;

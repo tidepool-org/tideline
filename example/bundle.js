@@ -1,154 +1,421 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
+var log = require('bows')('Example');
+// things common to one-day and two-week views
+// common event emitter
+var EventEmitter = require('events').EventEmitter;
+var emitter = new EventEmitter;
+emitter.setMaxListeners(100);
+emitter.on('navigated', function(navString) {
+  $('#tidelineNavString').html(navString); 
+});
+
+// common pool modules
+var fill = require('../js/plot/fill');
+var scales = require('../js/plot/scales');
+
+var el = '#tidelineContainer';
+
+// dear old Watson
+var watson = require('./watson')();
+d3.select(el).call(watson);
+
+// set up one-day view
+var oneDay = new oneDayChart(el), twoWeek = twoWeekChart(el); 
+
+
+// Note to Nico: this (all the code within d3.json() below) is all rough-and-ready...
+// obviously a lot of it could be refactored
+// but it should be a decent demo of how the interaction between one-day and two-week views could work
+// the TODO issue noted appears to be a thorny one, so I'd like to avoid it for now since there's so much else to do
+
+// load data and draw charts
 d3.json('device-data.json', function(data) {
-  var container = require('../js/container')();
-
-  var watson = require('./watson');
-  watson = new watson();
-
+  log('Data loaded.');
   // Watson the data
-  data = watson.normalize(data);
+  var data = watson.normalize(data);
   data = _.sortBy(data, 'normalTime');
 
-  // set up main one-day container
-  container.data(data).defaults().width(1000).height(700);
-
-  watson.print('Start', new Date(container.endpoints[0]));
-  watson.print('End', new Date(container.endpoints[1]));
-
-  d3.select('#tidelineContainer').datum(container.getData()).call(container);
-
-  // set up tooltips group
-  container.setTooltip();
-
-  // set up click-and-drag and scroll navigation
-  container.setNav().setScrollNav();
-
+  log('Initial one-day view.');
+  oneDay.initialize(data).locate('2014-03-06T12:00:00Z');
   // attach click handlers to set up programmatic pan
-  $('#tidelineNavForward').on('click', container.panForward);
-  $('#tidelineNavBack').on('click', container.panBack);
+  $('#tidelineNavForward').on('click', oneDay.panForward);
+  $('#tidelineNavBack').on('click', oneDay.panBack);
 
-  // start setting up pools
-  // messages pool
-  var poolMessages = container.newPool().defaults()
-    .id('poolMessages')
-    .label('')
-    .index(container.pools().indexOf(poolMessages))
-    .weight(0.5);
+  $('#twoWeekView').on('click', function() {
+    log('Navigated to two-week view from nav bar.');
+    var date = oneDay.getCurrentDay();
+    // remove click handlers for programmatic pan
+    $('#tidelineNavForward').off('click');
+    $('#tidelineNavBack').off('click');
+    oneDay.destroy();
+    $(this).parent().addClass('active');
+    $('#oneDayView').parent().removeClass('active');
+    $('.one-day').css('visibility', 'hidden');
+    $('.two-week').css('visibility', 'visible');
+    // TODO: this shouldn't be necessary, but I've screwed something up with the global two-week.js variables
+    // such that its necessary to create a new twoWeek object every time you want to rerender
+    twoWeek = new twoWeekChart(el);
+    // takes user to two-week view with day user was viewing in one-day view at the end of the two-week view window
+    twoWeek.initialize(data, date);
+  });
 
-  // blood glucose data pool
-  var poolBG = container.newPool().defaults()
-    .id('poolBG')
-    .label('Blood Glucose')
-    .index(container.pools().indexOf(poolBG))
-    .weight(1.5);
+  $('#oneDayView').on('click', function() {
+    log('Navigated to one-day view from nav bar.');
+    twoWeek.destroy();
+    $(this).parent().addClass('active');
+    $('#twoWeekView').parent().removeClass('active');
+    $('#oneDayMostRecent').parent().addClass('active');
+    $('.one-day').css('visibility', 'visible');
+    $('.two-week').css('visibility', 'hidden');
+    // TODO: this shouldn't be necessary, but I've screwed something up with the global one-day.js variables
+    // such that its necessary to create a new oneDay object every time you want to rerender
+    oneDay = new oneDayChart(el);
+    // takes user to one-day view of most recent data
+    oneDay.initialize(data).locate();
+    // attach click handlers to set up programmatic pan
+    $('#tidelineNavForward').on('click', oneDay.panForward);
+    $('#tidelineNavBack').on('click', oneDay.panBack);
+  });
 
-  // carbs and boluses data pool
-  var poolBolus = container.newPool().defaults()
-    .id('poolBolus')
-    .label('Bolus & Carbohydrates')
-    .index(container.pools().indexOf(poolBolus))
-    .weight(1.5);
-  
-  // basal data pool
-  var poolBasal = container.newPool().defaults()
-    .id('poolBasal')
-    .label('Basal Rates')
-    .index(container.pools().indexOf(poolBasal))
-    .weight(1.0);
+  $('#oneDayMostRecent').on('click', function() {
+    log('Navigated to most recent one-day view.');
+    twoWeek.destroy();
+    $(this).parent().addClass('active');
+    $('#twoWeekView').parent().removeClass('active');
+    $('#oneDayMostRecent').parent().addClass('active');
+    $('.one-day').css('visibility', 'visible');
+    $('.two-week').css('visibility', 'hidden');
+    // TODO: this shouldn't be necessary, but I've screwed something up with the global one-day.js variables
+    // such that its necessary to create a new oneDay object every time you want to rerender
+    oneDay = new oneDayChart(el);
+    // takes user to one-day view of most recent data
+    oneDay.initialize(data).locate();
+    // attach click handlers to set up programmatic pan
+    $('#tidelineNavForward').on('click', oneDay.panForward);
+    $('#tidelineNavBack').on('click', oneDay.panBack);
+  })
 
-  container.arrangePools();
+  emitter.on('selectSMBG', function(date) {
+    log('Navigated to one-day view from double clicking a two-week view SMBG.');
+    twoWeek.destroy();
+    $('#oneDayView').parent().addClass('active');
+    $('#twoWeekView').parent().removeClass('active');
+    $('#oneDayMostRecent').parent().removeClass('active');
+    $('.one-day').css('visibility', 'visible');
+    $('.two-week').css('visibility', 'hidden');
+    // TODO: this shouldn't be necessary, but I've screwed something up with the global one-day.js variables
+    // such that its necessary to create a new oneDay object every time you want to rerender
+    oneDay = new oneDayChart(el);
+    // takes user to one-day view of date given by the .d3-smbg-time emitter
+    oneDay.initialize(data).locate(date);
+    // attach click handlers to set up programmatic pan
+    $('#tidelineNavForward').on('click', oneDay.panForward);
+    $('#tidelineNavBack').on('click', oneDay.panBack);
+  });
 
-  var fill = require('../js/plot/fill');
-
-  var scales = require('../js/plot/scales');
-
-  // BG pool
-  var scaleBG = scales.bg(_.where(data, {'type': 'cbg'}), poolBG);
-  // set up y-axis
-  poolBG.yAxis(d3.svg.axis()
-    .scale(scaleBG)
-    .orient('left')
-    .outerTickSize(0)
-    .tickValues([40, 80, 120, 180, 300]));
-  // add background fill rectangles to BG pool
-  poolBG.addPlotType('fill', fill(poolBG, {endpoints: container.endpoints}));
-
-  // add CBG data to BG pool
-  poolBG.addPlotType('cbg', require('../js/plot/cbg')(poolBG, {yScale: scaleBG}));
-
-  // add SMBG data to BG pool
-  poolBG.addPlotType('smbg', require('../js/plot/smbg')(poolBG, {yScale: scaleBG}));
-
-  // bolus & carbs pool
-  var scaleBolus = scales.bolus(_.where(data, {'type': 'bolus'}), poolBolus);
-  var scaleCarbs = scales.carbs(_.where(data, {'type': 'carbs'}), poolBolus);
-  // set up y-axis for bolus
-  poolBolus.yAxis(d3.svg.axis()
-    .scale(scaleBolus)
-    .orient('left')
-    .outerTickSize(0)
-    .ticks(3));
-  // set up y-axis for carbs
-  poolBolus.yAxis(d3.svg.axis()
-    .scale(scaleCarbs)
-    .orient('left')
-    .outerTickSize(0)
-    .ticks(3));
-  // add background fill rectangles to bolus pool
-  poolBolus.addPlotType('fill', fill(poolBolus, {endpoints: container.endpoints}));
-
-  // add carbs data to bolus pool
-  poolBolus.addPlotType('carbs', require('../js/plot/carbs')(poolBolus, {yScale: scaleCarbs}));
-
-  // add bolus data to bolus pool
-  poolBolus.addPlotType('bolus', require('../js/plot/bolus')(poolBolus, {yScale: scaleBolus}));
-
-  // basal pool
-  // add background fill rectangles to basal pool
-  poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: container.endpoints}));
-
-  // messages pool
-  // add background fill rectangles to messages pool
-  poolMessages.addPlotType('fill', fill(poolMessages, {endpoints: container.endpoints}));
-
-  // add message images to messages pool
-  poolMessages.addPlotType('message', require('../js/plot/message')(poolMessages, {size: 30}));
-
-  var poolGroup = d3.select('#tidelinePools');
-
-  var initialData = container.getData(container.initialEndpoints, 'both');
-
-  container.allData(initialData);
-
-  // render BG pool
-  poolBG(poolGroup, initialData);
-
-  // render bolus pool
-  poolBolus(poolGroup, initialData);
-
-  // render basal pool
-  poolBasal(poolGroup, initialData);
-
-  //render messages pool
-  poolMessages(poolGroup, initialData);
-
-  // add tooltips
-  container.tooltips.addGroup(d3.select('#' + poolBG.id()), 'cbg');
-  container.tooltips.addGroup(d3.select('#' + poolBG.id()), 'smbg');
-  container.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'carbs');
-  container.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'bolus');
-  container.tooltips.addGroup(d3.select('#' + poolBasal.id()), 'basal');
+  $('#showHideNumbers').on('click', function() {
+    if ($(this).parent().hasClass('active')) {
+      emitter.emit('numbers', 'hide');
+      $(this).parent().removeClass('active');
+      $(this).html('Show Values');
+    }
+    else {
+      emitter.emit('numbers', 'show');
+      $(this).parent().addClass('active');
+      $(this).html('Hide Values');
+    }
+  });
 });
-},{"../js/container":3,"../js/plot/bolus":4,"../js/plot/carbs":5,"../js/plot/cbg":6,"../js/plot/fill":7,"../js/plot/message":8,"../js/plot/scales":9,"../js/plot/smbg":10,"./watson":2}],2:[function(require,module,exports){
+
+// // one-day visualization
+// // =====================
+// // create a 'oneDay' object that is a wrapper around tideline components
+// // for blip's (one-day) data visualization
+function oneDayChart(el) {
+
+  var chart = require('../js/one-day')(emitter);
+
+  var poolMessages, poolBG, poolBolus, poolBasal, poolStats;
+
+  var create = function(el) {
+
+    if (!el) {
+      throw new Error('Sorry, you must provide a DOM element! :(');
+    }
+
+    // basic chart set up
+    chart.defaults().width($(el).width()).height($(el).height());
+
+    return chart;
+  };
+
+  chart.initialize = function(data) {
+
+    // initialize chart with data
+    chart.data(data);
+    d3.select(el).datum([null]).call(chart);
+    chart.setTooltip();
+
+    // messages pool
+    poolMessages = chart.newPool().defaults()
+      .id('poolMessages')
+      .label('')
+      .index(chart.pools().indexOf(poolMessages))
+      .weight(0.5);
+
+    // blood glucose data pool
+    poolBG = chart.newPool().defaults()
+      .id('poolBG')
+      .label('Blood Glucose')
+      .index(chart.pools().indexOf(poolBG))
+      .weight(1.5);
+
+    // carbs and boluses data pool
+    poolBolus = chart.newPool().defaults()
+      .id('poolBolus')
+      .label('Bolus & Carbohydrates')
+      .index(chart.pools().indexOf(poolBolus))
+      .weight(1.5);
+    
+    // basal data pool
+    poolBasal = chart.newPool().defaults()
+      .id('poolBasal')
+      .label('Basal Rates')
+      .index(chart.pools().indexOf(poolBasal))
+      .weight(1.0);
+
+    // stats widget
+    // poolStats = chart.newPool().defaults()
+    //   .id('poolStats')
+    //   .index(chart.pools().indexOf(poolStats))
+    //   .weight(1.0);
+
+    chart.arrangePools();
+
+    // BG pool
+    var scaleBG = scales.bg(_.where(data, {'type': 'cbg'}), poolBG);
+    // set up y-axis
+    poolBG.yAxis(d3.svg.axis()
+      .scale(scaleBG)
+      .orient('left')
+      .outerTickSize(0)
+      .tickValues([40, 80, 120, 180, 300]));
+    // add background fill rectangles to BG pool
+    poolBG.addPlotType('fill', fill(poolBG, {endpoints: chart.endpoints}));
+
+    // add CBG data to BG pool
+    poolBG.addPlotType('cbg', require('../js/plot/cbg')(poolBG, {yScale: scaleBG}));
+
+    // add SMBG data to BG pool
+    poolBG.addPlotType('smbg', require('../js/plot/smbg')(poolBG, {yScale: scaleBG}));
+
+    // bolus & carbs pool
+    var scaleBolus = scales.bolus(_.where(data, {'type': 'bolus'}), poolBolus);
+    var scaleCarbs = scales.carbs(_.where(data, {'type': 'carbs'}), poolBolus);
+    // set up y-axis for bolus
+    poolBolus.yAxis(d3.svg.axis()
+      .scale(scaleBolus)
+      .orient('left')
+      .outerTickSize(0)
+      .ticks(3));
+    // set up y-axis for carbs
+    poolBolus.yAxis(d3.svg.axis()
+      .scale(scaleCarbs)
+      .orient('left')
+      .outerTickSize(0)
+      .ticks(3));
+    // add background fill rectangles to bolus pool
+    poolBolus.addPlotType('fill', fill(poolBolus, {endpoints: chart.endpoints}));
+
+    // add carbs data to bolus pool
+    poolBolus.addPlotType('carbs', require('../js/plot/carbs')(poolBolus, {yScale: scaleCarbs}));
+
+    // add bolus data to bolus pool
+    poolBolus.addPlotType('bolus', require('../js/plot/bolus')(poolBolus, {yScale: scaleBolus}));
+
+    // basal pool
+    // add background fill rectangles to basal pool
+    poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: chart.endpoints}));
+
+    // messages pool
+    // add background fill rectangles to messages pool
+    poolMessages.addPlotType('fill', fill(poolMessages, {endpoints: chart.endpoints}));
+
+    // add message images to messages pool
+    poolMessages.addPlotType('message', require('../js/plot/message')(poolMessages, {size: 30}));
+
+    return chart;
+  };
+
+  // locate the chart around a certain datetime
+  // if called without an argument, locates the chart at the most recent 24 hours of data
+  chart.locate = function(datetime) {
+
+    var start, localData;
+
+    if (!arguments.length) {
+      start = chart.initialEndpoints[0];
+      localData = chart.getData(chart.initialEndpoints, 'both');
+    }
+    else {
+      start = new Date(datetime);
+      var end = new Date(start);
+      start.setUTCHours(start.getUTCHours() - 12);
+      end.setUTCHours(end.getUTCHours() + 12);
+
+      localData = chart.getData([start, end], 'both');
+      chart.beginningOfData(start).endOfData(end);
+    }
+
+    chart.allData(localData, [start, end]);
+
+    // set up click-and-drag and scroll navigation
+    chart.setNav().setScrollNav().setAtDate(start);
+
+    // render pools
+    chart.pools().forEach(function(pool) {
+      pool(chart.poolGroup, localData);
+    });
+
+    // add tooltips
+    chart.tooltips.addGroup(d3.select('#' + poolBG.id()), 'cbg');
+    chart.tooltips.addGroup(d3.select('#' + poolBG.id()), 'smbg');
+    chart.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'carbs');
+    chart.tooltips.addGroup(d3.select('#' + poolBolus.id()), 'bolus');
+    chart.tooltips.addGroup(d3.select('#' + poolBasal.id()), 'basal');
+
+    return chart;
+  };
+
+  chart.getCurrentDay = function() {
+    return chart.date();
+  };
+
+  return create(el);
+};
+
+// // two-week visualization
+// // =====================
+// // create a 'twoWeek' object that is a wrapper around tideline components
+// // for blip's (two-week) data visualization
+function twoWeekChart(el) {
+
+  var chart = require('../js/two-week')(emitter);
+
+  var pools = [];
+
+  var create = function(el) {
+    if (!el) {
+      throw new Error('Sorry, you must provide a DOM element! :(');
+    }
+
+    // basic chart set up
+    chart.defaults().width($(el).width()).height($(el).height());
+
+    return chart;
+  };
+
+  chart.initialize = function(data, datetime) {
+
+    if (!datetime) {
+      chart.data(_.where(data, {'type': 'smbg'}));
+    }
+    else {
+      chart.data(_.where(data, {'type': 'smbg'}), datetime);
+    }
+
+    // initialize chart
+    d3.select(el).datum([null]).call(chart);
+    chart.setNav().setScrollNav();
+
+    days = chart.days;
+    // make pools for each day
+    days.forEach(function(day, i) {
+      var newPool = chart.newPool().defaults()
+        .id('poolBG_' + day)
+        .index(chart.pools().indexOf(newPool))
+        .weight(1.0);
+    });
+    chart.arrangePools();
+
+    var fillEndpoints = [new Date('2014-01-01T00:00:00Z'), new Date('2014-01-02T00:00:00Z')];
+    var fillScale = d3.time.scale.utc()
+      .domain(fillEndpoints)
+      .range([chart.axisGutter(), chart.width() - chart.navGutter()]);
+
+    chart.pools().forEach(function(pool, i) {
+      pool.addPlotType('fill', fill(pool, {
+        endpoints: fillEndpoints,
+        scale: fillScale,
+        gutter: 0.5
+      }));
+      pool.addPlotType('smbg', require('../js/plot/smbg-time')(pool, {emitter: emitter}));
+      pool(chart.daysGroup, chart.dataPerDay[i]);
+    });
+
+    return chart;
+  };
+
+  return create(el);
+};
+},{"../js/one-day":3,"../js/plot/bolus":4,"../js/plot/carbs":5,"../js/plot/cbg":6,"../js/plot/fill":7,"../js/plot/message":8,"../js/plot/scales":9,"../js/plot/smbg":11,"../js/plot/smbg-time":10,"../js/two-week":14,"./watson":2,"bows":15,"events":17}],2:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
+//
 // 'Good old Watson! You are the one fixed point in a changing age.' - Sherlock Holmes, "His Last Bow"
+//
+// This mini module is for containing anything done to Tidepool data to make it possible to plot timezone-naive
+// data reliably and consistently across different browsers and in different timezones. It is named after the
+// quotation listed above as well as the fact that Watson is one of literature's ur-examples of the loyal
+// assistant.
+//
+// Try as hard as you can to keep Watson out of library code - i.e., in this repository, Watson should only be a
+// requirement in files in the example/ folder (as these are blip-specific), not in the main tideline files:
+// one-day.js, two-week.js, and pool.js.
+//
 
 module.exports = function() {
 
+  var log = require('bows')('Watson');
+
   function watson() {
-    console.log("Start her up, Watson, for it's time that we were on our way.");
+    log("Start her up, Watson, for it's time that we were on our way.");
   }
 
   watson.normalize = function(a) {
+    log('Watson normalized the data.');
     return _.map(a, function(i) {
       i.normalTime = i.deviceTime + 'Z';
       if (i.utcTime) {
@@ -175,12 +442,30 @@ module.exports = function() {
 
   return watson;
 };
-},{}],3:[function(require,module,exports){
-var pool = require('./pool');
+},{"bows":15}],3:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
 
-var tooltip = require('./plot/tooltip');
+var log = require('bows')('One Day');
 
-module.exports = function() {
+module.exports = function(emitter) {
+  var pool = require('./pool');
+
+  var tooltip = require('./plot/tooltip');
 
   var MS_IN_24 = 86400000;
 
@@ -190,24 +475,23 @@ module.exports = function() {
     height, minHeight,
     gutter,
     axisGutter,
-    pad,
     nav = {},
     pools = [], gutter,
     xScale = d3.time.scale.utc(),
-    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0),
-    beginningOfData, endOfData, data, allData = [], buffer, endpoints, outerEndpoints, initialEndpoints,
-    mainGroup, poolGroup, scrollNav, scrollHandleTrigger = true, tooltips;
+    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0).tickFormat(d3.time.format.utc("%-I %p")),
+    beginningOfData, endOfData, data, allData = [], buffer, endpoints,
+    mainGroup, scrollHandleTrigger = true, tooltips;
 
   var defaults = {
     bucket: $('#tidelineContainer'),
     id: 'tidelineSVG',
     minWidth: 400,
     minHeight: 400,
-    pad: 10,
     nav: {
       minNavHeight: 30,
       scrollNav: true,
       scrollNavHeight: 40,
+      scrollThumbRadius: 8,
       latestTranslation: 0,
       currentTranslation: 0
     },
@@ -229,7 +513,7 @@ module.exports = function() {
         'id': id,
         'width': width,
         'height': function() {
-          height += pad * 2 + nav.axisHeight;
+          height += + nav.axisHeight;
           if (nav.scrollNav) {
             height += nav.scrollNavHeight;
           }
@@ -259,10 +543,12 @@ module.exports = function() {
       mainGroup.append('g')
         .attr('class', 'd3-x d3-axis')
         .attr('id', 'tidelineXAxis')
-        .attr('transform', 'translate(0,' + nav.axisHeight + ')')
+        .attr('transform', 'translate(0,' + (nav.axisHeight - 1) + ')')
         .call(xAxis);
 
-      poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
+      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
+
+      container.poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
 
       mainGroup.append('g')
         .attr('id', 'tidelineLabels');
@@ -281,7 +567,6 @@ module.exports = function() {
             }
           },
           'width': container.axisGutter(),
-          'opacity': 1,
           'fill': 'white'
         });
 
@@ -291,8 +576,8 @@ module.exports = function() {
           .attr('id', 'tidelineScrollNav');
 
         nav.scrollScale = d3.time.scale.utc()
-          .domain([Date.parse(data[0].normalTime), Date.parse(currentData[0].normalTime)])
-          .range([container.axisGutter(), width]);
+          .domain([endpoints[0], container.currentEndpoints[0]])
+          .range([container.axisGutter() + nav.scrollThumbRadius, width - nav.scrollThumbRadius]);
       }
     });
   }
@@ -300,11 +585,14 @@ module.exports = function() {
   // non-chainable methods
   container.getData = function(endpoints, direction) {
     if (!arguments.length) {
-      endpoints = initialEndpoints;
+      endpoints = container.initialEndpoints;
       direction = 'both';
     }
+
     var start = new Date(endpoints[0]);
     var end = new Date(endpoints[1]);
+
+    container.currentEndpoints = [start, end];
 
     readings = _.filter(data, function(datapoint) {
       t = Date.parse(datapoint.normalTime);
@@ -329,7 +617,7 @@ module.exports = function() {
   };
 
   container.panForward = function() {
-    console.log('Jumped forward a day.');
+    log('Jumped forward a day.');
     nav.currentTranslation -= width - container.axisGutter();
     mainGroup.transition().duration(500).tween('zoom', function() {
       var ix = d3.interpolate(nav.currentTranslation + width - container.axisGutter(), nav.currentTranslation);
@@ -341,7 +629,7 @@ module.exports = function() {
   };
 
   container.panBack = function() {
-    console.log('Jumped back a day.');
+    log('Jumped back a day.');
     nav.currentTranslation += width - container.axisGutter();
     mainGroup.transition().duration(500).tween('zoom', function() {
       var ix = d3.interpolate(nav.currentTranslation - width + container.axisGutter(), nav.currentTranslation);
@@ -364,8 +652,9 @@ module.exports = function() {
     pools.forEach(function(pool) {
       cumWeight += pool.weight();
     });
+    // TODO: adjust for when no scrollNav
     var totalPoolsHeight = 
-      container.height() - container.axisHeight() - container.scrollNavHeight() - numPools * container.gutter();
+      container.height() - container.axisHeight() - container.scrollNavHeight() - (numPools - 1) * container.gutter();
     var poolScaleHeight = totalPoolsHeight/cumWeight;
     var actualPoolsHeight = 0;
     pools.forEach(function(pool) {
@@ -373,20 +662,21 @@ module.exports = function() {
       actualPoolsHeight += pool.height();
     });
     actualPoolsHeight += (numPools - 1) * container.gutter();
-    var baseline = container.height() - container.scrollNavHeight();
-    var topline = container.axisHeight() + container.gutter();
-    var content = baseline - topline;
-    var meridian = content/2 + topline;
-    var difference = content - actualPoolsHeight;
-    var offset = difference/2;
-    if (offset < 0) {
-      offset = 0;
-    }
-    var currentYPosition = topline;
+    var currentYPosition = container.axisHeight();
     pools.forEach(function(pool) {
-      pool.yPosition(offset + currentYPosition);
-      currentYPosition += offset + pool.height() + container.gutter();
+      pool.yPosition(currentYPosition);
+      currentYPosition += pool.height() + container.gutter();
     });
+  };
+
+  container.destroy = function() {
+    $('#' + this.id()).remove();
+    delete pool;
+  };
+
+  container.date = function() {
+    var d = new Date(xScale.domain()[0]);
+    return new Date(d.setUTCHours(d.getUTCHours() + 12));
   };
 
   // chainable methods
@@ -400,10 +690,10 @@ module.exports = function() {
     this.bucket(properties.bucket);
     this.id(properties.id);
     this.minWidth(properties.minWidth).width(properties.width);
-    this.pad(properties.pad);
     this.scrollNav(properties.nav.scrollNav);
     this.minNavHeight(properties.nav.minNavHeight)
       .axisHeight(properties.nav.minNavHeight)
+      .scrollThumbRadius(properties.nav.scrollThumbRadius)
       .scrollNavHeight(properties.nav.scrollNavHeight);
     this.minHeight(properties.minHeight).height(properties.minHeight);
     this.latestTranslation(properties.nav.latestTranslation)
@@ -417,12 +707,14 @@ module.exports = function() {
   };
 
   container.setNav = function() {
+    var maxTranslation = -xScale(endpoints[0]) + axisGutter;
+    var minTranslation = -xScale(endpoints[1]) + width;
     nav.pan = d3.behavior.zoom()
       .scaleExtent([1, 1])
       .x(xScale)
       .on('zoom', function() {
         if ((endOfData - xScale.domain()[1] < MS_IN_24) && !(endOfData.getTime() === endpoints[1])) {
-          console.log('Fetching new data! (right)');
+          log('Rendering new data! (right)');
           var plusOne = new Date(container.endOfData());
           plusOne.setDate(plusOne.getDate() + 1);
           var newData = container.getData([endOfData, plusOne], 'right');
@@ -435,11 +727,11 @@ module.exports = function() {
           }
           container.allData(newData);
           for (j = 0; j < pools.length; j++) {
-            pools[j](poolGroup, container.allData());
+            pools[j](container.poolGroup, container.allData());
           }
         }
         if ((xScale.domain()[0] - beginningOfData < MS_IN_24) && !(beginningOfData.getTime() === endpoints[0])) {
-          console.log('Fetching new data! (left)');
+          log('Rendering new data! (left)');
           var plusOne = new Date(container.beginningOfData());
           plusOne.setDate(plusOne.getDate() - 1);
           var newData = container.getData([plusOne, beginningOfData], 'left');
@@ -452,21 +744,31 @@ module.exports = function() {
           }
           container.allData(newData);
           for (j = 0; j < pools.length; j++) {
-            pools[j](poolGroup, container.allData());
+            pools[j](container.poolGroup, container.allData());
           }
         }
+        var e = d3.event;
+        if (e.translate[0] < minTranslation) {
+          e.translate[0] = minTranslation;
+        }
+        else if (e.translate[0] > maxTranslation) {
+          e.translate[0] = maxTranslation;
+        }
+        nav.pan.translate([e.translate[0], 0]);
         for (var i = 0; i < pools.length; i++) {
-          pools[i].pan(d3.event);
+          pools[i].pan(e);
         }
         // TODO: check if container has tooltips before transforming them
-        d3.select('#d3-tooltip-group').attr('transform', 'translate(' + d3.event.translate[0] + ',0)');
+        d3.select('#d3-tooltip-group').attr('transform', 'translate(' + e.translate[0] + ',0)');
         d3.select('.d3-x.d3-axis').call(xAxis);
+        d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
         if (scrollHandleTrigger) {
-          d3.select('#scrollHandle').transition().ease('linear').attr('cx', function(d) {
+          d3.select('#scrollThumb').transition().ease('linear').attr('x', function(d) {
             d.x = nav.scrollScale(xScale.domain()[0]);
-            return d.x;
+            return d.x - nav.scrollThumbRadius;
           });       
         }
+        container.navString(xScale.domain());
       })
       .on('zoomend', function() {
         container.currentTranslation(nav.latestTranslation);
@@ -479,18 +781,18 @@ module.exports = function() {
   };
 
   container.setScrollNav = function() {
-    scrollNav.attr('transform', 'translate(0,' + (height - nav.scrollNavHeight/4) + ')')
+    var translationAdjustment = axisGutter;
+    scrollNav.attr('transform', 'translate(0,'  + (height - (nav.scrollNavHeight / 2)) + ')')
       .append('line')
       .attr({
-        'x1': nav.scrollScale(endpoints[0]),
-        'x2': nav.scrollScale(endpoints[1]),
+        'x1': nav.scrollScale(endpoints[0]) - nav.scrollThumbRadius,
+        'x2': nav.scrollScale(container.initialEndpoints[0]) + nav.scrollThumbRadius,
         'y1': 0,
-        'y2': 0,
-        'stroke-width': 1,
-        // TODO: move to LESS
-        'stroke': '#989897',
-        'shape-rendering': 'crispEdges'
+        'y2': 0
       });
+
+    var dxRightest = nav.scrollScale.range()[1];
+    var dxLeftest = nav.scrollScale.range()[0];
 
     var drag = d3.behavior.drag()
       .origin(function(d) {
@@ -501,27 +803,59 @@ module.exports = function() {
       })
       .on('drag', function(d) {
         d.x += d3.event.dx;
-        d3.select(this).attr('cx', function(d) { return d.x; });
+        if (d.x > dxRightest) {
+          d.x = dxRightest;
+        }
+        else if (d.x < dxLeftest) {
+          d.x = dxLeftest;
+        }
+        d3.select(this).attr('x', function(d) { return d.x - nav.scrollThumbRadius; });
         var date = nav.scrollScale.invert(d.x);
-        nav.currentTranslation += -xScale(date);
+        nav.currentTranslation += -xScale(date) + translationAdjustment;
         scrollHandleTrigger = false;
         nav.pan.translate([nav.currentTranslation, 0]);
         nav.pan.event(mainGroup);
       });
 
-    scrollNav.selectAll('circle')
-      .data([{'x': nav.scrollScale(beginningOfData), 'y': 0}])
+    scrollNav.selectAll('image')
+      .data([{'x': nav.scrollScale(container.currentEndpoints[0]), 'y': 0}])
       .enter()
-      .append('circle')
+      .append('image')
       .attr({
-        'cx': function(d) { return d.x; },
-        'r': 5,
-        'fill': '#989897',
-        'id': 'scrollHandle'
+        'xlink:href': '../img/ux/scroll_thumb.svg',
+        'x': function(d) { return d.x - nav.scrollThumbRadius; },
+        'y': -nav.scrollThumbRadius,
+        'width': nav.scrollThumbRadius * 2,
+        'height': nav.scrollThumbRadius * 2,
+        'id': 'scrollThumb'
       })
       .call(drag);
 
     return container;
+  };
+
+  container.setAtDate = function (date) {
+    nav.currentTranslation = -xScale(date) + axisGutter;
+    nav.pan.translate([nav.currentTranslation, 0]);
+    nav.pan.event(mainGroup);
+
+    container.navString(xScale.domain());
+
+    return container;
+  };
+
+  container.navString = function(a) {
+    var formatDate = d3.time.format.utc("%A %-d %B");
+    var beginning = formatDate(a[0]);
+    var end = formatDate(a[1]);
+    var navString;
+    if (beginning === end) {
+      navString = beginning;
+    }
+    else {
+      navString = beginning + ' - ' + end;
+    }
+    emitter.emit('navigated', navString);
   };
 
   container.setTooltip = function() {
@@ -568,13 +902,13 @@ module.exports = function() {
 
   container.height = function(x) {
     if (!arguments.length) return height;
-    var totalHeight = x + container.pad() * 2 + container.axisHeight();
+    var totalHeight = x + container.axisHeight();
     if (nav.scrollNav) {
       totalHeight += container.scrollNavHeight();
     }
     if (totalHeight >= minHeight) {
       if (totalHeight > bucket.height()) {
-        height = bucket.height() - container.axisHeight() - container.pad() * 2;
+        height = bucket.height() - container.axisHeight();
         if (nav.scrollNav) {
           height -= container.scrollNavHeight();
         }
@@ -592,12 +926,6 @@ module.exports = function() {
   container.minHeight = function(x) {
     if (!arguments.length) return height;
     minHeight = x;
-    return container;
-  };
-
-  container.pad = function(x) {
-    if (!arguments.length) return pad;
-    pad = x;
     return container;
   };
 
@@ -623,6 +951,12 @@ module.exports = function() {
   container.scrollNav = function(b) {
     if (!arguments.length) return nav.scrollNav;
     nav.scrollNav = b;
+    return container;
+  };
+
+  container.scrollThumbRadius = function(x) {
+    if (!arguments.length) return nav.scrollThumbRadius;
+    nav.scrollThumbRadius = x;
     return container;
   };
 
@@ -708,31 +1042,35 @@ module.exports = function() {
 
   container.data = function(a) {
     if (!arguments.length) return data;
+
     data = a;
+
     var first = Date.parse(a[0].normalTime);
     var last = Date.parse(a[a.length - 1].normalTime);
+
     var minusOne = new Date(last);
     minusOne.setDate(minusOne.getDate() - 1);
-    initialEndpoints = [minusOne, last];
+    container.initialEndpoints = [minusOne, last];
+    container.currentEndpoints = container.initialEndpoints;
+
     container.beginningOfData(minusOne).endOfData(last);
+
     endpoints = [first, last];
     container.endpoints = endpoints;
-    var outerBeg = new Date(endpoints[0]);
-    outerBeg.setDate(outerBeg.getDate() - 1);
-    var outerEnd = new Date(endpoints[1]);
-    outerEnd.setDate(outerEnd.getDate() + 1);
-    outerEndpoints = [outerBeg, outerEnd];
-    container.initialEndpoints = initialEndpoints;
+
     return container;
   };
 
-  container.allData = function(x) {
+  container.allData = function(x, a) {
     if (!arguments.length) return allData;
+    if (!a) {
+      a = xScale.domain();
+    }
     allData = allData.concat(x);
-    console.log('Length of allData array is', allData.length);
-    var plus = new Date(xScale.domain()[1]);
+    log('Length of allData array is', allData.length);
+    var plus = new Date(a[1]);
     plus.setDate(plus.getDate() + container.buffer());
-    var minus = new Date(xScale.domain()[0]);
+    var minus = new Date(a[0]);
     minus.setDate(minus.getDate() - container.buffer());
     if (beginningOfData < minus) {
       container.beginningOfData(minus); 
@@ -753,6 +1091,7 @@ module.exports = function() {
       });
     }
     allData = _.sortBy(allData, 'normalTime');
+    allData = _.uniq(allData, true);
     return container;
   };
 
@@ -770,7 +1109,24 @@ module.exports = function() {
 
   return container;
 };
-},{"./plot/tooltip":11,"./pool":12}],4:[function(require,module,exports){
+},{"./plot/tooltip":12,"./pool":13,"bows":15}],4:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 var watson = require('../../example/watson');
 watson = new watson();
 
@@ -816,7 +1172,7 @@ module.exports = function(pool, opts) {
           },
           'class': 'd3-rect-bolus d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return 'bolus_' + d.id;
           }
         });
       // boluses where recommendation and delivery differ
@@ -841,7 +1197,7 @@ module.exports = function(pool, opts) {
           },
           'class': 'd3-rect-recommended d3-bolus',
           'id': function(d) {
-            return d.deviceTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return 'bolus_' + d.id;
           }
         });
       // boluses where delivered > recommended
@@ -865,7 +1221,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-rect-recommended d3-bolus',
           'id': function(d) {
-            return d.normalTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return 'bolus_' + d.id;
           }
         });
       override.append('path')
@@ -879,7 +1235,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-bolus d3-bolus',
           'id': function(d) {
-            return d.deviceTime + ' ' + d.value + ' ' + d.recommended + ' recommended';
+            return 'bolus_' + d.id;
           }
         });
       // square- and dual-wave boluses
@@ -899,7 +1255,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-extended d3-bolus',
           'id': function(d) {
-            return d.deviceTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+            return 'bolus_' + d.id;
           }
         });
       extendedBoluses.append('path')
@@ -912,7 +1268,7 @@ module.exports = function(pool, opts) {
           'stroke-width': opts.bolusStroke,
           'class': 'd3-path-extended-triangle d3-bolus',
           'id': function(d) {
-            return d.deviceTime + ' ' + d.extendedDelivery + ' ' + ' ended at ' + watson.strip(new Date(opts.xScale.invert(opts.xScale(Date.parse(d.normalTime) + d.duration))));
+            return 'bolus_' + d.id;
           }
         });
       boluses.exit().remove();
@@ -934,6 +1290,23 @@ module.exports = function(pool, opts) {
 };
 
 },{"../../example/watson":2}],5:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -966,7 +1339,7 @@ module.exports = function(pool, opts) {
           },
           'class': 'd3-rect-carbs d3-carbs',
           'id': function(d) {
-            return d.normalTime + ' ' + d.value;
+            return 'carbs_' + d.id;
           }
         });
         rects.exit().remove();
@@ -976,6 +1349,23 @@ module.exports = function(pool, opts) {
   return carbs; 
 };
 },{}],6:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -1121,6 +1511,23 @@ module.exports = function(pool, opts) {
   return cbg; 
 };
 },{}],7:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(pool, opts) {
 
   var first = new Date(opts.endpoints[0]),
@@ -1142,7 +1549,8 @@ module.exports = function(pool, opts) {
       21: 'darkest'
     },
     duration: 3,
-    scale: pool.xScale().copy()
+    scale: pool.xScale().copy(),
+    gutter: 0
   };
 
   _.defaults(opts || {}, defaults);
@@ -1169,6 +1577,7 @@ module.exports = function(pool, opts) {
       });
       current = next;
     }
+
     selection.selectAll('rect')
       .data(fills)
       .enter()
@@ -1177,11 +1586,11 @@ module.exports = function(pool, opts) {
         'x': function(d) {
           return d.x;
         },
-        'y': 0,
+        'y': 0 + opts.gutter,
         'width': function(d) {
           return d.width;
         },
-        'height': pool.height(),
+        'height': pool.height() - 2 * opts.gutter,
         'class': function(d) {
           return 'd3-rect-fill d3-fill-' + d.fill;
         }
@@ -1209,6 +1618,23 @@ module.exports = function(pool, opts) {
   return fill;  
 };
 },{}],8:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -1241,7 +1667,7 @@ module.exports = function(pool, opts) {
           'width': opts.size,
           'height': opts.size,
           'id': function(d) {
-            return d.id;
+            return 'message_' + d.id;
           }
         })
         .classed({'d3-image': true, 'd3-message': true});
@@ -1252,6 +1678,23 @@ module.exports = function(pool, opts) {
   return cbg; 
 };
 },{}],9:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 var bg = function(data, pool) {
   var scale = d3.scale.linear()
     .domain([0, d3.max(data, function(d) { return d.value; })])
@@ -1280,6 +1723,197 @@ module.exports.bg = bg;
 module.exports.carbs = carbs;
 module.exports.bolus = bolus;
 },{}],10:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+ 
+module.exports = function(pool, opts) {
+
+  MS_IN_HOUR = 3600000;
+
+  MS_IN_MIN = 60 * 1000;
+
+  var opts = opts || {};
+
+  var defaults = {
+    classes: {
+      'very-low': {'boundary': 60},
+      'low': {'boundary': 80, 'tooltip': 'smbg_tooltip_low.svg'},
+      'target': {'boundary': 180, 'tooltip': 'smbg_tooltip_target.svg'},
+      'high': {'boundary': 200, 'tooltip': 'smbg_tooltip_high.svg'},
+      'very-high': {'boundary': 300}
+    },
+    size: 16,
+    rectWidth: 32,
+    xScale: pool.xScale().copy()
+  };
+
+  _.defaults(opts, defaults);
+
+  function smbg(selection) {
+    selection.each(function(currentData) {
+      var circles = d3.select(this)
+        .selectAll('g')
+        .data(currentData, function(d) {
+          // leveraging the timestamp of each datapoint as the ID for D3's binding
+          return d.normalTime;
+        });
+      var circleGroups = circles.enter()
+        .append('g')
+        .attr('class', 'd3-smbg-time-group');
+      circleGroups.append('image')
+        .attr({
+          'xlink:href': function(d) {
+            if (d.value <= opts.classes['very-low']['boundary']) {
+              return '../img/smbg/very_low.svg';
+            }
+            else if ((d.value > opts.classes['very-low']['boundary']) && (d.value <= opts.classes['low']['boundary'])) {
+              return '../img/smbg/low.svg';
+            }
+            else if ((d.value > opts.classes['low']['boundary']) && (d.value <= opts.classes['target']['boundary'])) {
+              return '../img/smbg/target.svg';
+            }
+            else if ((d.value > opts.classes['target']['boundary']) && (d.value <= opts.classes['high']['boundary'])) {
+              return '../img/smbg/high.svg';
+            }
+            else if (d.value > opts.classes['high']['boundary']) {
+              return '../img/smbg/very_high.svg';
+            }
+          },
+          'x': function(d) {
+            var localTime = new Date(d.normalTime);
+            var hour = localTime.getUTCHours();
+            var min = localTime.getUTCMinutes();
+            var sec = localTime.getUTCSeconds();
+            var msec = localTime.getUTCMilliseconds();
+            var t = hour * MS_IN_HOUR + min * MS_IN_MIN + sec * 1000 + msec;
+            return opts.xScale(t) - opts.size / 2;
+          },
+          'y': function(d) {
+            return pool.height() / 2 - opts.size / 2;
+          },
+          'width': opts.size,
+          'height': opts.size,
+          'id': function(d) {
+            return 'smbg_time_' + d.id;
+          },
+          'class': function(d) {
+            if (d.value <= opts.classes['low']['boundary']) {
+              return 'd3-bg-low';
+            }
+            else if ((d.value > opts.classes['low']['boundary']) && (d.value <= opts.classes['target']['boundary'])) {
+              return 'd3-bg-target';
+            }
+            else if (d.value > opts.classes['target']['boundary']) {
+              return 'd3-bg-high';
+            }
+          }
+        })
+        .classed({'d3-image': true, 'd3-smbg-time': true, 'd3-image-smbg': true})
+        .on('dblclick', function(d) {
+          d3.event.stopPropagation(); // silence the click-and-drag listener
+          opts.emitter.emit('selectSMBG', d.normalTime);
+        });
+
+      circleGroups.append('rect')
+        .style('display', 'none')
+        .attr({
+          'x': function(d) {
+            var localTime = new Date(d.normalTime);
+            var hour = localTime.getUTCHours();
+            var min = localTime.getUTCMinutes();
+            var sec = localTime.getUTCSeconds();
+            var msec = localTime.getUTCMilliseconds();
+            var t = hour * MS_IN_HOUR + min * MS_IN_MIN + sec * 1000 + msec;
+            return opts.xScale(t) - opts.rectWidth / 2;
+          },
+          'y': 0,
+          'width': opts.size * 2,
+          'height': pool.height() / 2,
+          'class': 'd3-smbg-numbers d3-rect-smbg d3-smbg-time'
+        });
+
+      circleGroups.append('text')
+        .style('display', 'none')
+        .attr({
+          'x': function(d) {
+            var localTime = new Date(d.normalTime);
+            var hour = localTime.getUTCHours();
+            var min = localTime.getUTCMinutes();
+            var sec = localTime.getUTCSeconds();
+            var msec = localTime.getUTCMilliseconds();
+            var t = hour * MS_IN_HOUR + min * MS_IN_MIN + sec * 1000 + msec;
+            return opts.xScale(t);
+          },
+          'y': pool.height() / 2 - opts.size / 8,
+          'class': 'd3-smbg-numbers d3-text-smbg d3-smbg-time'
+        })
+        .text(function(d) {
+          return d.value;
+        });
+
+      circles.exit().remove();
+
+      opts.emitter.on('numbers', function(toggle) {
+        if (toggle === 'show') {
+          d3.selectAll('.d3-smbg-numbers')
+            .style('display', 'inline');
+          d3.selectAll('.d3-image-smbg')
+            .transition()
+            .duration(750)
+            .attr({
+              'height': opts.size * 0.75,
+              'y': pool.height() / 2
+            });
+        }
+        else if (toggle === 'hide') {
+          d3.selectAll('.d3-smbg-numbers')
+            .style('display', 'none');
+          d3.selectAll('.d3-image-smbg')
+            .transition()
+            .duration(750)
+            .attr({
+              'height': opts.size,
+              'y': pool.height() / 2 - opts.size / 2
+            });
+        }
+      });
+    });
+  }
+
+  return smbg; 
+};
+},{}],11:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(pool, opts) {
 
   var opts = opts || {};
@@ -1414,7 +2048,24 @@ module.exports = function(pool, opts) {
 
   return smbg; 
 };
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
 module.exports = function(container, tooltipsGroup) {
 
   var id, timestampHeight = 20;
@@ -1511,6 +2162,7 @@ module.exports = function(container, tooltipsGroup) {
         });
 
       // adjust the values needed for the timestamp
+      // TODO: really this should be refactored
       imageX = imageX - tooltipWidth;
       textX = textX - tooltipWidth;
     }
@@ -1544,14 +2196,9 @@ module.exports = function(container, tooltipsGroup) {
   tooltip.timestamp = function(d, tooltipGroup, imageX, imageY, textX, textY, tooltipWidth, tooltipHeight) {
     var timestampY = imageY() - timestampHeight;
     var timestampTextY = textY() - timestampHeight;
-    var t = d.deviceTime.slice(11,16);
-    var timeSuffix;
-    if (parseInt(t.slice(0,2)) > 11) {
-      timeSuffix = ' pm'
-    }
-    else {
-      timeSuffix = ' am'
-    }
+
+    var formatTime = d3.time.format.utc("%-I:%M %p")
+    var t = formatTime(new Date(d.normalTime));
     tooltipGroup.append('rect')
       .attr({
         'x': imageX,
@@ -1567,7 +2214,7 @@ module.exports = function(container, tooltipsGroup) {
         'baseline-shift': (tooltipHeight - timestampHeight) / 2,
         'class': 'd3-tooltip-text'
       })
-      .text('at ' + t + timeSuffix);
+      .text('at ' + t);
   };
 
   tooltip.addGroup = function(pool, type) {
@@ -1585,12 +2232,27 @@ module.exports = function(container, tooltipsGroup) {
 
   return tooltip;
 };
-},{}],12:[function(require,module,exports){
-module.exports = function(container) {
+},{}],13:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
 
-  // TMP: colors, etc. for demo-ing
-  var colors = d3.scale.category20(),
-    grays = ['#636363', '#969696', '#bdbdbd', '#d9d9d9', '#d9d9d9', '#bdbdbd', '#969696', '#636363'];
+var log = require('bows')('Pool');
+ 
+module.exports = function(container) {
 
   var data,
     id, label,
@@ -1603,7 +2265,7 @@ module.exports = function(container) {
     plotTypes = [];
 
   var defaults = {
-    minHeight: 35,
+    minHeight: 20,
     maxHeight: 300
   };
 
@@ -1653,6 +2315,13 @@ module.exports = function(container) {
     });
   };
 
+  pool.scroll = function(e) {
+    container.latestTranslation(e.translate[1]);
+    plotTypes.forEach(function(plotType) {
+      d3.select('#' + id + '_' + plotType.type).attr('transform', 'translate(0,' + e.translate[1] + ')');
+    });
+  };
+
   // only once methods
   pool.drawLabel = _.once(function() {
     var labelGroup = d3.select('#tidelineLabels');
@@ -1672,7 +2341,7 @@ module.exports = function(container) {
       axisGroup.append('g')
         .attr('class', 'd3-y d3-axis')
         .attr('id', 'pool_' + id + '_yAxis_' + i)
-        .attr('transform', 'translate(' + container.axisGutter() + ',' + yPosition + ')')
+        .attr('transform', 'translate(' + (container.axisGutter() - 1) + ',' + yPosition + ')')
         .call(axis);
       });
     return pool;
@@ -1778,4 +2447,984 @@ module.exports = function(container) {
 
   return pool;
 };
+},{"bows":15}],14:[function(require,module,exports){
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+
+var log = require('bows')('Two Week');
+
+module.exports = function(emitter) {
+  var pool = require('./pool');
+
+  var MS_IN_24 = 86400000;
+
+  var bucket,
+    id,
+    width, minWidth,
+    height, minHeight,
+    statsHeight,
+    axisGutter,
+    nav = {},
+    pools = [],
+    xScale = d3.scale.linear(),
+    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0)
+      .tickValues(function() {
+        a = []
+        for (i = 0; i < 8; i++) {
+          a.push((MS_IN_24/8) * i);
+        }
+        return a;
+      })
+      .tickFormat(function(d) {
+        hour = d/(MS_IN_24/24);
+        if ((hour > 0) && (hour < 12)) {
+          return hour + ' am';
+        }
+        else if (hour > 12) {
+          return (hour - 12) + ' pm';
+        }
+        else if (hour === 0) {
+          return '12 am';
+        }
+        else {
+          return '12 pm';
+        }
+      }),
+    yScale = d3.time.scale.utc(),
+    yAxis = d3.svg.axis().scale(yScale).orient('left').outerTickSize(0).tickFormat(d3.time.format.utc("%a %-d")),
+    data, allData = [], endpoints, viewEndpoints, dataStartNoon, viewIndex,
+    mainGroup, scrollNav, scrollHandleTrigger = true;
+
+  var defaults = {
+    bucket: $('#tidelineContainer'),
+    id: 'tidelineSVG',
+    minWidth: 400,
+    minHeight: 400,
+    nav: {
+      minNavHeight: 30,
+      latestTranslation: 0,
+      currentTranslation: 0,
+      scrollThumbRadius: 8,
+      navGutter: 20
+    },
+    axisGutter: 60,
+    statsHeight: 50
+  };
+
+  function container(selection) {
+    selection.each(function(currentData) {
+      // select the SVG if it already exists
+      var mainSVG = selection.selectAll('svg').data([currentData]);
+      // otherwise create a new SVG and enter   
+      mainGroup = mainSVG.enter().append('svg').append('g').attr('id', 'tidelineMain');
+
+      // update SVG dimenions and ID
+      mainSVG.attr({
+        'id': id,
+        'width': width,
+        'height': height
+      });
+
+      mainGroup.append('rect')
+        .attr({
+          'id': 'poolsInvisibleRect',
+          'width': width - nav.navGutter,
+          'height': height,
+          'opacity': 0.0
+        });
+
+      container.poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
+
+      // set the domain and range for the two-week x-scale
+      xScale.domain([0, MS_IN_24])
+        .range([container.axisGutter(), width - nav.navGutter]);
+
+      mainGroup.append('g')
+        .attr('id', 'tidelineXAxisGroup')
+        .append('rect')
+        .attr({
+          'id': 'xAxisInvisibleRect',
+          'x': container.axisGutter(),
+          'height': nav.axisHeight - 2,
+          'width': width - axisGutter,
+          'fill': 'white'
+        });
+
+      d3.select('#tidelineXAxisGroup')
+        .append('g')
+        .attr('class', 'd3-x d3-axis')
+        .attr('id', 'tidelineXAxis')
+        .attr('transform', 'translate(0,' + (nav.axisHeight - 1) + ')')
+        .call(xAxis);
+
+      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
+
+      // set the domain and range for the main two-week y-scale
+      yScale.domain(viewEndpoints)
+        .range([nav.axisHeight, height - statsHeight])
+        .ticks(d3.time.day.utc, 1);
+
+      container.navString(yScale.domain());
+
+      mainGroup.append('g')
+        .attr('id', 'tidelineYAxisGroup')
+        .append('rect')
+        .attr({
+          'id': 'yAxisInvisibleRect',
+          'x': 0,
+          'height': height,
+          'width': axisGutter,
+          'fill': 'white'
+        });
+
+      d3.select('#tidelineYAxisGroup')
+        .append('g')
+        .attr('class', 'd3-y d3-axis d3-day-axis')
+        .attr('id', 'tidelineYAxis')
+        .attr('transform', 'translate(' + (axisGutter - 1) + ',0)')
+        .call(yAxis);
+
+      container.daysGroup = container.poolGroup.append('g').attr('id', 'daysGroup');
+
+      statsGroup = container.poolGroup.append('g').attr('id', 'poolStats')
+        .attr('transform', 'translate(' + container.axisGutter() + ',' + (height - container.statsHeight()) + ')')
+        .append('rect')
+        .attr({
+          'x': 0,
+          'y': 0,
+          'width': width - container.axisGutter() - container.navGutter(),
+          'height': container.statsHeight(),
+          'fill': 'white'
+        });
+
+      scrollNav = mainGroup.append('g')
+        .attr('class', 'y scroll')
+        .attr('id', 'tidelineScrollNav');
+
+      nav.scrollScale = d3.time.scale.utc()
+        .domain([dataStartNoon, dataEndNoon])
+        .range([nav.axisHeight + nav.scrollThumbRadius, height - statsHeight - nav.scrollThumbRadius]);
+    });
+  }
+
+  // non-chainable methods
+  container.newPool = function() {
+    var p = new pool(container);
+    pools.push(p);
+    return p;
+  };
+
+  container.arrangePools = function() {
+    // 14 days = 2 weeks
+    // TODO: eventually factor this out so that this view could be generalized to another time period
+    var numPools = 14;
+    // all two-week pools have a weight of 1.0
+    var weight = 1.0;
+    var cumWeight = weight * numPools;
+    var totalPoolsHeight = 
+      container.height() - container.axisHeight() - container.statsHeight();
+    var poolScaleHeight = totalPoolsHeight/cumWeight;
+    var actualPoolsHeight = 0;
+    pools.forEach(function(pool) {
+      pool.height(poolScaleHeight);
+      actualPoolsHeight += pool.height();
+      poolScaleHeight = pool.height();
+    });
+    var currentYPosition = container.height() - container.statsHeight() - poolScaleHeight;
+    var nextBatchYPosition = currentYPosition + poolScaleHeight;
+    for (var i = viewIndex; i < pools.length; i++) {
+      pool = pools[i];
+      pool.yPosition(currentYPosition);
+      currentYPosition -= pool.height();
+    }
+    currentYPosition = nextBatchYPosition;
+    for (var i = viewIndex - 1; i >= 0; i--) {
+      pool = pools[i];
+      pool.yPosition(currentYPosition);
+      currentYPosition += pool.height();
+    }
+  };
+
+  container.destroy = function() {
+    $('#' + this.id()).remove();
+    emitter.removeAllListeners('numbers');
+  };
+
+  container.navString = function(a) {
+    var monthDay = d3.time.format.utc("%B %-d");
+    var navString = monthDay(new Date(a[0].setUTCDate(a[0].getUTCDate() + 1))) + ' - ' + monthDay(a[1]);
+    emitter.emit('navigated', navString);
+  };
+
+  // chainable methods
+  container.defaults = function(obj) {
+    if (!arguments.length) {
+      properties = defaults;
+    }
+    else {
+      properties = obj;
+    }
+    this.bucket(properties.bucket);
+    this.id(properties.id);
+    this.minWidth(properties.minWidth).width(properties.width);
+    this.minNavHeight(properties.nav.minNavHeight).axisHeight(properties.nav.minNavHeight)
+      .scrollThumbRadius(properties.nav.scrollThumbRadius)
+      .navGutter(properties.nav.navGutter);
+    this.minHeight(properties.minHeight).height(properties.minHeight).statsHeight(properties.statsHeight);
+    this.latestTranslation(properties.nav.latestTranslation)
+      .currentTranslation(properties.nav.currentTranslation);
+    this.axisGutter(properties.axisGutter);
+
+    return container;
+  };
+
+  container.setNav = function() {
+    var maxTranslation = -yScale(dataStartNoon) + yScale.range()[1] - (height - nav.axisHeight - statsHeight);
+    var minTranslation = -yScale(dataEndNoon) + yScale.range()[1] - (height - nav.axisHeight - statsHeight);
+    nav.scroll = d3.behavior.zoom()
+      .scaleExtent([1, 1])
+      .y(yScale)
+      .on('zoom', function() {
+        var e = d3.event;
+        if (e.translate[1] < minTranslation) {
+          e.translate[1] = minTranslation;
+        }
+        else if (e.translate[1] > maxTranslation) {
+          e.translate[1] = maxTranslation;
+        }
+        nav.scroll.translate([0, e.translate[1]]);
+        d3.select('.d3-y.d3-axis').call(yAxis);
+        for (var i = 0; i < pools.length; i++) {
+          pools[i].scroll(e);
+        }
+        container.navString(yScale.domain());
+        if (scrollHandleTrigger) {
+          d3.select('#scrollThumb').transition().ease('linear').attr('y', function(d) {
+            d.y = nav.scrollScale(yScale.domain()[0]);
+            return d.y - nav.scrollThumbRadius;
+          });       
+        }
+      })
+      .on('zoomend', function() {
+        container.currentTranslation(nav.latestTranslation);
+        scrollHandleTrigger = true;
+      });
+
+    mainGroup.call(nav.scroll);
+
+    return container;
+  };
+
+  container.setScrollNav = function() {
+    var translationAdjustment = yScale.range()[1] - (height - nav.axisHeight - statsHeight);
+    var xPos = nav.navGutter / 2;
+
+    scrollNav.append('rect')
+    .attr({
+      'x': 0,
+      'y': nav.scrollScale(dataStartNoon) - nav.scrollThumbRadius,
+      'width': nav.navGutter,
+      'height': height - nav.axisHeight,
+      'fill': 'white',
+      'id': 'scrollNavInvisibleRect'
+    });
+
+    scrollNav.attr('transform', 'translate(' + (width - nav.navGutter) + ',0)')
+      .append('line')
+      .attr({
+        'x1': xPos,
+        'x2': xPos,
+        'y1': nav.scrollScale(dataStartNoon) - nav.scrollThumbRadius,
+        'y2': nav.scrollScale(dataEndNoon) + nav.scrollThumbRadius
+      });
+
+    var dyLowest = nav.scrollScale.range()[1];
+    var dyHighest = nav.scrollScale.range()[0];
+
+    var drag = d3.behavior.drag()
+      .origin(function(d) {
+        return d;
+      })
+      .on('dragstart', function() {
+        d3.event.sourceEvent.stopPropagation(); // silence the click-and-drag listener
+      })
+      .on('drag', function(d) {
+        d.y += d3.event.dy;
+        if (d.y > dyLowest) {
+          d.y = dyLowest;
+        }
+        else if (d.y < dyHighest) {
+          d.y = dyHighest;
+        }
+        d3.select(this).attr('y', function(d) { return d.y - nav.scrollThumbRadius; });
+        var date = nav.scrollScale.invert(d.y);
+        nav.currentTranslation -= yScale(date) - translationAdjustment;
+        scrollHandleTrigger = false;
+        nav.scroll.translate([0, nav.currentTranslation]);
+        nav.scroll.event(mainGroup);
+      });
+
+    scrollNav.selectAll('image')
+      .data([{'x': 0, 'y': nav.scrollScale(viewEndpoints[0])}])
+      .enter()
+      .append('image')
+      .attr({
+        'xlink:href': '../img/ux/scroll_thumb.svg',
+        'x': xPos - nav.scrollThumbRadius,
+        'y': function(d) { return d.y - nav.scrollThumbRadius; },
+        'width': 2 * nav.scrollThumbRadius,
+        'height': 2 * nav.scrollThumbRadius,
+        'id': 'scrollThumb'
+      })
+      .call(drag);
+
+    return container;
+  };
+
+  // TODO: use for number reveal on click?
+  container.setTooltip = function() {
+    var tooltipGroup = mainGroup.append('g')
+      .attr('id', 'd3-tooltip-group');
+    container.tooltips = new tooltip(container, tooltipGroup).id(tooltipGroup.attr('id'));
+    return container;
+  };
+
+  // getters and setters
+  container.bucket = function(x) {
+    if (!arguments.length) return bucket;
+    bucket = x;
+    return container;
+  };
+
+  container.id = function(x) {
+    if (!arguments.length) return id;
+    id = x;
+    return container;
+  };
+
+  container.width = function(x) {
+    if (!arguments.length) return width;
+    if (x >= minWidth) {
+      if (x > bucket.width()) {
+        width = bucket.width();
+      }
+      else {
+        width = x;
+      }
+    }
+    else {
+      width = minWidth;
+    }
+    return container;
+  };
+
+  container.minWidth = function(x) {
+    if (!arguments.length) return minWidth;
+    minWidth = x;
+    return container;
+  };
+
+  container.height = function(x) {
+    if (!arguments.length) return height;
+    var totalHeight = x + container.axisHeight();
+    if (nav.scrollNav) {
+      totalHeight += container.scrollNavHeight();
+    }
+    if (totalHeight >= minHeight) {
+      if (totalHeight > bucket.height()) {
+        height = bucket.height() - container.axisHeight();
+        if (nav.scrollNav) {
+          height -= container.scrollNavHeight();
+        }
+      }
+      else {
+        height = x; 
+      }
+    }
+    else {
+      height = minHeight;
+    }
+    return container;
+  };
+
+  container.minHeight = function(x) {
+    if (!arguments.length) return height;
+    minHeight = x;
+    return container;
+  };
+
+  container.statsHeight = function(x) {
+    if (!arguments.length) return statsHeight;
+    statsHeight = x;
+    return container;
+  };
+
+  // nav getters and setters
+  container.axisHeight = function(x) {
+    if (!arguments.length) return nav.axisHeight;
+    if (x >= nav.minNavHeight) {
+      nav.axisHeight = x;
+    }
+    else {
+      nav.axisHeight = nav.minNavHeight;
+    }
+    return container;
+  };
+
+  container.minNavHeight = function(x) {
+    if (!arguments.length) return nav.minNavHeight;
+    nav.minNavHeight = x;
+    return container;
+  };
+
+  container.scrollThumbRadius = function(x) {
+    if (!arguments.length) return nav.scrollThumbRadius;
+    nav.scrollThumbRadius = x;
+    return container
+  };
+
+  container.navGutter = function(x) {
+    if (!arguments.length) return nav.navGutter;
+    nav.navGutter = x;
+    return container;
+  };
+
+  container.scroll = function(f) {
+    if (!arguments.length) return nav.scroll;
+    nav.scroll = f;
+    return container;
+  };
+
+  container.latestTranslation = function(x) {
+    if (!arguments.length) return nav.latestTranslation;
+    nav.latestTranslation = x;
+    return container;
+  };
+
+  container.currentTranslation = function(x) {
+    if (!arguments.length) return nav.currentTranslation;
+    nav.currentTranslation = x;
+    return container;
+  };
+
+  // pools getter and setter
+  container.pools = function(a) {
+    if (!arguments.length) return pools;
+    pools = a;
+    return container;
+  };
+
+  container.axisGutter = function(x) {
+    if (!arguments.length) return axisGutter;
+    axisGutter = x;
+    return container;
+  };
+
+  // scales and axes getters and setters
+  container.xScale = function(f) {
+    if (!arguments.length) return xScale;
+    xScale = f;
+    return container;
+  };
+
+  container.xAxis = function(f) {
+    if (!arguments.length) return xAxis;
+    xAxis = f;
+    return container;
+  };
+
+  container.viewEndpoints = function(a) {
+    if (!arguments.length) return viewEndpoints;
+    viewEndpoints = a;
+    return container;
+  };
+
+  // data getters and setters
+  container.data = function(a, viewEndDate) {
+    if (!arguments.length) return data;
+    data = a;
+
+    var first = new Date(a[0].normalTime);
+    var last = new Date(a[a.length - 1].normalTime);
+    
+    endpoints = [first, last];
+    container.endpoints = endpoints;
+
+    function createDay(d) {
+      return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0);
+    }
+    var days = [];
+    var firstDay = createDay(new Date(container.endpoints[0]));
+    var lastDay = createDay(new Date(container.endpoints[1]));
+    days.push(firstDay.toISOString().slice(0,10));
+    var currentDay = firstDay;
+    while (currentDay < lastDay) {
+      var newDay = new Date(currentDay);
+      newDay.setUTCDate(newDay.getUTCDate() + 1);
+      days.push(newDay.toISOString().slice(0,10));
+      currentDay = newDay;
+    }
+
+    this.days = days.reverse();
+
+    dataStartNoon = new Date(first);
+    dataStartNoon.setUTCHours(12);
+    dataStartNoon.setUTCMinutes(0);
+    dataStartNoon.setUTCSeconds(0);
+    dataStartNoon.setUTCDate(dataStartNoon.getUTCDate() - 1);
+
+    var noon = '12:00:00Z';
+
+    dataEndNoon = new Date(last);
+    dataEndNoon.setUTCDate(dataEndNoon.getUTCDate() - 14);
+    dataEndNoon = new Date(dataEndNoon.toISOString().slice(0,11) + noon);
+
+    if (!viewEndDate) {
+      viewEndDate = last;
+    }
+    var viewBeginning = new Date(viewEndDate);
+    viewBeginning.setUTCDate(viewBeginning.getUTCDate() - 14);
+    viewEndpoints = [new Date(viewBeginning.toISOString().slice(0,11) + noon), new Date(viewEndDate.toISOString().slice(0,11) + noon)];
+
+    viewIndex = days.indexOf(viewEndDate.toISOString().slice(0,10));
+
+    container.dataPerDay = [];
+
+    this.days.forEach(function(day) {
+      var thisDay = {
+        'year': day.slice(0,4),
+        'month': day.slice(5,7),
+        'day': day.slice(8,10)
+      };
+      container.dataPerDay.push(_.filter(data, function(d) {
+        var date = new Date(d.normalTime);
+        if ((date.getUTCFullYear() === parseInt(thisDay.year))
+          && (date.getUTCMonth() + 1 === parseInt(thisDay.month))
+          && (date.getUTCDate() === parseInt(thisDay.day))) {
+          return d;
+        }
+      }));
+    });
+    
+    return container;
+  };
+
+  return container;
+};
+},{"./pool":13,"bows":15}],15:[function(require,module,exports){
+(function() {
+  function checkColorSupport() {
+    var chrome = !!window.chrome,
+        firefox = /firefox/i.test(navigator.userAgent),
+        firebug = firefox && !!window.console.exception;
+
+    return chrome || firebug;
+  }
+
+  var inNode = typeof window === 'undefined',
+      ls = !inNode && window.localStorage,
+      debug = ls.debug,
+      logger = require('andlog'),
+      hue = 0,
+      padLength = 15,
+      noop = function() {},
+      colorsSupported = ls.debugColors || checkColorSupport(),
+      yieldColor,
+      bows,
+      debugRegex;
+
+  yieldColor = function() {
+    var goldenRatio = 0.618033988749895;
+    hue += goldenRatio;
+    hue = hue % 1;
+    return hue * 360;
+  };
+
+  debugRegex = debug && debug[0]==='/' && new RegExp(debug.substring(1,debug.length-1));
+
+  bows = function(str) {
+    var msg, colorString, logfn;
+    msg = (str.slice(0, padLength));
+    msg += Array(padLength + 3 - msg.length).join(' ') + '|';
+
+    if (debugRegex && !str.match(debugRegex)) return noop;
+
+    if (colorsSupported) {
+      var color = yieldColor();
+      msg = "%c" + msg;
+      colorString = "color: hsl(" + (color) + ",99%,40%); font-weight: bold";
+
+      logfn = logger.log.bind(logger, msg, colorString);
+      ['log', 'debug', 'warn', 'error', 'info'].forEach(function (f) {
+        logfn[f] = logger[f].bind(logger, msg, colorString);
+      });
+    } else {
+      logfn = logger.log.bind(logger, msg);
+      ['log', 'debug', 'warn', 'error', 'info'].forEach(function (f) {
+        logfn[f] = logger[f].bind(logger, msg);
+      });
+    }
+
+    return logfn;
+  };
+
+  bows.config = function(config) {
+    if (config.padLength) {
+      this.padLength = config.padLength;
+    }
+  };
+
+  if (typeof module !== 'undefined') {
+    module.exports = bows;
+  } else {
+    window.bows = bows;
+  }
+}).call();
+
+},{"andlog":16}],16:[function(require,module,exports){
+// follow @HenrikJoreteg and @andyet if you like this ;)
+(function () {
+    var inNode = typeof window === 'undefined',
+        ls = !inNode && window.localStorage,
+        out = {};
+
+    if (inNode) {
+        module.exports = console;
+        return;
+    }
+
+    if (ls && ls.debug && window.console) {
+        out = window.console;
+    } else {
+        var methods = "assert,count,debug,dir,dirxml,error,exception,group,groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,time,timeEnd,trace,warn".split(","),
+            l = methods.length,
+            fn = function () {};
+
+        while (l--) {
+            out[methods[l]] = fn;
+        }
+    }
+    if (typeof exports !== 'undefined') {
+        module.exports = out;
+    } else {
+        window.console = out;
+    }
+})();
+
+},{}],17:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        throw TypeError('Uncaught, unspecified "error" event.');
+      }
+      return false;
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      console.trace();
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
 },{}]},{},[1])
