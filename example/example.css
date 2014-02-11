@@ -15,6 +15,9 @@
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
+.container {
+  min-width: 70vw;
+}
 #tideline {
   background-color: white;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;

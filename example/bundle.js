@@ -50,7 +50,9 @@ d3.json('device-data.json', function(data) {
   log('Data loaded.');
   // Watson the data
   var data = watson.normalize(data);
-  data = _.sortBy(data, 'normalTime');
+  data = _.sortBy(data, function(d) {
+    return new Date(d.normalTime).valueOf();
+  });
 
   log('Initial one-day view.');
   oneDay.initialize(data).locate('2014-03-06T12:00:00Z');
@@ -478,7 +480,7 @@ module.exports = function(emitter) {
     nav = {},
     pools = [], gutter,
     xScale = d3.time.scale.utc(),
-    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0).tickFormat(d3.time.format.utc("%-I %p")),
+    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0).innerTickSize(15).tickFormat(d3.time.format.utc("%-I %p")),
     beginningOfData, endOfData, data, allData = [], buffer, endpoints,
     mainGroup, scrollHandleTrigger = true, tooltips;
 
@@ -546,7 +548,7 @@ module.exports = function(emitter) {
         .attr('transform', 'translate(0,' + (nav.axisHeight - 1) + ')')
         .call(xAxis);
 
-      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
+      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,15)');
 
       container.poolGroup = mainGroup.append('g').attr('id', 'tidelinePools');
 
@@ -761,7 +763,7 @@ module.exports = function(emitter) {
         // TODO: check if container has tooltips before transforming them
         d3.select('#d3-tooltip-group').attr('transform', 'translate(' + e.translate[0] + ',0)');
         d3.select('.d3-x.d3-axis').call(xAxis);
-        d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
+        d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,15)');
         if (scrollHandleTrigger) {
           d3.select('#scrollThumb').transition().ease('linear').attr('x', function(d) {
             d.x = nav.scrollScale(xScale.domain()[0]);
@@ -1090,7 +1092,9 @@ module.exports = function(emitter) {
         }
       });
     }
-    allData = _.sortBy(allData, 'normalTime');
+    allData = _.sortBy(allData, function(d) {
+      return new Date(d.normalTime).valueOf();
+    });
     allData = _.uniq(allData, true);
     return container;
   };
@@ -1695,33 +1699,34 @@ module.exports = function(pool, opts) {
  * == BSD2 LICENSE ==
  */
 
-var bg = function(data, pool) {
-  var scale = d3.scale.linear()
-    .domain([0, d3.max(data, function(d) { return d.value; })])
-    .range([pool.height(), 0]);
-
-  return scale;
+var scales = {
+  bg: function(data, pool) {
+    var scale = d3.scale.linear()
+      .domain([0, d3.max(data, function(d) { return d.value; })])
+      .range([pool.height(), 0]);
+    return scale;
+  },
+  carbs: function(data, pool) {
+    var scale = d3.scale.linear()
+      .domain([0, d3.max(data, function(d) { return d.value; })])
+      .range([0, 0.475 * pool.height()]);
+    return scale;
+  },
+  bolus: function(data, pool) {
+    var scale = d3.scale.linear()
+      .domain([0, d3.max(data, function(d) { return d.value; })])
+      .range([pool.height(), 0.525 * pool.height()]);
+    return scale;
+  },
+  basal: function(data, pool) {
+    var scale = d3.scale.linear()
+      .domain([0, d3.max(data, function(d) { return d.value; })])
+      .range([pool.height(), 0]);
+    return scale;
+  }
 };
 
-var carbs = function(data, pool) {
-  var scale = d3.scale.linear()
-    .domain([0, d3.max(data, function(d) { return d.value; })])
-    .range([0, 0.475 * pool.height()]);
-
-  return scale;
-};
-
-var bolus = function(data, pool) {
-  var scale = d3.scale.linear()
-    .domain([0, d3.max(data, function(d) { return d.value; })])
-    .range([pool.height(), 0.525 * pool.height()]);
-
-  return scale;
-};
-
-module.exports.bg = bg;
-module.exports.carbs = carbs;
-module.exports.bolus = bolus;
+module.exports = scales;
 },{}],10:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
@@ -1846,8 +1851,8 @@ module.exports = function(pool, opts) {
           'class': 'd3-smbg-numbers d3-rect-smbg d3-smbg-time'
         });
 
+      // NB: cannot do same display: none strategy because dominant-baseline attribute cannot be applied
       circleGroups.append('text')
-        .style('display', 'none')
         .attr({
           'x': function(d) {
             var localTime = new Date(d.normalTime);
@@ -1858,7 +1863,8 @@ module.exports = function(pool, opts) {
             var t = hour * MS_IN_HOUR + min * MS_IN_MIN + sec * 1000 + msec;
             return opts.xScale(t);
           },
-          'y': pool.height() / 2 - opts.size / 8,
+          'y': pool.height() / 4,
+          'opacity': '0',
           'class': 'd3-smbg-numbers d3-text-smbg d3-smbg-time'
         })
         .text(function(d) {
@@ -1869,22 +1875,30 @@ module.exports = function(pool, opts) {
 
       opts.emitter.on('numbers', function(toggle) {
         if (toggle === 'show') {
-          d3.selectAll('.d3-smbg-numbers')
+          d3.selectAll('.d3-rect-smbg')
             .style('display', 'inline');
+          d3.selectAll('.d3-text-smbg')
+            .transition()
+            .duration(500)
+            .attr('opacity', 1);
           d3.selectAll('.d3-image-smbg')
             .transition()
-            .duration(750)
+            .duration(500)
             .attr({
               'height': opts.size * 0.75,
               'y': pool.height() / 2
             });
         }
         else if (toggle === 'hide') {
-          d3.selectAll('.d3-smbg-numbers')
+          d3.selectAll('.d3-rect-smbg')
             .style('display', 'none');
+          d3.selectAll('.d3-text-smbg')
+            .transition()
+            .duration(500)
+            .attr('opacity', 0);
           d3.selectAll('.d3-image-smbg')
             .transition()
-            .duration(750)
+            .duration(500)
             .attr({
               'height': opts.size,
               'y': pool.height() / 2 - opts.size / 2
@@ -2481,7 +2495,7 @@ module.exports = function(emitter) {
     nav = {},
     pools = [],
     xScale = d3.scale.linear(),
-    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0)
+    xAxis = d3.svg.axis().scale(xScale).orient('top').outerTickSize(0).innerTickSize(15)
       .tickValues(function() {
         a = []
         for (i = 0; i < 8; i++) {
@@ -2571,7 +2585,7 @@ module.exports = function(emitter) {
         .attr('transform', 'translate(0,' + (nav.axisHeight - 1) + ')')
         .call(xAxis);
 
-      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,5)');
+      d3.selectAll('#tidelineXAxis g.tick text').style('text-anchor', 'start').attr('transform', 'translate(5,15)');
 
       // set the domain and range for the main two-week y-scale
       yScale.domain(viewEndpoints)

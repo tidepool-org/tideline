@@ -41,7 +41,7 @@ svg {
   stroke: white;
 }
 .d3-axis line {
-  stroke: #bac9d1;
+  stroke: #b9c8d0;
 }
 .d3-axis text {
   font-size: 14px;
@@ -112,10 +112,11 @@ svg {
   opacity: 0.5;
 }
 .d3-smbg-numbers.d3-text-smbg {
-  text-anchor: middle;
   fill: #808080;
   font-size: 14px;
   font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
 .d3-tooltip .d3-tooltip-text {
   fill: #989897;
