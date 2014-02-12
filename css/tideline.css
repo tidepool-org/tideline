@@ -118,6 +118,19 @@ svg {
   text-anchor: middle;
   dominant-baseline: central;
 }
+.d3-basal.d3-rect-basal {
+  fill: #029eb3;
+  opacity: 0.3;
+}
+.d3-basal.d3-path-basal {
+  fill: none;
+  stroke: #029eb3;
+  stroke-width: 1.5;
+}
+.d3-basal.d3-path-basal.d3-path-basal-undelivered {
+  stroke-dasharray: 1.5,3;
+  stroke-linecap: round;
+}
 .d3-tooltip .d3-tooltip-text {
   fill: #989897;
   font-size: 11px;
