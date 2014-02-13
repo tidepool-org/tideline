@@ -23,13 +23,13 @@ var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter;
 emitter.setMaxListeners(100);
 emitter.on('navigated', function(navString) {
-  $('#tidelineNavString').html(navString); 
+  $('#tidelineNavString').html(navString);
 });
 
 // common pool modules
 var fill = require('../js/plot/fill');
 var scales = require('../js/plot/scales');
-var basalUtil = require('../js/data/basal-util')();
+var BasalUtil = require('../js/data/basalutil');
 
 var el = '#tidelineContainer';
 
@@ -50,14 +50,13 @@ var oneDay = new oneDayChart(el), twoWeek = twoWeekChart(el);
 d3.json('device-data.json', function(data) {
   log('Data loaded.');
   // munge basal segments
-  var vizReadyBasals = basalUtil(data);
-  log('Number of overlapping basal segments is ' + vizReadyBasals.nonContinuousSegments.length + '.');
+  var vizReadyBasals = new BasalUtil(data);
   data = _.reject(data, function(d) {
     return d.type === 'basal-rate-segment';
   });
-  data = data.concat(vizReadyBasals.actualSegments.concat(vizReadyBasals.undeliveredSegments));
+  data = data.concat(vizReadyBasals.actual.concat(vizReadyBasals.undelivered));
   // Watson the data
-  var data = watson.normalize(data);
+  data = watson.normalize(data);
   // ensure the data is properly sorted
   data = _.sortBy(data, function(d) {
     return new Date(d.normalTime).valueOf();
@@ -121,7 +120,7 @@ d3.json('device-data.json', function(data) {
     // attach click handlers to set up programmatic pan
     $('#tidelineNavForward').on('click', oneDay.panForward);
     $('#tidelineNavBack').on('click', oneDay.panBack);
-  })
+  });
 
   emitter.on('selectSMBG', function(date) {
     log('Navigated to one-day view from double clicking a two-week view SMBG.');
@@ -289,15 +288,16 @@ function oneDayChart(el) {
   // if called without an argument, locates the chart at the most recent 24 hours of data
   chart.locate = function(datetime) {
 
-    var start, localData;
+    var start, end, localData;
 
     if (!arguments.length) {
       start = chart.initialEndpoints[0];
+      end = chart.initialEndpoints[1];
       localData = chart.getData(chart.initialEndpoints, 'both');
     }
     else {
       start = new Date(datetime);
-      var end = new Date(start);
+      end = new Date(start);
       start.setUTCHours(start.getUTCHours() - 12);
       end.setUTCHours(end.getUTCHours() + 12);
 
@@ -330,7 +330,7 @@ function oneDayChart(el) {
   };
 
   return create(el);
-};
+}
 
 // // two-week visualization
 // // =====================
@@ -395,8 +395,8 @@ function twoWeekChart(el) {
   };
 
   return create(el);
-};
-},{"../js/data/basal-util":3,"../js/one-day":4,"../js/plot/basal":5,"../js/plot/bolus":6,"../js/plot/carbs":7,"../js/plot/cbg":8,"../js/plot/fill":9,"../js/plot/message":10,"../js/plot/scales":11,"../js/plot/smbg":13,"../js/plot/smbg-time":12,"../js/two-week":16,"./watson":2,"bows":17,"events":20}],2:[function(require,module,exports){
+}
+},{"../js/data/basalutil":3,"../js/one-day":4,"../js/plot/basal":5,"../js/plot/bolus":6,"../js/plot/carbs":7,"../js/plot/cbg":8,"../js/plot/fill":9,"../js/plot/message":10,"../js/plot/scales":11,"../js/plot/smbg":13,"../js/plot/smbg-time":12,"../js/two-week":16,"./watson":2,"bows":17,"events":20}],2:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -467,209 +467,160 @@ module.exports = function() {
 },{"bows":17}],3:[function(require,module,exports){
 var _ = require('underscore');
 
-module.exports = function() {
+try {
+  var log = require('bows')('BasalUtil');
+}
+catch(ReferenceError) {
+  console.log('Not using bows.');
+}
 
-  function basal(data) {
-    // produce non-overlapping viz-ready segments
-    var actual = [];
-    var undelivered = [];
-    
-    var temp = _.where(data, {'deliveryType': 'temp'});
-    var scheduled = _.where(data, {'deliveryType': 'scheduled'});
-    // ensure both collections are properly sorted
-    temp = _.sortBy(temp, function(t) {
-      return new Date(t.start).valueOf();
+function BasalUtil(data) {
+  this.actual = [];
+  this.undelivered = [];
+
+  var sliceCurrent = function(current, next, pushLocation) {
+    var earliest = _.min([current.end, next], function(d) {
+      return new Date(d).valueOf();
     });
-    scheduled = _.sortBy(scheduled, function(s) {
-      return new Date(s.start).valueOf();
-    });
+    if (earliest === current.end) {
+      pushLocation.push(current);
+    }
+    else {
+      current.end = next;
+      pushLocation.push(current);
+    }
+  };
 
-    var recursedSegments = [];
+  var temp = _.where(data, {'deliveryType': 'temp'});
+  var scheduled = _.where(data, {'deliveryType': 'scheduled'});
 
-    var tempStartAtEndWithin = function(segment, tempSegment) {
-      var endOfTemp = _.clone(tempSegment);
-      endOfTemp.start = segment.start;
-      actual.push(endOfTemp);
-      var couldHaveBeen = _.clone(segment);
-      couldHaveBeen.end = tempSegment.end;
-      undelivered.push(couldHaveBeen);
-      var secondScheduled = _.clone(segment);
-      secondScheduled.start = tempSegment.end;
-      actual.push(secondScheduled);
-      return;
-    };
+  // ensure both collections are properly sorted
+  temp = _.sortBy(temp, function(t) {
+    return new Date(t.start).valueOf();
+  });
+  scheduled = _.sortBy(scheduled, function(s) {
+    return new Date(s.start).valueOf();
+  });
 
-    var allTemp = function(segment, tempSegment) {
-      var thisTemp = _.clone(tempSegment);
-      thisTemp.end = segment.end;
-      thisTemp.start = segment.start;
-      actual.push(thisTemp);
-      undelivered.push(segment);
-      return;
-    };
+  // create an ordered list of the unique start datetimes in all basal segments
+  var datetimes = [];
 
-    var checkNextSegment = function(tempSegment, i, j) {
-      var segment = scheduled[i + 1];
-      var start = new Date(segment.start).valueOf();
-      var end = new Date(segment.end).valueOf();
-      var tempEnd = new Date(tempSegment.end).valueOf();
-      var nextTemp = temp[j + 1];
-      if (nextTemp) {
-        var nextTempStart = new Date(nextTemp.start).valueOf();
-        var nextTempEnd = new Date(nextTemp.end).valueOf();
-      }
-      recursedSegments.push(scheduled[i]);
-      recursedSegments.push(segment);
-      // = basal-temp-both-ends.json
-      // one temp basal ends with a particular scheduled segment and another one begins
-      // scheduled segment split into three parts
-      // then following scheduled segment (possibly recursively) checked for containing the end of the second temp basal
-      if ((tempEnd > start) && (tempEnd < end) && (nextTempStart > start)) {
-        var firstCouldHaveBeen = _.clone(segment);
-        firstCouldHaveBeen.end = tempSegment.end;
-        undelivered.push(firstCouldHaveBeen);
-        var thisScheduled = _.clone(segment);
-        thisScheduled.start = tempSegment.end;
-        thisScheduled.end = nextTemp.start;
-        actual.push(thisScheduled);
-        var secondCouldHaveBeen = _.clone(segment);
-        secondCouldHaveBeen.start = nextTemp.start;
-        undelivered.push(secondCouldHaveBeen);
-        var firstTemp = _.clone(tempSegment);
-        firstTemp.start = segment.start;
-        actual.push(firstTemp);
-        var secondTemp = _.clone(nextTemp);
-        secondTemp.end = segment.end;
-        actual.push(secondTemp);
-        checkNextSegment(nextTemp, i + 1, j);
-      }
-      else if (tempEnd < end) {
-        tempStartAtEndWithin(segment, tempSegment);
-      }
-      else if (tempEnd > end) {
-        allTemp(segment, tempSegment);
-        checkNextSegment(tempSegment, i + 1, j);
-      }
-      else if (tempEnd === end) {
-        allTemp(segment, tempSegment);
-      }
-      return;
-    };
+  temp.forEach(function(i) {
+    datetimes.push(i.start);
+    datetimes.push(i.end);
+  });
+  scheduled.forEach(function(i) {
+    datetimes.push(i.start);
+    datetimes.push(i.end);
+  });
 
-    scheduled.forEach(function(segment, i) {
-      tempIntervening = false;
-      var start = new Date(segment.start).valueOf();
-      var end = new Date(segment.end).valueOf();
-      temp.forEach(function(tempSegment, j) {
-        var tempStart = new Date(tempSegment.start).valueOf();
-        var tempEnd = new Date(tempSegment.end).valueOf();
-        // = basal-contained.json
-        // temp basal starts and ends within a scheduled segment
-        // scheduled gets split into three segments
-        if ((tempStart > start) && (tempEnd < end)) {
-          actual.push(tempSegment);
-          var firstScheduled = _.clone(segment);
-          firstScheduled.end = tempSegment.start;
-          actual.push(firstScheduled);
-          var couldHaveBeen = _.clone(segment);
-          couldHaveBeen.start = tempSegment.start;
-          couldHaveBeen.end = tempSegment.end;
-          undelivered.push(couldHaveBeen);
-          var secondScheduled = _.clone(segment);
-          secondScheduled.start = tempSegment.end;
-          actual.push(secondScheduled);
-          recursedSegments.push(segment);
-          return;
-        }
-        // = basal-temp-start.json
-        // exceedingly rare case where temp basal starts at the exact same time as the start of the scheduled segment
-        // scheduled gets split into two segments
-        else if ((tempStart === start) && (tempEnd < end)) {
-          if (recursedSegments.indexOf(segment) !== -1) {
-            tempStartAtEndWithin(segment, tempSegment); 
-          }
-          return;
-        }
-        // = basal-temp-end.json
-        // exceedingly rare case where temp basal ends at the exact same time as the end of the scheduled segment
-        // scheduled gets split into two segments
-        else if ((tempStart > start) && (tempEnd === end)) {
-          if (recursedSegments.indexOf(segment) !== -1) {
-            var firstScheduled = _.clone(segment);
-            firstScheduled.end = tempSegment.start;
-            actual.push(firstScheduled);
-            var couldHaveBeen = _.clone(segment);
-            couldHaveBeen.start = tempSegment.start;
-            undelivered.push(couldHaveBeen);
-            actual.push(tempSegment);
-          }
-          return;
-        }
-        // = basal-temp-two-scheduled.json
-        // = basal-temp-many-scheduled.json
-        // temp basal starts but does not end within a scheduled segment
-        // scheduled segment gets split into two segments
-        // following scheduled segment are (possibly recursively) checked for containing the end of the temp basal
-        else if ((tempStart > start) && (tempStart < end)) {
-          if (recursedSegments.indexOf(segment) !== -1) {
-            var firstScheduled = _.clone(segment);
-            firstScheduled.end = tempSegment.start;
-            actual.push(firstScheduled);
-            var couldHaveBeen = _.clone(segment);
-            couldHaveBeen.start = tempSegment.start;
-            undelivered.push(couldHaveBeen);
-            beginningOfTemp = _.clone(tempSegment);
-            beginningOfTemp.end = segment.end;
-            actual.push(beginningOfTemp);
-            checkNextSegment(tempSegment, i, j);
-          }
-          return;
-        }
+  datetimes = _.sortBy(_.uniq(datetimes), function(i) {
+    return new Date(i).valueOf();
+  });
+
+  var actualSegments = [];
+
+  datetimes.forEach(function(dt, i) {
+    if (i < datetimes.length - 1) {
+      actualSegments.push({
+        'start': dt,
+        'end': datetimes[i + 1]
       });
-      if (recursedSegments.indexOf(segment) == -1) {
-        actual.push(segment);
+    }
+  });
+
+  actualSegments.forEach(function(actSegment) {
+    var matching;
+    try {
+      matching = _.filter(data, function(segment){
+        var start = new Date(segment.start).valueOf();
+        var end = new Date(segment.end).valueOf();
+        var actStart = new Date(actSegment.start).valueOf();
+        var actEnd = new Date(actSegment.end).valueOf();
+        return ((start === actStart) && (end === actEnd) ||
+          (start === actStart) ||
+          (end === actEnd) ||
+          (start < actStart) && (end > actEnd));
+      });
+      if (matching.length > 2) {
+        throw "OverlappingTempBasals";
       }
-    });
-
-    actual = _.sortBy(actual, function(a) {
-      return new Date(a.start).valueOf();
-    });
-    undelivered = _.sortBy(undelivered, function(u) {
-      return new Date(u.start).valueOf();
-    });
-
-    var nonContinuous = [];
-
-    actual.forEach(function(segment, i) {
-      if (actual[i + 1])
-      {      
-        if (!(segment.end === actual[i + 1].start)) {
-          nonContinuous.push([segment, actual[i + 1]]);
-          return;
-        }
+    }
+    catch(OverlappingTempBasals) {
+      if(!log) {
+        console.log('Possible overlapping temp basals!');
       }
-    });
+      else {
+        log('Possible overlapping temp basals!');
+      }
+    }
 
-    // add vizType = 'actual' or 'undelivered'
-    actual.forEach(function(segment) {
-      segment.vizType = 'actual';
+    var temp = _.find(matching, function(m) {
+      return m.deliveryType === 'temp';
     });
-    undelivered.forEach(function(segment) {
-      segment.vizType = 'undelivered';
+    if (temp) {
+      var tempMatch = _.clone(temp);
+      tempMatch.start = actSegment.start;
+      tempMatch.end = actSegment.end;
+      this.actual.push(tempMatch);
+    }
+    else {
+      var match = _.clone(matching[0]);
+      match.start = actSegment.start;
+      match.end = actSegment.end;
+      this.actual.push(match);
+    }
+  }, this);
+
+  var temps = _.where(this.actual, {'deliveryType': 'temp'});
+
+  temps.forEach(function(temp, i, temps) {
+    var matching = _.filter(scheduled, function(d) {
+      var start = new Date(d.start).valueOf();
+      var end = new Date(d.end).valueOf();
+      var tempStart = new Date(temp.start).valueOf();
+      var tempEnd = new Date(temp.end).valueOf();
+      return ((start === tempStart) && (end === tempEnd) ||
+        (start === tempStart) ||
+        (end === tempEnd) ||
+        (start < tempStart) && (end > tempEnd));
     });
+    matching.forEach(function(m) {
+      var match = _.clone(m);
+      match.start = temp.start;
+      match.end = temp.end;
+      this.undelivered.push(match);
+    }, this);
+  }, this);
 
-    return {
-      "actualSegments": actual,
-      "undeliveredSegments": undelivered,
-      "scheduledSegments": scheduled,
-      "tempSegments": temp,
-      "nonContinuousSegments": nonContinuous
-    };
-  }  
+  // re-sort the results!
+  this.actual = _.sortBy(this.actual, function(segment) {
+    return new Date(segment.start).valueOf();
+  });
 
-  return basal;
-};
-},{"underscore":19}],4:[function(require,module,exports){
+  this.undelivered = _.sortBy(this.undelivered, function(segment) {
+    return new Date(segment.start).valueOf();
+  });
+
+  // add vizType = 'actual' or 'undelivered'
+  this.actual.forEach(function(segment) {
+    segment.vizType = 'actual';
+  });
+  this.undelivered.forEach(function(segment) {
+    segment.vizType = 'undelivered';
+  });
+
+  this.getCurrentSegments = function(s, e) {
+
+  };
+
+  this.getTotalDose = function(s, e) {
+
+  };
+}
+
+module.exports = BasalUtil;
+},{"bows":17,"underscore":19}],4:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
