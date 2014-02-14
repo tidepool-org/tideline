@@ -272,7 +272,7 @@ function oneDayChart(el) {
     poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: chart.endpoints}), false);
 
     // add basal data to basal pool
-    poolBasal.addPlotType('basal-rate-segment', require('../js/plot/basal')(poolBasal, {yScale: scaleBasal}), true);
+    poolBasal.addPlotType('basal-rate-segment', require('../js/plot/basal')(poolBasal, {yScale: scaleBasal, data: _.where(data, {'type': 'basal-rate-segment'}) }), true);
 
     // messages pool
     // add background fill rectangles to messages pool
@@ -1309,6 +1309,8 @@ module.exports = function(emitter) {
  * == BSD2 LICENSE ==
  */
 
+var log = require('bows')('Basal');
+
 module.exports = function(pool, opts) {
 
   opts = opts || {};
@@ -1319,8 +1321,14 @@ module.exports = function(pool, opts) {
 
   _.defaults(opts, defaults);
 
+  var drawnPaths = [];
+
   function basal(selection) {
     selection.each(function(currentData) {
+
+      // to prevent blank rectangle at beginning of domain
+      var index = opts.data.indexOf(currentData[0]);
+      currentData.unshift(opts.data[index - 1]);
 
       var line = d3.svg.line()
         .x(function(d) { return d.x; })
@@ -1376,6 +1384,8 @@ module.exports = function(pool, opts) {
         });
       });
 
+      d3.selectAll('.d3-path-basal').remove();
+
       d3.select(this).append('path')
         .attr({
         'd': line(actualPoints),
@@ -1383,23 +1393,59 @@ module.exports = function(pool, opts) {
       });
 
       if (undelivered.length !== 0) {
-        var undeliveredPairs = [];
+        var undeliveredSequences = [];
+        var contiguous = [];
+        undelivered.forEach(function(segment, i, segments) {
+          if ((i < (segments.length - 1)) && (segment.end === segments[i + 1].start)) {
+            segment.contiguousWith = 'next';
+          }
+          else if ((i !== 0) && (segments[i - 1].end === segment.start)) {
+            segment.contiguousWith = 'previous';
+          }
+          else {
+            segment.contiguousWith = 'none';
+            undeliveredSequences.push([segment]);
+          }
+        });
+        undelivered = undelivered.reverse();
 
-        undelivered.forEach(function(d) {
-          undeliveredPairs.push([{
-            'x': opts.xScale(new Date(d.normalTime)),
-            'y': opts.yScale(d.value)
-          },
-          {
-            'x': opts.xScale(new Date(d.normalEnd)),
-            'y': opts.yScale(d.value)
-          }]);
+        var anchors = _.where(undelivered, {'contiguousWith': 'previous'});
+
+        anchors.forEach(function(anchor) {
+          var index = undelivered.indexOf(anchor);
+          contiguous.push(undelivered[index]);
+          index++;
+          while (undelivered[index].contiguousWith === 'next') {
+            contiguous.push(undelivered[index]);
+            index++;
+            if (index > (undelivered.length - 1)) {
+              break;
+            }
+          }
+          undeliveredSequences.push(contiguous);
+          contiguous = [];
         });
 
-        undeliveredPairs.forEach(function(pair) {
+        undeliveredSequences.forEach(function(seq) {
+          seq = seq.reverse();
+          var pathPoints = _.map(seq, function(segment) {
+            return [{
+              'x': opts.xScale(new Date(segment.normalTime)),
+              'y': opts.yScale(segment.value)
+            },
+            {
+              'x': opts.xScale(new Date(segment.normalEnd)),
+              'y': opts.yScale(segment.value)
+            }];
+          });
+          pathPoints = _.flatten(pathPoints);
+          pathPoints = _.uniq(pathPoints, function(point) {
+            return JSON.stringify(point);
+          });
+
           basalGroup.append('path')
             .attr({
-              'd': line(pair),
+              'd': line(pathPoints),
               'class': 'd3-basal d3-path-basal d3-path-basal-undelivered'
             });
         });
@@ -1413,7 +1459,7 @@ module.exports = function(pool, opts) {
 
   return basal;
 };
-},{}],6:[function(require,module,exports){
+},{"bows":17}],6:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
