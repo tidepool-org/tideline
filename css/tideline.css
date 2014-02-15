@@ -120,10 +120,10 @@ svg {
 }
 .d3-basal.d3-rect-basal {
   fill: #029eb3;
-  opacity: 0.3;
 }
-.d3-basal.d3-rect-basal:hover {
-  opacity: 0.4;
+.d3-basal.d3-basal-invisible {
+  fill: #029eb3;
+  opacity: 0.0;
 }
 .d3-basal.d3-path-basal {
   fill: none;
@@ -134,22 +134,26 @@ svg {
   stroke-dasharray: 1.5,3;
   stroke-linecap: round;
 }
-.d3-tooltip .d3-tooltip-text {
+.d3-tooltip text.d3-tooltip-text {
   fill: #989897;
   font-size: 11px;
   text-anchor: middle;
   dominant-baseline: central;
 }
-.d3-tooltip .d3-tooltip-text.d3-smbg {
+.d3-tooltip text.d3-tooltip-text.d3-smbg {
   font-size: 14px;
   font-weight: bold;
 }
-.d3-tooltip .d3-tooltip-text.d3-basal {
+.d3-tooltip text.d3-tooltip-text.d3-basal {
   font-size: 14px;
   font-weight: bold;
 }
-.d3-tooltip .d3-tooltip-text.d3-tooltip-timestamp {
+.d3-tooltip text.d3-tooltip-text.d3-tooltip-timestamp {
   text-transform: lowercase;
+}
+.d3-tooltip text.d3-tooltip-text tspan {
+  font-weight: normal;
+  dominant-baseline: central;
 }
 .d3-tooltip .d3-tooltip-rect {
   fill: #f8f9fa;

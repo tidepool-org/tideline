@@ -396,7 +396,7 @@ function twoWeekChart(el) {
 
   return create(el);
 }
-},{"../js/data/basalutil":3,"../js/one-day":4,"../js/plot/basal":5,"../js/plot/bolus":6,"../js/plot/carbs":7,"../js/plot/cbg":8,"../js/plot/fill":9,"../js/plot/message":10,"../js/plot/scales":11,"../js/plot/smbg":13,"../js/plot/smbg-time":12,"../js/two-week":16,"./watson":2,"bows":17,"events":20}],2:[function(require,module,exports){
+},{"../js/data/basalutil":3,"../js/one-day":4,"../js/plot/basal":5,"../js/plot/bolus":6,"../js/plot/carbs":7,"../js/plot/cbg":8,"../js/plot/fill":9,"../js/plot/message":10,"../js/plot/scales":11,"../js/plot/smbg":13,"../js/plot/smbg-time":12,"../js/two-week":16,"./watson":2,"bows":17,"events":21}],2:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -471,156 +471,105 @@ try {
   var log = require('bows')('BasalUtil');
 }
 catch(ReferenceError) {
-  console.log('Not using bows.');
 }
 
+var keysToOmit = ['id', 'start', 'end', 'vizType'];
+
 function BasalUtil(data) {
-  this.actual = [];
-  this.undelivered = [];
+  var actuals = [];
+  var undelivereds = [];
 
-  var sliceCurrent = function(current, next, pushLocation) {
-    var earliest = _.min([current.end, next], function(d) {
-      return new Date(d).valueOf();
-    });
-    if (earliest === current.end) {
-      pushLocation.push(current);
-    }
-    else {
-      current.end = next;
-      pushLocation.push(current);
-    }
-  };
+  function addToActuals(e) {
+    actuals.push(_.extend({}, e, {vizType: 'actual'}));
+  }
 
-  var temp = _.where(data, {'deliveryType': 'temp'});
-  var scheduled = _.where(data, {'deliveryType': 'scheduled'});
+  function addToUndelivered(e) {
+    undelivereds.push(_.extend({}, e, {vizType: 'undelivered'}));
+  }
 
-  // ensure both collections are properly sorted
-  temp = _.sortBy(temp, function(t) {
-    return new Date(t.start).valueOf();
-  });
-  scheduled = _.sortBy(scheduled, function(s) {
-    return new Date(s.start).valueOf();
-  });
+  function processElement(e) {
+    if (e.deliveryType === 'temp' || e.deliveryType === 'scheduled') {
+      if (actuals.length === 0) {
+        addToActuals(e);
+      } else {
+        var lastActual = actuals[actuals.length - 1];
+        if (e.start === lastActual.end) {
+          if (_.isEqual(_.omit(e, keysToOmit), _.omit(lastActual, keysToOmit))) {
+            lastActual.end = e.end;
+          } else {
+            addToActuals(e);
+          }
+        } else if (e.start < lastActual.end) {
+          // It is overlapping, so let's see how we should deal with it.
 
-  // create an ordered list of the unique start datetimes in all basal segments
-  var datetimes = [];
+          if (e.start < lastActual.start) {
+            // The current element is completely newer than the last actual, so we have to rewind a bit.
+            var removedActual = actuals.pop();
+            processElement(e);
+            processElement(removedActual);
+          } else if (e.deliveryType === 'temp') {
+            // It's a temp, which wins no matter what it was before.
+            // Start by setting up shared adjustments to the segments (clone lastActual and reshape it)
+            var undeliveredClone = _.clone(lastActual);
 
-  temp.forEach(function(i) {
-    datetimes.push(i.start);
-    datetimes.push(i.end);
-  });
-  scheduled.forEach(function(i) {
-    datetimes.push(i.start);
-    datetimes.push(i.end);
-  });
+            if (e.end >= lastActual.end) {
+              // The temp segment is longer than the current, throw away the rest of the current
+              lastActual.end = e.start;
+              undeliveredClone.start = e.start;
+              addToUndelivered(undeliveredClone);
+              addToActuals(e);
+            } else {
+              // The current exceeds the temp, so replace the current "chunk" and re-attach the schedule
+              lastActual.end = e.start;
+              var endingSegment = _.clone(undeliveredClone);
+              undeliveredClone.start = e.start;
+              undeliveredClone.end = e.end;
+              addToUndelivered(undeliveredClone);
+              addToActuals(_.clone(e));
 
-  datetimes = _.sortBy(_.uniq(datetimes), function(i) {
-    return new Date(i).valueOf();
-  });
+              // Re-attach the end of the schedule
+              endingSegment.start = e.end;
+              addToActuals(endingSegment);
+            }
+          } else {
+            // e.deliveryType === 'scheduled'
+            if (lastActual.deliveryType === 'scheduled') {
+              // Scheduled overlapping a scheduled, this should not happen.
+              log('Scheduled overlapped a scheduled.  Should never happen.', lastActual, e);
+            } else {
+              // Scheduled overlapping a temp, this can happen and the schedule should be skipped
+              var undeliveredClone = _.clone(e);
+              var deliveredClone = _.clone(e);
 
-  var actualSegments = [];
-
-  datetimes.forEach(function(dt, i) {
-    if (i < datetimes.length - 1) {
-      actualSegments.push({
-        'start': dt,
-        'end': datetimes[i + 1]
-      });
-    }
-  });
-
-  actualSegments.forEach(function(actSegment) {
-    var matching;
-    try {
-      matching = _.filter(data, function(segment){
-        var start = new Date(segment.start).valueOf();
-        var end = new Date(segment.end).valueOf();
-        var actStart = new Date(actSegment.start).valueOf();
-        var actEnd = new Date(actSegment.end).valueOf();
-        return ((start === actStart) && (end === actEnd) ||
-          (start === actStart) ||
-          (end === actEnd) ||
-          (start < actStart) && (end > actEnd));
-      });
-      if (matching.length > 2) {
-        throw "OverlappingTempBasals";
+              if (e.end >= lastActual.end) {
+                // Scheduled is longer than the temp, so preserve the tail
+                undeliveredClone.end = e.end;
+                deliveredClone.start = lastActual.end;
+                addToUndelivered(undeliveredClone);
+                addToActuals(deliveredClone);
+              } else {
+                // Scheduled is shorter than the temp, so completely skip it
+                addToUndelivered(undeliveredClone);
+              }
+            }
+          }
+        } else {
+          // e.start > lastActual.end
+          log('e.start[' + e.start + '] > lastActual.end[' + lastActual.end + '].  ' +
+            'BAD!!!! AAAHHHHHHH.  Sort input data plz, thx, cheezburger');
+        }
       }
     }
-    catch(OverlappingTempBasals) {
-      if(!log) {
-        console.log('Possible overlapping temp basals!');
-      }
-      else {
-        log('Possible overlapping temp basals!');
-      }
-    }
+  }
 
-    var temp = _.find(matching, function(m) {
-      return m.deliveryType === 'temp';
-    });
-    if (temp) {
-      var tempMatch = _.clone(temp);
-      tempMatch.start = actSegment.start;
-      tempMatch.end = actSegment.end;
-      this.actual.push(tempMatch);
-    }
-    else {
-      var match = _.clone(matching[0]);
-      match.start = actSegment.start;
-      match.end = actSegment.end;
-      this.actual.push(match);
-    }
-  }, this);
+  data.forEach(processElement);
 
-  var temps = _.where(this.actual, {'deliveryType': 'temp'});
-
-  temps.forEach(function(temp, i, temps) {
-    var matching = _.filter(scheduled, function(d) {
-      var start = new Date(d.start).valueOf();
-      var end = new Date(d.end).valueOf();
-      var tempStart = new Date(temp.start).valueOf();
-      var tempEnd = new Date(temp.end).valueOf();
-      return ((start === tempStart) && (end === tempEnd) ||
-        (start === tempStart) ||
-        (end === tempEnd) ||
-        (start < tempStart) && (end > tempEnd));
-    });
-    matching.forEach(function(m) {
-      var match = _.clone(m);
-      match.start = temp.start;
-      match.end = temp.end;
-      this.undelivered.push(match);
-    }, this);
-  }, this);
-
-  // re-sort the results!
-  this.actual = _.sortBy(this.actual, function(segment) {
-    return new Date(segment.start).valueOf();
-  });
-
-  this.undelivered = _.sortBy(this.undelivered, function(segment) {
-    return new Date(segment.start).valueOf();
-  });
-
-  // add vizType = 'actual' or 'undelivered'
-  this.actual.forEach(function(segment) {
-    segment.vizType = 'actual';
-  });
-  this.undelivered.forEach(function(segment) {
-    segment.vizType = 'undelivered';
-  });
-
-  this.getCurrentSegments = function(s, e) {
-
-  };
-
-  this.getTotalDose = function(s, e) {
-
-  };
+  this.actual = actuals;
+  this.undelivered = undelivereds;
 }
 
 module.exports = BasalUtil;
-},{"bows":17,"underscore":19}],4:[function(require,module,exports){
+},{"bows":17,"underscore":20}],4:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -1311,23 +1260,25 @@ module.exports = function(emitter) {
 
 var log = require('bows')('Basal');
 
+var Duration = require('duration-js');
+
 module.exports = function(pool, opts) {
+
+  var QUARTER = ' ¼', HALF = ' ½', THREE_QUARTER = ' ¾', THIRD = ' ⅓', TWO_THIRDS = ' ⅔';
 
   opts = opts || {};
 
   var defaults = {
     classes: {
-      'reg': {'tooltip': 'basal_tooltip_reg.svg'},
-      'temp': {'tooltip': 'basal_tooltip_temp.svg'}
+      'reg': {'tooltip': 'basal_tooltip_reg.svg', 'height': 20},
+      'temp': {'tooltip': 'basal_tooltip_temp_large.svg', 'height': 40}
     },
     tooltipWidth: 144,
-    tooltipHeight: 20,
-    xScale: pool.xScale().copy()
+    xScale: pool.xScale().copy(),
+    pathStroke: 1.5
   };
 
   _.defaults(opts, defaults);
-
-  var drawnPaths = [];
 
   function basal(selection) {
     selection.each(function(currentData) {
@@ -1342,16 +1293,24 @@ module.exports = function(pool, opts) {
         .interpolate('step-after');
 
       var actual = _.where(currentData, {'vizType': 'actual'});
-      var undelivered = _.where(currentData, {'vizType': 'undelivered'});
+      var undelivered = _.where(currentData, {'vizType': 'undelivered', 'deliveryType': 'scheduled'});
+
+      // TODO: waiting on @cheddar to fix basalutil.js
+      // var temp = basal.unsquash_temp(_.where(actual, {'deliveryType': 'temp'}), undelivered);
 
       var rects = d3.select(this)
-        .selectAll('rect')
+        .selectAll('g')
         .data(actual, function(d) {
           // leveraging the timestamp of each datapoint as the ID for D3's binding
           return d.normalTime;
         });
-      rects.enter()
-        .append('rect')
+      var rectGroups = rects.enter()
+        .append('g')
+        .attr('class', 'd3-basal-group')
+        .attr('id', function(d) {
+          return 'basal_group_' + d.id;
+        });
+      rectGroups.append('rect')
         .attr({
           'width': function(d) {
             return basal.width(d);
@@ -1371,32 +1330,77 @@ module.exports = function(pool, opts) {
           'y': function(d) {
             return opts.yScale(d.value);
           },
+          'opacity': '0.3',
           'class': function(d) {
+            var classes;
             if (d.deliveryType === 'temp') {
-              return 'd3-basal d3-rect-basal d3-basal-temp';
+              classes = 'd3-basal d3-rect-basal d3-basal-temp';
             }
             else {
-              return 'd3-basal d3-rect-basal';
+              classes = 'd3-basal d3-rect-basal';
             }
+            if (d.delivered !== 0) {
+              classes += ' d3-rect-basal-nonzero';
+            }
+            return classes;
           },
           'id': function(d) {
             return 'basal_' + d.id;
           }
         });
+      rectGroups.append('rect')
+        .attr({
+          'width': function(d) {
+            return basal.width(d);
+          },
+          'height': pool.height(),
+          'x': function(d) {
+            return opts.xScale(new Date(d.normalTime));
+          },
+          'y': function(d) {
+            return opts.yScale.range()[1];
+          },
+          'class': function(d) {
+            if (d.deliveryType === 'temp') {
+              return 'd3-basal d3-basal-invisible d3-basal-temp';
+            }
+            else {
+              return 'd3-basal d3-basal-invisible';
+            }
+          },
+          'id': function(d) {
+            return 'basal_invisible_' + d.id;
+          }
+        });
+      rectGroups.filter(function(d) {
+          if (d.delivered !== 0) {
+            return d;
+          }
+        })
+        .selectAll('.d3-basal-invisible')
+        .classed('d3-basal-nonzero', true);
       rects.exit().remove();
 
       // tooltips
-      d3.selectAll('.d3-rect-basal').on('mouseover', function() {
-        if (d3.select(this).classed('d3-basal-temp')) {
-          basal.addTooltip(d3.select(this).datum(), 'temp');
+      d3.selectAll('.d3-basal-invisible').on('mouseover', function() {
+        var invisiRect = d3.select(this);
+        var id = invisiRect.attr('id').replace('basal_invisible_', '');
+        var d = d3.select('#basal_group_' + id).datum();
+        if (invisiRect.classed('d3-basal-temp')) {
+          basal.addTooltip(d, 'temp');
         }
         else {
-          basal.addTooltip(d3.select(this).datum(), 'reg');
+          basal.addTooltip(d, 'reg');
+        }
+        if (invisiRect.classed('d3-basal-nonzero')) {
+          log('hi');
+          d3.select('#basal_' + id).attr('opacity', '0.35');
         }
       });
-      d3.selectAll('.d3-rect-basal').on('mouseout', function() {
-        var id = d3.select(this).attr('id').replace('basal_', 'tooltip_');
-        d3.select('#' + id).remove();
+      d3.selectAll('.d3-basal-invisible').on('mouseout', function() {
+        var id = d3.select(this).attr('id').replace('basal_invisible_', '');
+        d3.select('#tooltip_' + id).remove();
+        d3.select('#basal_' + id).attr('opacity', '0.3');
       });
 
       var basalGroup = d3.select(this);
@@ -1406,11 +1410,11 @@ module.exports = function(pool, opts) {
       actual.forEach(function(d) {
         actualPoints.push({
           'x': opts.xScale(new Date(d.normalTime)),
-          'y': opts.yScale(d.value),
+          'y': opts.yScale(d.value) - opts.pathStroke / 2,
         },
         {
           'x': opts.xScale(new Date(d.normalEnd)),
-          'y': opts.yScale(d.value),
+          'y': opts.yScale(d.value) - opts.pathStroke / 2,
         });
       });
 
@@ -1483,8 +1487,67 @@ module.exports = function(pool, opts) {
     });
   }
 
-  basal.timespan = function(d) {
+  basal.unsquash_temp = function(toUnsquash, referenceArray) {
+    var unsquasheds = [];
+    var unsquashed;
+    toUnsquash.forEach(function(segment, i, segments) {
+      var start = _.findWhere(referenceArray, {'normalTime': segment.normalTime});
+      var startIndex = referenceArray.indexOf(start);
+      if ((startIndex < (referenceArray.length - 1)) && (start.end === referenceArray[startIndex + 1].start)) {
+        var end = _.findWhere(referenceArray, {'normalEnd': segment.normalEnd});
+        var endIndex = referenceArray.indexOf(end);
+        unsquashed = [];
+        var index = startIndex;
+        while (index <= endIndex) {
+          var slice = _.clone(segment);
+          slice.normalTime = referenceArray[index].normalTime;
+          slice.normalEnd = referenceArray[index].normalEnd;
+          unsquashed.push(slice);
+          index++;
+        }
+      }
+      else {
+        unsquashed = _.clone(segment);
+      }
+      unsquasheds.push(unsquashed);
+    });
+    return unsquasheds;
+  };
 
+  basal.timespan = function(d) {
+    var start = Date.parse(d.normalTime);
+    var end = Date.parse(d.normalEnd);
+    var diff = end - start;
+    var dur = Duration.parse(diff + 'ms');
+    var hours = dur.hours();
+    var minutes = dur.minutes() - (hours * 60);
+    if (hours !== 0) {
+      if (hours === 1) {
+        switch(minutes) {
+          case 0: return 'over ' + hours + ' hr';
+          case 15: return 'over ' + hours + QUARTER + ' hr';
+          case 20: return 'over ' + hours + THIRD + ' hr';
+          case 30: return 'over ' + hours + HALF + ' hr';
+          case 40: return 'over ' + hours + TWO_THIRDS + ' hr';
+          case 45: return 'over ' + hours + THREE_QUARTER + ' hr';
+          default: return 'over ' + hours + ' hr ' + minutes + ' min';
+        }
+      }
+      else {
+        switch(minutes) {
+          case 0: return 'over ' + hours + ' hrs';
+          case 15: return 'over ' + hours + QUARTER + ' hrs';
+          case 20: return 'over ' + hours + THIRD + ' hrs';
+          case 30: return 'over ' + hours + HALF + ' hrs';
+          case 40: return 'over ' + hours + TWO_THIRDS + ' hrs';
+          case 45: return 'over ' + hours + THREE_QUARTER + ' hrs';
+          default: return 'over ' + hours + ' hrs ' + minutes + ' min';
+        }
+      }
+    }
+    else {
+      return 'over ' + minutes + ' min';
+    }
   };
 
   basal.width = function(d) {
@@ -1492,8 +1555,8 @@ module.exports = function(pool, opts) {
   };
 
   basal.addTooltip = function(d, category) {
-    d3.select('#' + 'd3-tooltip-group_basal')
-      .call(tooltips,
+    var tooltipHeight = opts.classes[category].height;
+    d3.select('#' + 'd3-tooltip-group_basal').call(tooltips,
         d,
         // tooltipXPos
         opts.xScale(Date.parse(d.normalTime)),
@@ -1502,12 +1565,12 @@ module.exports = function(pool, opts) {
         false,
         opts.classes[category]['tooltip'],
         opts.tooltipWidth,
-        opts.tooltipHeight,
+        tooltipHeight,
         // imageX
         opts.xScale(Date.parse(d.normalTime)) - opts.tooltipWidth / 2 + basal.width(d) / 2,
         // imageY
         function() {
-          var y = opts.yScale(d.value) - opts.tooltipHeight * 2;
+          var y = opts.yScale(d.value) - tooltipHeight * 2;
           if (y < 0) {
             return 0;
           }
@@ -1519,20 +1582,56 @@ module.exports = function(pool, opts) {
         opts.xScale(Date.parse(d.normalTime)) + basal.width(d) / 2,
         // textY
         function() {
-          var y = opts.yScale(d.value) - opts.tooltipHeight * 2;
-          if (y < 0) {
-            return opts.tooltipHeight / 2;
+          var y = opts.yScale(d.value) - tooltipHeight * 2;
+          if (category === 'temp') {
+            if (y < 0) {
+              return tooltipHeight * (3 / 10);
+            }
+            else {
+              return opts.yScale(d.value) - tooltipHeight * 1.7;
+            }
           }
           else {
-            return opts.yScale(d.value) - opts.tooltipHeight * 1.5;
+            if (y < 0) {
+              return tooltipHeight / 2;
+            }
+            else {
+              return opts.yScale(d.value) - tooltipHeight * 1.5;
+            }
           }
         },
-        d.value + ' U');
+        function() {
+          if (d.value === 0) {
+            return '0.0 U';
+          }
+          else {
+            return d.value + ' U';
+          }
+        }(),
+        basal.timespan(d));
+    if (category === 'temp') {
+      d3.select('#tooltip_' + d.id).append('text')
+        .attr({
+          'class': 'd3-tooltip-text d3-basal',
+          'x': opts.xScale(Date.parse(d.normalTime)) + basal.width(d) / 2,
+          'y': function() {
+            var y = opts.yScale(d.value) - tooltipHeight * 2;
+            if (y < 0) {
+              return tooltipHeight * (7 / 10);
+            }
+            else {
+              return opts.yScale(d.value) - tooltipHeight * 1.3;
+            }
+          }
+        })
+        .append('tspan')
+        .text('(0.0 U scheduled)');
+    }
   };
 
   return basal;
 };
-},{"bows":17}],6:[function(require,module,exports){
+},{"bows":17,"duration-js":19}],6:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -2502,7 +2601,8 @@ module.exports = function(container, tooltipsGroup) {
     tooltipWidth,
     tooltipHeight,
     imageX, imageY,
-    textX, textY, customText) {
+    textX, textY,
+    customText, tspan) {
     var tooltipGroup = selection.append('g')
       .attr('class', 'd3-tooltip')
       .attr('id', 'tooltip_' + d.id);
@@ -2601,20 +2701,42 @@ module.exports = function(container, tooltipsGroup) {
           'class': 'd3-tooltip-image'
         });
 
-      tooltipGroup.append('text')
-        .attr({
-          'x': textX,
-          'y': textY,
+      if (tspan) {
+        tooltipGroup.append('text')
+          .attr({
+            'x': textX,
+            'y': textY,
             'class': 'd3-tooltip-text d3-' + path
-        })
-        .text(function() {
-          if (customText) {
-            return customText;
-          }
-          else {
-            return d.value;
-          }
-        });
+          })
+          .text(function() {
+            if (customText) {
+              return customText;
+            }
+            else {
+              return d.value;
+            }
+          });
+        tooltipGroup.select('text')
+          .append('tspan')
+          .text(' ' + tspan);
+      }
+      else {
+        tooltipGroup.append('text')
+          .attr({
+            'x': textX,
+            'y': textY,
+            'class': 'd3-tooltip-text d3-' + path
+          })
+          .text(function() {
+            if (customText) {
+              return customText;
+            }
+            else {
+              return d.value;
+            }
+          });
+      }
+
     }
 
     if (makeTimestamp) {
@@ -3550,6 +3672,187 @@ module.exports = function(emitter) {
 })();
 
 },{}],19:[function(require,module,exports){
+var Duration = (function () {
+
+    var millisecond = 1,
+        second      = 1000 * millisecond,
+        minute      = 60   * second,
+        hour        = 60   * minute,
+        day         = 24   * hour,
+        week        = 7    * day;
+
+    var unitMap = {
+        "ms" : millisecond,
+        "s"  : second,
+        "m"  : minute,
+        "h"  : hour,
+        "d"  : day,
+        "w"  : week
+    };
+
+    var Duration = function (value) {
+        if (value instanceof Duration) {
+          return value;
+        }
+        switch (typeof value) {
+            case "number":
+                this._milliseconds = value;
+                break;
+            case "string":
+                this._milliseconds = Duration.parse(value).valueOf();
+                break;
+            case "undefined":
+                this._milliseconds = 0;
+                break;
+            default:
+                throw new Error("invalid duration: " + value);
+        }
+    };
+
+    Duration.millisecond = new Duration(millisecond);
+    Duration.second      = new Duration(second);
+    Duration.minute      = new Duration(minute);
+    Duration.hour        = new Duration(hour);
+    Duration.day         = new Duration(day);
+    Duration.week        = new Duration(week);
+
+    Duration.prototype.nanoseconds = function () {
+        return this._milliseconds * 1000000;
+    };
+
+    Duration.prototype.microseconds = function () {
+        return this._milliseconds * 1000;
+    };
+
+    Duration.prototype.milliseconds = function () {
+        return this._milliseconds;
+    };
+
+    Duration.prototype.seconds = function () {
+        return Math.floor(this._milliseconds / second);
+    };
+
+    Duration.prototype.minutes = function () {
+        return Math.floor(this._milliseconds / minute);
+    };
+
+    Duration.prototype.hours = function () {
+        return Math.floor(this._milliseconds / hour);
+    };
+
+    Duration.prototype.days = function () {
+      return Math.floor(this._milliseconds / day);
+    };
+
+    Duration.prototype.weeks = function () {
+      return Math.floor(this._milliseconds / week);
+    };
+
+    Duration.prototype.toString = function () {
+      var str          = "",
+          milliseconds = Math.abs(this._milliseconds),
+          sign         = this._milliseconds < 0 ? "-" : "";
+
+      // no units for 0 duration
+      if (milliseconds === 0) {
+        return "0";
+      }
+
+      // days
+      var days = Math.floor(milliseconds / day);
+      if (days !== 0) {
+        milliseconds -= day * days;
+        str += days.toString() + "d";
+      }
+
+      // hours
+      var hours = Math.floor(milliseconds / hour);
+      if (hours !== 0) {
+        milliseconds -= hour * hours;
+        str += hours.toString() + "h";
+      }
+
+      // minutes
+      var minutes = Math.floor(milliseconds / minute);
+      if (minutes !== 0) {
+        milliseconds -= minute * minutes;
+        str += minutes.toString() + "m";
+      }
+
+      // seconds
+      var seconds = Math.floor(milliseconds / second);
+      if (seconds !== 0) {
+        milliseconds -= second * seconds;
+        str += seconds.toString() + "s";
+      }
+
+      // milliseconds
+      if (milliseconds !== 0) {
+        str += milliseconds.toString() + "ms";
+      }
+
+      return sign + str;
+    };
+
+    Duration.prototype.valueOf = function () {
+      return this._milliseconds;
+    };
+
+    Duration.parse = function (duration) {
+
+        if (duration === "0" || duration === "+0" || duration === "-0") {
+          return new Duration(0);
+        }
+
+        var regex = /([\-\+\d\.]+)([a-z]+)/g,
+            total = 0,
+            count = 0,
+            sign  = duration[0] === '-' ? -1 : 1,
+            unit, value, match;
+
+        while (match = regex.exec(duration)) {
+
+            unit  = match[2];
+            value = Math.abs(parseFloat(match[1]));
+            count++;
+
+            if (isNaN(value)) {
+              throw new Error("invalid duration");
+            }
+
+            if (typeof unitMap[unit] === "undefined") {
+              throw new Error("invalid unit: " + unit);
+            }
+
+            total += value * unitMap[unit];
+        }
+
+        if (count === 0) {
+          throw new Error("invalid duration");
+        }
+
+        return new Duration(total * sign);
+    };
+
+    Duration.fromMicroseconds = function (us) {
+        var ms = Math.floor(us / 1000);
+        return new Duration(ms);
+    };
+
+    Duration.fromNanoseconds = function (ns) {
+        var ms = Math.floor(ns / 1000000);
+        return new Duration(ms);
+    };
+
+    return Duration;
+
+}).call(this);
+
+if (typeof module !== "undefined") {
+   module.exports = Duration;
+}
+
+},{}],20:[function(require,module,exports){
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4894,7 +5197,7 @@ module.exports = function(emitter) {
   }
 }).call(this);
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
