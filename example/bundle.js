@@ -511,16 +511,15 @@ function BasalUtil(data) {
             // It's a temp, which wins no matter what it was before.
             // Start by setting up shared adjustments to the segments (clone lastActual and reshape it)
             var undeliveredClone = _.clone(lastActual);
+            lastActual.end = e.start;
 
-            if (e.end >= lastActual.end) {
+            if (e.end >= undeliveredClone.end) {
               // The temp segment is longer than the current, throw away the rest of the current
-              lastActual.end = e.start;
               undeliveredClone.start = e.start;
               addToUndelivered(undeliveredClone);
               addToActuals(e);
             } else {
               // The current exceeds the temp, so replace the current "chunk" and re-attach the schedule
-              lastActual.end = e.start;
               var endingSegment = _.clone(undeliveredClone);
               undeliveredClone.start = e.start;
               undeliveredClone.end = e.end;
@@ -539,11 +538,11 @@ function BasalUtil(data) {
             } else {
               // Scheduled overlapping a temp, this can happen and the schedule should be skipped
               var undeliveredClone = _.clone(e);
-              var deliveredClone = _.clone(e);
 
-              if (e.end >= lastActual.end) {
+              if (e.end > lastActual.end) {
                 // Scheduled is longer than the temp, so preserve the tail
-                undeliveredClone.end = e.end;
+                var deliveredClone = _.clone(e);
+                undeliveredClone.end = lastActual.end;
                 deliveredClone.start = lastActual.end;
                 addToUndelivered(undeliveredClone);
                 addToActuals(deliveredClone);
@@ -1285,7 +1284,17 @@ module.exports = function(pool, opts) {
 
       // to prevent blank rectangle at beginning of domain
       var index = opts.data.indexOf(currentData[0]);
-      currentData.unshift(opts.data[index - 1]);
+      // when near left edge currentData[0] will have index 0, so we don't want to decrement it
+      if (index !== 0) {
+        index--;
+      }
+      while ((index >= 0) && (opts.data[index].vizType !== 'actual')) {
+        index--;
+      }
+      // when index === 0 might catch a non-basal
+      if (opts.data[index].type === 'basal-rate-segment') {
+        currentData.unshift(opts.data[index]);
+      }
 
       var line = d3.svg.line()
         .x(function(d) { return d.x; })
@@ -1293,16 +1302,19 @@ module.exports = function(pool, opts) {
         .interpolate('step-after');
 
       var actual = _.where(currentData, {'vizType': 'actual'});
-      var undelivered = _.where(currentData, {'vizType': 'undelivered', 'deliveryType': 'scheduled'});
+      var undelivered = _.where(opts.data, {'vizType': 'undelivered', 'deliveryType': 'scheduled'});
 
-      // TODO: waiting on @cheddar to fix basalutil.js
-      // var temp = basal.unsquash_temp(_.where(actual, {'deliveryType': 'temp'}), undelivered);
+      // TODO: remove this when we have guaranteed unique IDs for each basal rate segment again
+      currentData.forEach(function(d) {
+        if ((d.id.search('_actual') === -1) && (d.id.search('_undelivered') === -1)) {
+          d.id = d.id + '_' + d.start.replace(/:/g, '') + '_' + d.vizType;
+        }
+      });
 
       var rects = d3.select(this)
         .selectAll('g')
-        .data(actual, function(d) {
-          // leveraging the timestamp of each datapoint as the ID for D3's binding
-          return d.normalTime;
+        .data(currentData, function(d) {
+          return d.id;
         });
       var rectGroups = rects.enter()
         .append('g')
@@ -1310,7 +1322,12 @@ module.exports = function(pool, opts) {
         .attr('id', function(d) {
           return 'basal_group_' + d.id;
         });
-      rectGroups.append('rect')
+      rectGroups.filter(function(d){
+        if (d.vizType === 'actual') {
+          return d;
+        }
+      })
+        .append('rect')
         .attr({
           'width': function(d) {
             return basal.width(d);
@@ -1348,7 +1365,12 @@ module.exports = function(pool, opts) {
             return 'basal_' + d.id;
           }
         });
-      rectGroups.append('rect')
+      rectGroups.filter(function(d) {
+        if (d.deliveryType !== 'temp') {
+          return d;
+        }
+      })
+        .append('rect')
         .attr({
           'width': function(d) {
             return basal.width(d);
@@ -1361,7 +1383,7 @@ module.exports = function(pool, opts) {
             return opts.yScale.range()[1];
           },
           'class': function(d) {
-            if (d.deliveryType === 'temp') {
+            if (d.vizType === 'undelivered') {
               return 'd3-basal d3-basal-invisible d3-basal-temp';
             }
             else {
@@ -1380,28 +1402,6 @@ module.exports = function(pool, opts) {
         .selectAll('.d3-basal-invisible')
         .classed('d3-basal-nonzero', true);
       rects.exit().remove();
-
-      // tooltips
-      d3.selectAll('.d3-basal-invisible').on('mouseover', function() {
-        var invisiRect = d3.select(this);
-        var id = invisiRect.attr('id').replace('basal_invisible_', '');
-        var d = d3.select('#basal_group_' + id).datum();
-        if (invisiRect.classed('d3-basal-temp')) {
-          basal.addTooltip(d, 'temp');
-        }
-        else {
-          basal.addTooltip(d, 'reg');
-        }
-        if (invisiRect.classed('d3-basal-nonzero')) {
-          log('hi');
-          d3.select('#basal_' + id).attr('opacity', '0.35');
-        }
-      });
-      d3.selectAll('.d3-basal-invisible').on('mouseout', function() {
-        var id = d3.select(this).attr('id').replace('basal_invisible_', '');
-        d3.select('#tooltip_' + id).remove();
-        d3.select('#basal_' + id).attr('opacity', '0.3');
-      });
 
       var basalGroup = d3.select(this);
 
@@ -1483,35 +1483,71 @@ module.exports = function(pool, opts) {
               'class': 'd3-basal d3-path-basal d3-path-basal-undelivered'
             });
         });
+
+        basal.link_temp(_.where(actual, {'deliveryType': 'temp'}), undelivered);
       }
+
+      // tooltips
+      d3.selectAll('.d3-basal-invisible').on('mouseover', function() {
+        var invisiRect = d3.select(this);
+        var id = invisiRect.attr('id').replace('basal_invisible_', '');
+        var d = d3.select('#basal_group_' + id).datum();
+        if (invisiRect.classed('d3-basal-temp')) {
+          var tempD = _.clone(_.findWhere(actual, {'deliveryType': 'temp', 'id': d.link.replace('link_', '')}));
+          tempD.id = d.id;
+          basal.addTooltip(tempD, 'temp', d);
+        }
+        else {
+          basal.addTooltip(d, 'reg');
+        }
+        if (invisiRect.classed('d3-basal-nonzero')) {
+          if (invisiRect.classed('d3-basal-temp')) {
+            d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', '0.35');
+          }
+          else {
+            d3.select('#basal_' + id).attr('opacity', '0.35');
+          }
+        }
+      });
+      d3.selectAll('.d3-basal-invisible').on('mouseout', function() {
+        var invisiRect = d3.select(this);
+        var id = invisiRect.attr('id').replace('basal_invisible_', '');
+        var d = d3.select('#basal_group_' + id).datum();
+        d3.select('#tooltip_' + id).remove();
+        if (invisiRect.classed('d3-basal-temp')) {
+          d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', '0.3');
+        }
+        else {
+          d3.select('#basal_' + id).attr('opacity', '0.3');
+        }
+      });
     });
   }
 
-  basal.unsquash_temp = function(toUnsquash, referenceArray) {
-    var unsquasheds = [];
-    var unsquashed;
-    toUnsquash.forEach(function(segment, i, segments) {
+  basal.link_temp = function(toLink, referenceArray) {
+    referenceArray = referenceArray.slice(0);
+    referenceArray = _.sortBy(referenceArray, function(segment) {
+      return Date.parse(segment.normalTime);
+    });
+    toLink.forEach(function(segment, i, segments) {
       var start = _.findWhere(referenceArray, {'normalTime': segment.normalTime});
+      if (start === undefined) {
+        log(segment, referenceArray);
+      }
       var startIndex = referenceArray.indexOf(start);
       if ((startIndex < (referenceArray.length - 1)) && (start.end === referenceArray[startIndex + 1].start)) {
         var end = _.findWhere(referenceArray, {'normalEnd': segment.normalEnd});
         var endIndex = referenceArray.indexOf(end);
-        unsquashed = [];
         var index = startIndex;
         while (index <= endIndex) {
-          var slice = _.clone(segment);
-          slice.normalTime = referenceArray[index].normalTime;
-          slice.normalEnd = referenceArray[index].normalEnd;
-          unsquashed.push(slice);
+          referenceArray[index].link = 'link_' + segment.id;
           index++;
         }
       }
       else {
-        unsquashed = _.clone(segment);
+        referenceArray[startIndex].link = 'link_' + segment.id;
       }
-      unsquasheds.push(unsquashed);
     });
-    return unsquasheds;
   };
 
   basal.timespan = function(d) {
@@ -1554,7 +1590,7 @@ module.exports = function(pool, opts) {
     return opts.xScale(new Date(d.normalEnd)) - opts.xScale(new Date(d.normalTime));
   };
 
-  basal.addTooltip = function(d, category) {
+  basal.addTooltip = function(d, category, unD) {
     var tooltipHeight = opts.classes[category].height;
     d3.select('#' + 'd3-tooltip-group_basal').call(tooltips,
         d,
@@ -1625,12 +1661,13 @@ module.exports = function(pool, opts) {
           }
         })
         .append('tspan')
-        .text('(0.0 U scheduled)');
+        .text('(' + unD.value + ' U scheduled)');
     }
   };
 
   return basal;
 };
+
 },{"bows":17,"duration-js":19}],6:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
@@ -1651,7 +1688,7 @@ module.exports = function(pool, opts) {
 
 module.exports = function(pool, opts) {
 
-  var opts = opts || {};
+  opts = opts || {};
 
   var defaults = {
     xScale: pool.xScale().copy(),
@@ -1778,7 +1815,7 @@ module.exports = function(pool, opts) {
         });
       extendedBoluses.append('path')
         .attr({
-          'd': function(d) {      
+          'd': function(d) {
             var doseHeight = opts.yScale(d.extendedDelivery) + opts.bolusStroke / 2;
             var doseEnd = opts.xScale(Date.parse(d.normalTime) + d.duration) - opts.triangleSize;
             return bolus.triangle(doseEnd, doseHeight);
@@ -1804,7 +1841,7 @@ module.exports = function(pool, opts) {
     return "M" + top + "L" + bottom + "L" + point + "Z";
   };
 
-  return bolus; 
+  return bolus;
 };
 
 },{}],7:[function(require,module,exports){
