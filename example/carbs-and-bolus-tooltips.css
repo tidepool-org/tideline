@@ -1,0 +1,172 @@
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+svg {
+  display: block;
+  margin: 0 auto;
+}
+.d3-axis {
+  shape-rendering: crispEdges;
+}
+.d3-axis path {
+  stroke: white;
+}
+.d3-axis line {
+  stroke: #b9c8d0;
+}
+.d3-axis text {
+  font-size: 14px;
+  fill: #989897;
+  text-transform: lowercase;
+}
+.d3-axis.d3-y text {
+  fill: #808080;
+}
+.scroll line {
+  stroke: #989897;
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+.d3-pool-label {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 16px;
+  fill: #808080;
+  baseline-shift: 30%;
+}
+.d3-rect-fill.d3-fill-darkest {
+  fill: #dce4e7;
+}
+.d3-rect-fill.d3-fill-dark {
+  fill: #e3eaed;
+}
+.d3-rect-fill.d3-fill-light {
+  fill: #f2f4f6;
+}
+.d3-rect-fill.d3-fill-lighter {
+  fill: #e9eff1;
+}
+.d3-rect-fill.d3-fill-lightest {
+  fill: #f8f9fa;
+}
+.d3-rect-carbs {
+  fill: #ffd382;
+}
+.d3-bolus.d3-rect-bolus {
+  fill: #79d0f2;
+}
+.d3-bolus.d3-path-bolus {
+  stroke: #79d0f2;
+  fill: none;
+}
+.d3-bolus.d3-path-extended {
+  stroke: #79d0f2;
+}
+.d3-bolus.d3-path-extended-triangle {
+  stroke: #79d0f2;
+  fill: #79d0f2;
+}
+.d3-bolus.d3-rect-recommended {
+  fill: #bcecfa;
+}
+.d3-cbg.d3-circle-cbg.d3-bg-low {
+  fill: #ff8b7c;
+}
+.d3-cbg.d3-circle-cbg.d3-bg-target {
+  fill: #9ad859;
+}
+.d3-cbg.d3-circle-cbg.d3-bg-high {
+  fill: #bb9ae7;
+}
+.d3-smbg-numbers.d3-rect-smbg {
+  fill: #f8f9fa;
+  opacity: 0.5;
+}
+.d3-smbg-numbers.d3-text-smbg {
+  fill: #808080;
+  font-size: 14px;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.d3-basal.d3-rect-basal {
+  fill: #029eb3;
+}
+.d3-basal.d3-basal-invisible {
+  fill: #029eb3;
+  opacity: 0.0;
+}
+.d3-basal.d3-path-basal {
+  fill: none;
+  stroke: #029eb3;
+  stroke-width: 1.5;
+}
+.d3-basal.d3-path-basal.d3-path-basal-undelivered {
+  stroke-dasharray: 1.5,3;
+  stroke-linecap: round;
+}
+.d3-tooltip text.d3-tooltip-text {
+  fill: #989897;
+  font-size: 11px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.d3-tooltip text.d3-tooltip-text.d3-smbg {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip text.d3-tooltip-text.d3-carbs {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip text.d3-tooltip-text.d3-bolus {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip text.d3-tooltip-text.d3-basal {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip text.d3-tooltip-text.d3-tooltip-timestamp {
+  text-transform: lowercase;
+}
+.d3-tooltip text.d3-tooltip-text tspan {
+  font-weight: normal;
+  dominant-baseline: central;
+}
+.d3-tooltip text.d3-tooltip-text tspan.d3-bolus {
+  font-size: 11px;
+}
+.d3-tooltip .d3-tooltip-rect {
+  fill: #f8f9fa;
+  opacity: 0.5;
+}
