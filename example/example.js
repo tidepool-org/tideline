@@ -1,15 +1,15 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -92,6 +92,8 @@ d3.json('device-data.json', function(data) {
     twoWeek = createNewTwoWeekChart();
     // takes user to two-week view with day user was viewing in one-day view at the end of the two-week view window
     twoWeek.initialize(data, date);
+
+    $(el).css('min-height', twoWeek.minHeight());
   });
 
   $('#oneDayView').on('click', function() {
@@ -110,6 +112,8 @@ d3.json('device-data.json', function(data) {
     // attach click handlers to set up programmatic pan
     $('#tidelineNavForward').on('click', oneDay.panForward);
     $('#tidelineNavBack').on('click', oneDay.panBack);
+
+    $(el).css('min-height', oneDay.minHeight());
   });
 
   $('#oneDayMostRecent').on('click', function() {
@@ -129,6 +133,8 @@ d3.json('device-data.json', function(data) {
     // attach click handlers to set up programmatic pan
     $('#tidelineNavForward').on('click', oneDay.panForward);
     $('#tidelineNavBack').on('click', oneDay.panBack);
+
+    $(el).css('min-height', oneDay.minHeight());
   });
 
   emitter.on('selectSMBG', function(date) {
@@ -147,6 +153,8 @@ d3.json('device-data.json', function(data) {
     // attach click handlers to set up programmatic pan
     $('#tidelineNavForward').on('click', oneDay.panForward);
     $('#tidelineNavBack').on('click', oneDay.panBack);
+
+    $(el).css('min-height', oneDay.minHeight());
   });
 
   $('#showHideNumbers').on('click', function() {
@@ -217,7 +225,7 @@ function oneDayChart(el, options) {
       .label('Bolus & Carbohydrates')
       .index(chart.pools().indexOf(poolBolus))
       .weight(1.5);
-    
+
     // basal data pool
     poolBasal = chart.newPool().defaults()
       .id('poolBasal')
