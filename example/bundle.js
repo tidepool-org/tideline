@@ -74,7 +74,7 @@ d3.json('device-data.json', function(data) {
     // remove click handlers for programmatic pan
     $('#tidelineNavForward').off('click');
     $('#tidelineNavBack').off('click');
-    oneDay.destroy();
+    oneDay.stopListening().destroy();
     $(this).parent().addClass('active');
     $('#oneDayView').parent().removeClass('active');
     $('.one-day').css('visibility', 'hidden');
@@ -107,6 +107,7 @@ d3.json('device-data.json', function(data) {
   $('#oneDayMostRecent').on('click', function() {
     log('Navigated to most recent one-day view.');
     twoWeek.destroy();
+    oneDay.stopListening();
     $(this).parent().addClass('active');
     $('#twoWeekView').parent().removeClass('active');
     $('#oneDayMostRecent').parent().addClass('active');
@@ -255,10 +256,18 @@ function oneDayChart(el) {
     poolBolus.addPlotType('fill', fill(poolBolus, {endpoints: chart.endpoints}), false);
 
     // add carbs data to bolus pool
-    poolBolus.addPlotType('carbs', require('../js/plot/carbs')(poolBolus, {yScale: scaleCarbs}), true);
+    poolBolus.addPlotType('carbs',require('../js/plot/carbs')(poolBolus, {
+      yScale: scaleCarbs,
+      emitter: emitter,
+      data: _.where(data, {'type': 'carbs'})
+    }), true);
 
     // add bolus data to bolus pool
-    poolBolus.addPlotType('bolus', require('../js/plot/bolus')(poolBolus, {yScale: scaleBolus}), true);
+    poolBolus.addPlotType('bolus', require('../js/plot/bolus')(poolBolus, {
+      yScale: scaleBolus,
+      emitter: emitter,
+      data: _.where(data, {'type': 'bolus'})
+    }), true);
 
     // basal pool
     var scaleBasal = scales.basal(_.where(data, {'type': 'basal-rate-segment'}), poolBasal);
@@ -797,6 +806,16 @@ module.exports = function(emitter) {
     });
   };
 
+  container.stopListening = function() {
+    emitter.removeAllListeners('carbTooltipOn');
+    emitter.removeAllListeners('carbTooltipOff');
+    emitter.removeAllListeners('bolusTooltipOn');
+    emitter.removeAllListeners('bolusTooltipOff');
+    emitter.removeAllListeners('noCarbTimestamp');
+
+    return container;
+  };
+
   container.destroy = function() {
     $('#' + this.id()).remove();
     delete pool;
@@ -1272,9 +1291,11 @@ module.exports = function(pool, opts) {
       'reg': {'tooltip': 'basal_tooltip_reg.svg', 'height': 20},
       'temp': {'tooltip': 'basal_tooltip_temp_large.svg', 'height': 40}
     },
-    tooltipWidth: 144,
+    tooltipWidth: 180,
     xScale: pool.xScale().copy(),
-    pathStroke: 1.5
+    pathStroke: 1.5,
+    opacity: 0.3,
+    opacityDelta: 0.1
   };
 
   _.defaults(opts, defaults);
@@ -1502,10 +1523,10 @@ module.exports = function(pool, opts) {
         }
         if (invisiRect.classed('d3-basal-nonzero')) {
           if (invisiRect.classed('d3-basal-temp')) {
-            d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', '0.35');
+            d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', opts.opacity + opts.opacityDelta);
           }
           else {
-            d3.select('#basal_' + id).attr('opacity', '0.35');
+            d3.select('#basal_' + id).attr('opacity', opts.opacity + opts.opacityDelta);
           }
         }
       });
@@ -1515,10 +1536,10 @@ module.exports = function(pool, opts) {
         var d = d3.select('#basal_group_' + id).datum();
         d3.select('#tooltip_' + id).remove();
         if (invisiRect.classed('d3-basal-temp')) {
-          d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', '0.3');
+          d3.select('#basal_' + d.link.replace('link_', '')).attr('opacity', opts.opacity);
         }
         else {
-          d3.select('#basal_' + id).attr('opacity', '0.3');
+          d3.select('#basal_' + id).attr('opacity', opts.opacity);
         }
       });
     });
@@ -1646,7 +1667,7 @@ module.exports = function(pool, opts) {
         }(),
         basal.timespan(d));
     if (category === 'temp') {
-      d3.select('#tooltip_' + d.id).append('text')
+      d3.select('#tooltip_' + d.id).select('.d3-tooltip-text-group').append('text')
         .attr({
           'class': 'd3-tooltip-text d3-basal',
           'x': opts.xScale(Date.parse(d.normalTime)) + basal.width(d) / 2,
@@ -1686,18 +1707,60 @@ module.exports = function(pool, opts) {
  * == BSD2 LICENSE ==
  */
 
+var log = require('bows')('Bolus');
+
+var Duration = require('duration-js');
+
 module.exports = function(pool, opts) {
+
+  var QUARTER = ' ¼', HALF = ' ½', THREE_QUARTER = ' ¾', THIRD = ' ⅓', TWO_THIRDS = ' ⅔';
+
+  var MS_IN_ONE = 60000;
 
   opts = opts || {};
 
   var defaults = {
+    classes: {
+      'unspecial': {'tooltip': 'tooltip_bolus_small.svg', 'width': 70, 'height': 24},
+      'two-line': {'tooltip': 'tooltip_bolus_large.svg', 'width': 98, 'height': 39},
+      'three-line': {'tooltip': 'tooltip_bolus_extralarge.svg', 'width': 98, 'height': 58}
+    },
     xScale: pool.xScale().copy(),
     width: 12,
     bolusStroke: 2,
-    triangleSize: 6
+    triangleSize: 6,
+    carbTooltipCatcher: 5
   };
 
   _.defaults(opts, defaults);
+
+  var carbTooltipBuffer = opts.carbTooltipCatcher * MS_IN_ONE;
+
+  // catch bolus tooltips events
+  opts.emitter.on('carbTooltipOn', function(t) {
+    var b = _.find(opts.data, function(d) {
+      var bolusT = Date.parse(d.normalTime);
+      if (bolusT >= (t - carbTooltipBuffer) && (bolusT <= (t + carbTooltipBuffer))) {
+        return d;
+      }
+    });
+    if (b) {
+      bolus.addTooltip(b, bolus.getTooltipCategory(b));
+      opts.emitter.emit('noCarbTimestamp', true);
+    }
+  });
+  opts.emitter.on('carbTooltipOff', function(t) {
+    var b = _.find(opts.data, function(d) {
+      var bolusT = Date.parse(d.normalTime);
+      if (bolusT >= (t - carbTooltipBuffer) && (bolusT <= (t + carbTooltipBuffer))) {
+        return d;
+      }
+    });
+    if (b) {
+      d3.select('#tooltip_' + b.id).remove();
+      opts.emitter.emit('noCarbTimestamp', false);
+    }
+  });
 
   function bolus(selection) {
     selection.each(function(currentData) {
@@ -1827,8 +1890,164 @@ module.exports = function(pool, opts) {
           }
         });
       boluses.exit().remove();
+
+      // tooltips
+      d3.selectAll('.d3-rect-bolus, .d3-rect-recommended').on('mouseover', function() {
+        var d = d3.select(this).datum();
+        var t = Date.parse(d.normalTime);
+        bolus.addTooltip(d, bolus.getTooltipCategory(d));
+        opts.emitter.emit('bolusTooltipOn', t);
+      });
+      d3.selectAll('.d3-rect-bolus, .d3-rect-recommended').on('mouseout', function() {
+        var d = _.clone(d3.select(this).datum());
+        var t = Date.parse(d.normalTime);
+        d3.select('#tooltip_' + d.id).remove();
+        opts.emitter.emit('bolusTooltipOff', t);
+      });
     });
   }
+
+  bolus.getTooltipCategory = function(d) {
+    var category;
+    if (((d.recommended === null) || (d.recommended === d.value)) && !d.extended) {
+      category = 'unspecial';
+    }
+    else if ((d.recommended !== d.value) && d.extended) {
+      category = 'three-line';
+    }
+    else {
+      category = 'two-line';
+    }
+    return category;
+  };
+
+  bolus.addTooltip = function(d, category) {
+    var tooltipWidth = opts.classes[category].width;
+    var tooltipHeight = opts.classes[category].height;
+    d3.select('#' + 'd3-tooltip-group_bolus')
+      .call(tooltips,
+        d,
+        // tooltipXPos
+        opts.xScale(Date.parse(d.normalTime)),
+        'bolus',
+        // timestamp
+        true,
+        opts.classes[category]['tooltip'],
+        tooltipWidth,
+        tooltipHeight,
+        // imageX
+        opts.xScale(Date.parse(d.normalTime)),
+        // imageY
+        function() {
+          return pool.height() - tooltipHeight;
+        },
+        // textX
+        opts.xScale(Date.parse(d.normalTime)) + tooltipWidth / 2,
+        // textY
+        function() {
+          if (category === 'unspecial') {
+            return pool.height() - tooltipHeight * (9/16);
+          }
+          else if (category === 'two-line') {
+            return pool.height() - tooltipHeight * (3/4);
+          }
+          else if (category === 'three-line') {
+            return pool.height() - tooltipHeight * (13/16);
+          }
+          else {
+            return pool.height() - tooltipHeight;
+          }
+          
+        },
+        // customText
+        function() {
+          return d.value + 'U';
+        }(),
+        // tspan
+        function() {
+          if (d.extended) {
+            return ' total';
+          }
+        }()
+      );
+
+    if (category === 'two-line') {
+      d3.select('#tooltip_' + d.id).select('.d3-tooltip-text-group').append('text')
+        .attr({
+          'class': 'd3-tooltip-text d3-bolus',
+          'x': opts.xScale(Date.parse(d.normalTime)) + tooltipWidth / 2,
+          'y': pool.height() - tooltipHeight / 3
+        })
+        .append('tspan')
+        .text(function() {
+          if (d.recommended !== d.value) {
+            return d.recommended + "U recom'd";
+          }
+          else if (d.extended) {
+            return d.extendedDelivery + 'U ' + bolus.timespan(d);
+          }
+        })
+        .attr('class', 'd3-bolus');
+    }
+    else if (category === 'three-line') {
+      d3.select('#tooltip_' + d.id).select('.d3-tooltip-text-group').append('text')
+        .attr({
+          'class': 'd3-tooltip-text d3-bolus',
+          'x': opts.xScale(Date.parse(d.normalTime)) + tooltipWidth / 2,
+          'y': pool.height() - tooltipHeight / 2
+        })
+        .append('tspan')
+        .text(function() {
+          return d.recommended + "U recom'd";
+        })
+        .attr('class', 'd3-bolus');
+
+      d3.select('#tooltip_' + d.id).select('.d3-tooltip-text-group').append('text')
+        .attr({
+          'class': 'd3-tooltip-text d3-bolus',
+          'x': opts.xScale(Date.parse(d.normalTime)) + tooltipWidth / 2,
+          'y': pool.height() - tooltipHeight / 4
+        })
+        .append('tspan')
+        .text(function() {
+          return d.extendedDelivery + 'U ' + bolus.timespan(d);
+        })
+        .attr('class', 'd3-bolus');
+    }
+  };
+
+  bolus.timespan = function(d) {
+    var dur = Duration.parse(d.duration + 'ms');
+    var hours = dur.hours();
+    var minutes = dur.minutes() - (hours * 60);
+    if (hours !== 0) {
+      if (hours === 1) {
+        switch(minutes) {
+          case 0: return 'over ' + hours + ' hr';
+          case 15: return 'over ' + hours + QUARTER + ' hr';
+          case 20: return 'over ' + hours + THIRD + ' hr';
+          case 30: return 'over ' + hours + HALF + ' hr';
+          case 40: return 'over ' + hours + TWO_THIRDS + ' hr';
+          case 45: return 'over ' + hours + THREE_QUARTER + ' hr';
+          default: return 'over ' + hours + ' hr ' + minutes + ' min';
+        }
+      }
+      else {
+        switch(minutes) {
+          case 0: return 'over ' + hours + ' hrs';
+          case 15: return 'over ' + hours + QUARTER + ' hrs';
+          case 20: return 'over ' + hours + THIRD + ' hrs';
+          case 30: return 'over ' + hours + HALF + ' hrs';
+          case 40: return 'over ' + hours + TWO_THIRDS + ' hrs';
+          case 45: return 'over ' + hours + THREE_QUARTER + ' hrs';
+          default: return 'over ' + hours + ' hrs ' + minutes + ' min';
+        }
+      }
+    }
+    else {
+      return 'over ' + minutes + ' min';
+    }
+  };
   
   bolus.x = function(d) {
     return opts.xScale(Date.parse(d.normalTime)) - opts.width/2;
@@ -1844,7 +2063,7 @@ module.exports = function(pool, opts) {
   return bolus;
 };
 
-},{}],7:[function(require,module,exports){
+},{"bows":17,"duration-js":19}],7:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -1862,16 +2081,59 @@ module.exports = function(pool, opts) {
  * == BSD2 LICENSE ==
  */
 
+var log = require('bows')('Carbs');
+
 module.exports = function(pool, opts) {
 
-  var opts = opts || {};
+  var MS_IN_ONE = 60000;
+
+  opts = opts || {};
 
   var defaults = {
     xScale: pool.xScale().copy(),
-    width: 12
+    width: 12,
+    tooltipHeight: 24,
+    tooltipWidth: 70,
+    bolusTooltipCatcher: 5,
+    tooltipTimestamp: true
   };
 
   _.defaults(opts, defaults);
+
+  var bolusTooltipBuffer = opts.bolusTooltipCatcher * MS_IN_ONE;
+
+  // catch bolus tooltips events
+  opts.emitter.on('bolusTooltipOn', function(t) {
+    var c = _.find(opts.data, function(d) {
+      var carbT = Date.parse(d.normalTime);
+      if (carbT >= (t - bolusTooltipBuffer) && (carbT <= (t + bolusTooltipBuffer))) {
+        return d;
+      }
+    });
+    if (c) {
+      carbs.addTooltip(c, false);
+    }
+  });
+  opts.emitter.on('bolusTooltipOff', function(t) {
+    var c = _.find(opts.data, function(d) {
+      var carbT = Date.parse(d.normalTime);
+      if (carbT >= (t - bolusTooltipBuffer) && (carbT <= (t + bolusTooltipBuffer))) {
+        return d;
+      }
+    });
+    if (c) {
+      d3.select('#tooltip_' + c.id).remove();
+    }
+  });
+
+  opts.emitter.on('noCarbTimestamp', function(bool) {
+    if (bool) {
+      opts.tooltipTimestamp = false;
+    }
+    else {
+      opts.tooltipTimestamp = true;
+    }
+  });
 
   function carbs(selection) {
     selection.each(function(currentData) {
@@ -1897,12 +2159,64 @@ module.exports = function(pool, opts) {
           }
         });
         rects.exit().remove();
+
+      // tooltips
+      d3.selectAll('.d3-rect-carbs').on('mouseover', function() {
+        var d = d3.select(this).datum();
+        var t = Date.parse(d.normalTime);
+        opts.emitter.emit('carbTooltipOn', t);
+        carbs.addTooltip(d, opts.tooltipTimestamp);
+      });
+      d3.selectAll('.d3-rect-carbs').on('mouseout', function() {
+        var d = d3.select(this).datum();
+        var t = Date.parse(d.normalTime);
+        d3.select('#tooltip_' + d.id).remove();
+        opts.emitter.emit('carbTooltipOff', t);
+      });
     });
   }
 
-  return carbs; 
+  carbs.addTooltip = function(d, category) {
+    d3.select('#' + 'd3-tooltip-group_carbs')
+      .call(tooltips,
+        d,
+        // tooltipXPos
+        opts.xScale(Date.parse(d.normalTime)),
+        'carbs',
+        // timestamp
+        category,
+        'tooltip_carbs.svg',
+        opts.tooltipWidth,
+        opts.tooltipHeight,
+        // imageX
+        opts.xScale(Date.parse(d.normalTime)),
+        // imageY
+        function() {
+          if (category) {
+            return opts.yScale(d.value);
+          }
+          else {
+            return opts.yScale.range()[0];
+          }
+        },
+        // textX
+        opts.xScale(Date.parse(d.normalTime)) + opts.tooltipWidth / 2,
+        // textY
+        function() {
+          if (category) {
+            return opts.yScale(d.value) + opts.tooltipHeight / 2;
+          }
+          else {
+            return opts.tooltipHeight / 2;
+          }
+        },
+        // customText
+        d.value + 'g');
+  };
+
+  return carbs;
 };
-},{}],8:[function(require,module,exports){
+},{"bows":17}],8:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
@@ -2625,6 +2939,8 @@ module.exports = function(pool, opts) {
  * == BSD2 LICENSE ==
  */
 
+var log = require('bows')('Tooltip');
+
 module.exports = function(container, tooltipsGroup) {
 
   var id, timestampHeight = 20;
@@ -2647,6 +2963,34 @@ module.exports = function(container, tooltipsGroup) {
     var currentTranslation = container.currentTranslation();
 
     var locationInWindow = currentTranslation + tooltipXPos;
+
+    var translation = 0;
+
+    var newBasalPosition;
+
+    // moving basal tooltips at edges of display
+    if (path === 'basal') {
+      if (locationInWindow > container.width() - (((container.width() - container.axisGutter()) / 24) * 3)) {
+        newBasalPosition = -currentTranslation + container.width() - tooltipWidth;
+        if (newBasalPosition < imageX) {
+          translation = newBasalPosition - imageX;
+          imageX = newBasalPosition;
+        }
+      }
+      else if (locationInWindow < (((container.width() - container.axisGutter()) / 24) * 3)) {
+        newBasalPosition = -currentTranslation + container.axisGutter();
+        if (newBasalPosition > imageX) {
+          translation = newBasalPosition - imageX;
+          imageX = newBasalPosition;
+        }
+      }
+    }
+    // and bolus, carbs
+    if ((path === 'bolus') || (path === 'carbs')) {
+      if (locationInWindow > container.width() - (((container.width() - container.axisGutter()) / 24) * 3)) {
+        translation = -tooltipWidth;
+      }
+    }
 
     // for now (unless I can persude Sara and Alix otherwise), high cbg values are a special case
     if (image.indexOf('cbg_tooltip_high') != -1) {
@@ -2712,15 +3056,51 @@ module.exports = function(container, tooltipsGroup) {
           'class': 'd3-tooltip-image'
         });
 
-      tooltipGroup.append('text')
-        .attr({
-          'x': textX - tooltipWidth,
-          'y': textY,
+      if (tspan) {
+        tooltipGroup.append('g')
+          .attr({
+            'class': 'd3-tooltip-text-group',
+            'transform': 'translate(' + translation + ',0)'
+          })
+          .append('text')
+          .attr({
+            'x': textX,
+            'y': textY,
             'class': 'd3-tooltip-text d3-' + path
-        })
-        .text(function() {
-          return d.value;
-        });
+          })
+          .text(function() {
+            if (customText) {
+              return customText;
+            }
+            else {
+              return d.value;
+            }
+          });
+        tooltipGroup.select('.d3-tooltip-text-group').select('text')
+          .append('tspan')
+          .text(' ' + tspan);
+      }
+      else {
+        tooltipGroup.append('g')
+          .attr({
+            'class': 'd3-tooltip-text-group',
+            'transform': 'translate(' + translation + ',0)'
+          })
+          .append('text')
+          .attr({
+            'x': textX,
+            'y': textY,
+            'class': 'd3-tooltip-text d3-' + path
+          })
+          .text(function() {
+            if (customText) {
+              return customText;
+            }
+            else {
+              return d.value;
+            }
+          });
+      }
 
       // adjust the values needed for the timestamp
       // TODO: really this should be refactored
@@ -2739,26 +3119,36 @@ module.exports = function(container, tooltipsGroup) {
         });
 
       if (tspan) {
-        tooltipGroup.append('text')
-          .attr({
-            'x': textX,
-            'y': textY,
-            'class': 'd3-tooltip-text d3-' + path
-          })
-          .text(function() {
-            if (customText) {
-              return customText;
-            }
-            else {
-              return d.value;
-            }
-          });
-        tooltipGroup.select('text')
+        tooltipGroup.append('g')
+        .attr({
+          'class': 'd3-tooltip-text-group',
+          'transform': 'translate(' + translation + ',0)'
+        })
+        .append('text')
+        .attr({
+          'x': textX,
+          'y': textY,
+          'class': 'd3-tooltip-text d3-' + path
+        })
+        .text(function() {
+          if (customText) {
+            return customText;
+          }
+          else {
+            return d.value;
+          }
+        });
+        tooltipGroup.select('.d3-tooltip-text-group').select('text')
           .append('tspan')
           .text(' ' + tspan);
       }
       else {
-        tooltipGroup.append('text')
+        tooltipGroup.append('g')
+          .attr({
+            'class': 'd3-tooltip-text-group',
+            'transform': 'translate(' + translation + ',0)'
+          })
+          .append('text')
           .attr({
             'x': textX,
             'y': textY,
@@ -2782,8 +3172,9 @@ module.exports = function(container, tooltipsGroup) {
   }
 
   tooltip.timestamp = function(d, tooltipGroup, imageX, imageY, textX, textY, tooltipWidth, tooltipHeight) {
+    var magic = timestampHeight * 1.2;
     var timestampY = imageY() - timestampHeight;
-    var timestampTextY = textY() - timestampHeight;
+    var timestampTextY = timestampY + magic / 2;
 
     var formatTime = d3.time.format.utc("%-I:%M %p");
     var t = formatTime(new Date(d.normalTime));
@@ -2799,7 +3190,7 @@ module.exports = function(container, tooltipsGroup) {
       .attr({
         'x': textX,
         'y': timestampTextY,
-        'baseline-shift': (tooltipHeight - timestampHeight) / 2,
+        'baseline-shift': (magic - timestampHeight) / 2,
         'class': 'd3-tooltip-text d3-tooltip-timestamp'
       })
       .text('at ' + t);
@@ -2820,7 +3211,8 @@ module.exports = function(container, tooltipsGroup) {
 
   return tooltip;
 };
-},{}],15:[function(require,module,exports){
+
+},{"bows":17}],15:[function(require,module,exports){
 /* 
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project

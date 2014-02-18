@@ -144,6 +144,14 @@ svg {
   font-size: 14px;
   font-weight: bold;
 }
+.d3-tooltip text.d3-tooltip-text.d3-carbs {
+  font-size: 14px;
+  font-weight: bold;
+}
+.d3-tooltip text.d3-tooltip-text.d3-bolus {
+  font-size: 14px;
+  font-weight: bold;
+}
 .d3-tooltip text.d3-tooltip-text.d3-basal {
   font-size: 14px;
   font-weight: bold;
@@ -154,6 +162,9 @@ svg {
 .d3-tooltip text.d3-tooltip-text tspan {
   font-weight: normal;
   dominant-baseline: central;
+}
+.d3-tooltip text.d3-tooltip-text tspan.d3-bolus {
+  font-size: 11px;
 }
 .d3-tooltip .d3-tooltip-rect {
   fill: #f8f9fa;
