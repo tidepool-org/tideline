@@ -40,6 +40,11 @@ module.exports = function(pool, opts) {
 
   function basal(selection) {
     selection.each(function(currentData) {
+      // on smaller basal data sets, `currentData` is sometimes an empty array
+      // guard against this with the following check
+      if (!(currentData && currentData.length)) {
+        return;
+      }
 
       // to prevent blank rectangle at beginning of domain
       var index = opts.data.indexOf(currentData[0]);
