@@ -125,10 +125,12 @@ svg {
   fill: #bb9ae7;
 }
 .d3-smbg-numbers.d3-rect-smbg {
+  pointer-events: none;
   fill: #f8f9fa;
   opacity: 0.5;
 }
 .d3-smbg-numbers.d3-text-smbg {
+  pointer-events: none;
   fill: #808080;
   font-size: 14px;
   font-weight: bold;
@@ -150,6 +152,9 @@ svg {
 .d3-basal.d3-path-basal.d3-path-basal-undelivered {
   stroke-dasharray: 1.5,3;
   stroke-linecap: round;
+}
+.d3-tooltip {
+  pointer-events: none;
 }
 .d3-tooltip text.d3-tooltip-text {
   fill: #989897;
