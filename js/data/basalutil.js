@@ -20,6 +20,8 @@ var log = require('../lib/bows')('BasalUtil');
 
 var keysToOmit = ['id', 'start', 'end', 'vizType'];
 
+var MS_IN_HOUR = 3600000.0;
+
 function BasalUtil(data) {
   var actuals = [];
   var undelivereds = [];
@@ -82,6 +84,7 @@ function BasalUtil(data) {
               log('Scheduled overlapped a scheduled.  Should never happen.', lastActual, e);
             } else {
               // Scheduled overlapping a temp, this can happen and the schedule should be skipped
+              
               var undeliveredClone = _.clone(e);
 
               if (e.end > lastActual.end) {
@@ -105,6 +108,36 @@ function BasalUtil(data) {
       }
     }
   }
+
+  function fixFloatingPoint (n) {
+    return parseFloat(n.toFixed(3));
+  }
+
+  this.segmentDose = function(duration, rate) {
+    var hours = duration / MS_IN_HOUR;
+    return fixFloatingPoint(hours * rate);
+  };
+
+  this.totalBasal = function(s, e) {
+    // return the total basal dose between two arbitrary datetimes
+    var dose = 0.0;
+    var firstSegment = _.find(this.actual, function(segment) {
+      return (new Date(segment.start).valueOf() <= s) && (s <= new Date(segment.end).valueOf());
+    });
+    var index = this.actual.indexOf(firstSegment) + 1;
+    var lastSegment = _.find(this.actual, function(segment) {
+      return (new Date(segment.start).valueOf() <= e) && (e <= new Date(segment.end).valueOf());
+    });
+    var lastIndex = this.actual.indexOf(lastSegment);
+    dose += this.segmentDose(new Date(firstSegment.end) - s, firstSegment.value);
+    while(index < lastIndex) {
+      var segment = this.actual[index];
+      dose += this.segmentDose((new Date(segment.end) - new Date(segment.start)), segment.value);
+      index++;
+    }
+    dose += this.segmentDose(e - new Date(lastSegment.start), lastSegment.value);
+    return fixFloatingPoint(dose);
+  };
 
   data.forEach(processElement);
 
