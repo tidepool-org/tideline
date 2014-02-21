@@ -556,6 +556,12 @@ module.exports = function(emitter) {
         viewEndDate = new Date(lastDayInView);
       }
     }
+    log("Date portion of viewEndDate: ", viewEndDate.toISOString().slice(0,10));
+    log("Date portion of lastDayInView: ", lastDayInView.toISOString().slice(0,10));
+    if ((viewEndDate > lastDayInView) &&
+      (viewEndDate.toISOString().slice(0,10) !== lastDayInView.toISOString().slice(0,10))) {
+      log("OK, maybe there is a bug");
+    }
 
     var viewBeginning = new Date(viewEndDate);
     viewBeginning.setUTCDate(viewBeginning.getUTCDate() - 14);
