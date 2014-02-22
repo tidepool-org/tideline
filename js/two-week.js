@@ -560,10 +560,21 @@ module.exports = function(emitter) {
     dataEndNoon.setUTCDate(dataEndNoon.getUTCDate() - 14);
     dataEndNoon = new Date(dataEndNoon.toISOString().slice(0,11) + noon);
 
+    var lastDayInView = new Date(days[0]);
     if (!viewEndDate) {
-      viewEndDate = new Date(days[0]);
+      viewEndDate = new Date(lastDayInView);
     } else {
       viewEndDate = new Date(viewEndDate);
+      // Make sure we don't go outside the last pool's day
+      if (viewEndDate > lastDayInView) {
+        viewEndDate = new Date(lastDayInView);
+      }
+    }
+    log("Date portion of viewEndDate: ", viewEndDate.toISOString().slice(0,10));
+    log("Date portion of lastDayInView: ", lastDayInView.toISOString().slice(0,10));
+    if ((viewEndDate > lastDayInView) &&
+      (viewEndDate.toISOString().slice(0,10) !== lastDayInView.toISOString().slice(0,10))) {
+      log("OK, maybe there is a bug");
     }
 
     var viewBeginning = new Date(viewEndDate);
