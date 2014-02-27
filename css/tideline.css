@@ -17,6 +17,9 @@
 svg {
   display: block;
   margin: 0 auto;
+  &.hidden {
+    display: none;
+  }
 }
 .d3-axis {
   shape-rendering: crispEdges;

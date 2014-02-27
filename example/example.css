@@ -51,6 +51,9 @@ svg {
   display: block;
   margin: 0 auto;
 }
+svg.hidden {
+  display: none;
+}
 .d3-axis {
   shape-rendering: crispEdges;
 }
@@ -79,6 +82,10 @@ svg {
   font-size: 16px;
   fill: #808080;
   baseline-shift: 30%;
+}
+.d3-pool-legend {
+  font-size: 14px;
+  fill: #cccccc;
 }
 .d3-rect-fill.d3-fill-darkest {
   fill: #dce4e7;
@@ -191,6 +198,69 @@ svg {
 .d3-tooltip .d3-tooltip-rect {
   fill: #f8f9fa;
   opacity: 0.5;
+}
+.d3-stats text {
+  text-anchor: start;
+}
+.d3-stats text.d3-stats-head {
+  dominant-baseline: hanging;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: #4e4e4f;
+}
+.d3-stats text.d3-stats-lead {
+  font-size: 14px;
+  fill: #676767;
+}
+.d3-stats text tspan {
+  font-size: 24px;
+  font-weight: bold;
+}
+.d3-stats text tspan.d3-stats-high {
+  fill: #bb9ae7;
+}
+.d3-stats text tspan.d3-stats-target {
+  fill: #9ad859;
+}
+.d3-stats text tspan.d3-stats-low {
+  fill: #ff8b7c;
+}
+.d3-stats text tspan.d3-stats-percentage {
+  fill: #808184;
+}
+.d3-stats text tspan.d3-stats-basal {
+  fill: #029eb3;
+}
+.d3-stats text tspan.d3-stats-bolus {
+  fill: #79d0f2;
+}
+.d3-stats .d3-stats-pie path.d3-stats-slice.d3-basal {
+  fill: #029eb3;
+}
+.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bolus {
+  fill: #79d0f2;
+}
+.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-low {
+  fill: #ff8b7c;
+}
+.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-target {
+  fill: #9ad859;
+}
+.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-high {
+  fill: #bb9ae7;
+}
+.d3-stats .d3-stats-rect.rect-left {
+  fill: #e3eaed;
+}
+.d3-stats .d3-stats-rect.rect-right {
+  fill: #dce4e7;
+}
+.d3-stats .d3-stats-rect-line {
+  stroke: white;
+  stroke-width: 2px;
+  stroke-dasharray: 3,5;
 }
 @font-face {
   font-family: 'Open Sans';
