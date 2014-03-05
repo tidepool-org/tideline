@@ -12,11 +12,7 @@ def main():
 
     soup.title.string = 'Tideline: ' + nice_name
 
-    css_link = soup.find(href='../css/tideline.css')
-
     js_link = soup.find(src='bundle.js')
-
-    css_link['href'] = branch_name + '.css'
 
     js_link['src'] = branch_name + '.js'
 
