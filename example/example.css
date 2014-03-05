@@ -290,7 +290,7 @@ svg.hidden {
   src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url('../fonts/opensans-bolditalic.woff') format('woff');
 }
 .container {
-  min-width: 70vw;
+  min-width: 960px;
 }
 #tideline {
   background-color: white;
@@ -336,5 +336,5 @@ svg.hidden {
 }
 #tidelineContainer {
   margin: 0 auto;
-  height: 80vh;
+  height: 590px;
 }
