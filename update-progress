@@ -2,7 +2,6 @@
 
 FILE="$1"
 HTML=".html"
-cp ../css/tideline.css css/
 cp ../example/bundle.js example/
 cp ../example/data/device-data.json example/data/
 cp ../example/example.css example/
