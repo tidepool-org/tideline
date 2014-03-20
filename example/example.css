@@ -224,6 +224,7 @@ svg.hidden {
   fill: #676767;
 }
 .d3-stats text tspan {
+  dominant-baseline: hanging;
   font-size: 24px;
   font-weight: bold;
 }
@@ -273,6 +274,16 @@ svg.hidden {
 }
 .d3-stats .d3-stats-image.hidden {
   display: none;
+}
+.d3-stats.d3-insufficient-data circle {
+  fill: none;
+  stroke-width: 3;
+  stroke-dasharray: 8,5;
+  stroke: #cccccc;
+}
+.d3-stats.d3-insufficient-data text,
+.d3-stats.d3-insufficient-data tspan {
+  fill: #cccccc !important;
 }
 @font-face {
   font-family: 'Open Sans';
