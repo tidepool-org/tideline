@@ -111,6 +111,13 @@ svg.hidden {
 .d3-rect-fill.d3-fill-lightest {
   fill: #f8f9fa;
 }
+.d3-rect-message {
+  fill: white;
+  opacity: 0.5;
+}
+.d3-rect-message.hidden {
+  display: none;
+}
 .d3-rect-carbs {
   fill: #ffd382;
 }
