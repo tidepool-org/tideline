@@ -2,6 +2,7 @@
 
 FILE="$1"
 HTML=".html"
+cp -r ../example/dist/ example/dist/
 cp ../example/bundle.js example/
 cp ../example/data/device-data.json example/data/
 cp ../example/example.css example/

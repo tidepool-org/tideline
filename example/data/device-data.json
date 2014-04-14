@@ -1647,8 +1647,6 @@
         "type": "carbs"
     },
     {
-        "initialDelivery": 0.5,
-        "extendedDelivery": 2.1,
         "value": 2.6,
         "recommended": 2.6,
         "deviceTime": "2014-03-08T12:23:33",
@@ -2588,11 +2586,10 @@
         "_id": "474d3c9b-925b-4b1d-b27f-f482ac9194db"
     },
     {
-        "delivered": 0.5,
         "end": "2014-03-09T06:31:55",
         "deliveryType": "temp",
         "inferred": false,
-        "value": 0.5,
+        "percent": 0.5,
         "start": "2014-03-09T00:31:55",
         "_id": "04da83cc-bfd8-4950-a04f-45bdd9883858",
         "type": "basal-rate-segment"
@@ -51580,7 +51577,7 @@
         "end": "2014-04-05T01:50:55",
         "deliveryType": "temp",
         "inferred": false,
-        "percent": 50,
+        "percent": 0.5,
         "start": "2014-04-04T18:20:55",
         "_id": "9a235f60-6447-417a-b14a-f6f8f3ee2d41",
         "type": "basal-rate-segment"
@@ -54951,7 +54948,7 @@
     {
         "deviceTime": "2014-04-06T13:39:27",
         "type": "smbg",
-        "value": 87,
+        "value": 450,
         "_id": "21d59612-ec60-4908-a002-a0d789817d47"
     },
     {
