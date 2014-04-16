@@ -53,6 +53,7 @@ function TidelineData(data) {
   this.basalUtil = new BasalUtil(this.grouped['basal-rate-segment']);
   this.bolusUtil = new BolusUtil(this.grouped.bolus);
   this.cbgUtil = new CBGUtil(this.grouped.cbg);
+  // TODO: generate a deviceUtil for each device in the data
 
   return this;
 }
