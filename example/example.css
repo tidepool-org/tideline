@@ -1,48 +1,48 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans);
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -183,6 +183,40 @@ svg.hidden {
   stroke-dasharray: 1.5,3;
   stroke-linecap: round;
 }
+.d3-circle-data-annotation {
+  fill: #989897;
+  opacity: 0.5;
+}
+.d3-text-data-annotation {
+  font-size: 11px;
+  font-weight: bold;
+  fill: white;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.d3-tooltip-data-annotation {
+  pointer-events: none;
+}
+.d3-tooltip-data-annotation body {
+  background-color: rgba(255, 255, 255, 0);
+}
+.d3-div-data-annotation {
+  padding: 10px;
+  color: #808080;
+}
+.d3-div-data-annotation p {
+  margin: 5px 0px;
+  font-size: 12px;
+}
+.d3-div-data-annotation p.d3-data-annotation-lead {
+  font-style: italic;
+}
+.d3-polygon-data-annotation {
+  fill: #e9eff1;
+  opacity: 0.9;
+  pointer-events: none;
+}
 .d3-tooltip {
   pointer-events: none;
 }
@@ -290,7 +324,7 @@ svg.hidden {
   display: none;
 }
 .d3-stats.d3-insufficient-data circle {
-  fill: none;
+  fill: white;
   stroke-width: 3;
   stroke-dasharray: 8,5;
   stroke: #cccccc;
@@ -299,17 +333,111 @@ svg.hidden {
 .d3-stats.d3-insufficient-data tspan {
   fill: #cccccc !important;
 }
-.d3-settings-section {
-  display: inline-block;
+.d3-settings {
+  font-size: 14px;
+  color: #808080;
 }
-.d3-settings-section .d3-settings-col {
-  display: inline-block;
+.d3-settings *,
+.d3-settings *:before,
+.d3-settings *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
-.d3-settings-basal-schedule-label {
+.d3-settings table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  max-width: 100%;
+  background-color: transparent;
+}
+.d3-settings th {
+  text-align: left;
+  font-weight: normal;
+}
+.d3-settings-section,
+.d3-settings-col {
+  display: inline-block;
+  width: 100%;
+  vertical-align: top;
+}
+.d3-settings-section-basal {
+  width: 22.22222222222222%;
+}
+.d3-settings-section-wizard {
+  width: 77.77777777777779%;
+}
+#carbRatioSettings,
+#insulinSensitivitySettings {
+  width: 28.57142857142857%;
+}
+#bgTargetSettings {
+  width: 42.857142857142854%;
+}
+.d3-settings-section-label {
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 10px;
+  text-transform: uppercase;
+  color: #808080;
+}
+.d3-settings-col {
+  padding: 5px 5px;
+}
+.d3-settings-col table {
+  background: #f7f7f8;
+  width: 100%;
+  padding-bottom: 10px;
+}
+.d3-settings-col-label {
+  padding: 5px 5px;
+  font-weight: bold;
+  color: #fff;
+  background: #ccc;
+  cursor: pointer;
+}
+.d3-settings-basal-schedule .d3-settings-col-label {
   text-transform: capitalize;
+  background: #9dd8e1;
+}
+.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-active + table {
+  display: table;
+}
+.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {
+  display: none;
+}
+#carbRatioSettings .d3-settings-col-label {
+  background: #0b9eb3;
+}
+#insulinSensitivitySettings .d3-settings-col-label {
+  background: #27707d;
+}
+#bgTargetSettings .d3-settings-col-label {
+  background: #5cb947;
+}
+.d3-settings-table-head {
+  padding: 10px 10px 5px 5px;
+  text-align: center;
+  font-weight: normal;
+  text-align: right;
 }
 .d3-settings-start-time {
   text-transform: lowercase;
+}
+.d3-settings-table-row-data td {
+  padding-right: 10px;
+  padding-left: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  text-align: right;
+  color: #1b6c9e;
+}
+.d3-settings-table-footer {
+  height: 10px;
+}
+.d3-settings-col-label,
+.d3-settings-table-head,
+.d3-settings-table-row-data td {
+  font-size: 14px;
 }
 @font-face {
   font-family: 'Open Sans';
