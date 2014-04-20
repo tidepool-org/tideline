@@ -96,10 +96,18 @@ svg.hidden {
   font-size: 16px;
   fill: #808080;
   baseline-shift: 30%;
+  xml: space: preserve;
+}
+.d3-pool-label tspan {
+  font-weight: normal;
+  text-transform: none;
+  baseline-shift: 30%;
 }
 .d3-pool-legend {
   font-size: 14px;
+  text-anchor: end;
   fill: #cccccc;
+  baseline-shift: 30%;
 }
 .d3-rect-fill.d3-fill-darkest {
   fill: #dce4e7;
@@ -115,6 +123,13 @@ svg.hidden {
 }
 .d3-rect-fill.d3-fill-lightest {
   fill: #f8f9fa;
+}
+.d3-line-guide {
+  stroke: white;
+  stroke-width: 2px;
+}
+.d3-line-guide.d3-line-bg-threshold {
+  stroke-dasharray: 3,5;
 }
 .d3-rect-message {
   fill: white;
@@ -146,14 +161,35 @@ svg.hidden {
 .d3-bolus.d3-rect-recommended {
   fill: #bcecfa;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-low {
+.d3-cbg.d3-circle-cbg.d3-bg-low,
+.d3-smbg.d3-circle-cbg.d3-bg-low {
   fill: #ff8b7c;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-target {
+.d3-cbg.d3-circle-cbg.d3-bg-target,
+.d3-smbg.d3-circle-cbg.d3-bg-target {
   fill: #9ad859;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-high {
+.d3-cbg.d3-circle-cbg.d3-bg-high,
+.d3-smbg.d3-circle-cbg.d3-bg-high {
   fill: #bb9ae7;
+}
+.d3-circle-smbg {
+  stroke-width: 2;
+}
+.d3-circle-smbg.d3-bg-low {
+  fill: #ff8b7c;
+  stroke: #ff8b7c;
+}
+.d3-circle-smbg.d3-bg-target {
+  fill: #9ad859;
+  stroke: #9ad859;
+}
+.d3-circle-smbg.d3-bg-high {
+  fill: #bb9ae7;
+  stroke: #bb9ae7;
+}
+.d3-circle-smbg.d3-circle-open {
+  fill: none !important;
 }
 .d3-smbg-numbers.d3-rect-smbg {
   pointer-events: none;
@@ -170,6 +206,11 @@ svg.hidden {
 .d3-basal.d3-rect-basal {
   fill: #029eb3;
 }
+.d3-basal.d3-rect-basal.d3-legend {
+  fill-opacity: 0.3;
+  stroke: #029eb3;
+  stroke-width: 1.5;
+}
 .d3-basal.d3-basal-invisible {
   fill: #029eb3;
   opacity: 0.0;
@@ -182,6 +223,12 @@ svg.hidden {
 .d3-basal.d3-path-basal.d3-path-basal-undelivered {
   stroke-dasharray: 1.5,3;
   stroke-linecap: round;
+}
+.d3-basal.d3-rect-basal-undelivered {
+  fill: none;
+  stroke: #029eb3;
+  stroke-dasharray: 1.5, 3;
+  stroke-width: 1.5;
 }
 .d3-circle-data-annotation {
   fill: #989897;
@@ -314,11 +361,6 @@ svg.hidden {
 }
 .d3-stats .d3-stats-rect.rect-right {
   fill: #dce4e7;
-}
-.d3-stats .d3-stats-rect-line {
-  stroke: white;
-  stroke-width: 2px;
-  stroke-dasharray: 3,5;
 }
 .d3-stats .d3-stats-image.hidden {
   display: none;
