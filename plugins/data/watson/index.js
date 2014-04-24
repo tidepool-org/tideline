@@ -53,13 +53,6 @@ module.exports = {
         d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
         i.normalTime = d.toISOString();
       }
-      else if (i.utcTime == null) {
-        // this is sort of a reverse normalize
-        var d =  new Date(i.normalTime);
-        var offsetMinutes = d.getTimezoneOffset();
-        d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
-        i.utcTime = d.toISOString();
-      }
       else if (i.type === 'basal-rate-segment') {
         i.normalTime = i.start + this.APPEND;
         if (i.end) {
@@ -85,5 +78,17 @@ module.exports = {
     return _.map(a, function(d) {
       return this.normalize(d);
     }, this);
+  },
+
+  reverseNormalize: function(i) {
+    try {
+      var d =  new Date(i.normalTime);
+      var offsetMinutes = d.getTimezoneOffset();
+      d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
+      i.utcTime = d.toISOString();
+    }
+    catch(e) {
+      throw new TypeError('Watson choked on an undefined.');
+    }
   }
 };
