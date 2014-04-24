@@ -48,11 +48,9 @@ module.exports = {
   normalize: function(i) {
     try {
       if (i.utcTime) {
-        // TODO: remove after removed from demo data, deprecated
-        // messages now come to blip with a normalTime
         var d = new Date(i.utcTime);
         var offsetMinutes = d.getTimezoneOffset();
-        d.setMinutes(d.getMinutes() - offsetMinutes);
+        d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
         i.normalTime = d.toISOString();
       }
       else if (i.type === 'basal-rate-segment') {
@@ -80,5 +78,18 @@ module.exports = {
     return _.map(a, function(d) {
       return this.normalize(d);
     }, this);
+  },
+
+  reverseNormalize: function(i) {
+    try {
+      var d =  new Date(i.normalTime);
+      var offsetMinutes = d.getTimezoneOffset();
+      d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
+      i.utcTime = d.toISOString();
+      return i;
+    }
+    catch(e) {
+      throw new TypeError('Watson choked on an undefined.');
+    }
   }
 };
