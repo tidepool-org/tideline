@@ -51,7 +51,8 @@ module.exports = {
         // TODO: remove after removed from demo data, deprecated
         // messages now come to blip with a normalTime
         var d = new Date(i.utcTime);
-        var offsetMinutes = i.offsetMinutes;
+        // || new Date().getTimezoneOffset(); is a shim for old messages stored in the API!
+        var offsetMinutes = i.offsetMinutes || new Date().getTimezoneOffset();
         d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
         i.normalTime = d.toISOString();
       }
@@ -70,6 +71,7 @@ module.exports = {
       return i;
     }
     catch(e) {
+      log('Undefined:', i);
       throw new TypeError('Watson choked on an undefined.');
     }
 
