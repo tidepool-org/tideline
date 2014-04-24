@@ -18,8 +18,6 @@
 var d3 = require('../lib/').d3;
 var _ = require('../lib/')._;
 
-var watson = require('../../plugins/data/watson/');
-
 var log = require('../lib/').bows('Message');
 
 module.exports = function(pool, opts) {
@@ -102,9 +100,6 @@ module.exports = function(pool, opts) {
     });
 
     opts.emitter.on('messageCreated', function(obj) {
-      log(obj);
-      obj = watson.normalize(obj);
-      log(obj);
       var messageGroup = mainGroup.select('#poolMessages_message')
         .append('g')
         .attr('class', 'd3-message-group d3-new')
