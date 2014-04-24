@@ -86,6 +86,7 @@ module.exports = {
       var offsetMinutes = d.getTimezoneOffset();
       d.setUTCMinutes(d.getUTCMinutes() - offsetMinutes);
       i.utcTime = d.toISOString();
+      return i;
     }
     catch(e) {
       throw new TypeError('Watson choked on an undefined.');
