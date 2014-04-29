@@ -138,10 +138,12 @@ svg.hidden {
 .d3-rect-message.hidden {
   display: none;
 }
-.d3-rect-carbs {
+.d3-rect-carbs,
+.d3-rect-carbs-legend {
   fill: #ffd382;
 }
-.d3-bolus.d3-rect-bolus {
+.d3-bolus.d3-rect-bolus,
+.d3-bolus.d3-rect-bolus-legend {
   fill: #79d0f2;
 }
 .d3-bolus.d3-path-bolus {
@@ -158,7 +160,8 @@ svg.hidden {
   stroke: #79d0f2;
   fill: #79d0f2;
 }
-.d3-bolus.d3-rect-recommended {
+.d3-bolus.d3-rect-recommended,
+.d3-bolus.d3-rect-recommended-legend {
   fill: #bcecfa;
 }
 .d3-cbg.d3-circle-cbg.d3-bg-low,
