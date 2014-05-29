@@ -109,8 +109,11 @@ svg.hidden {
   fill: #cccccc;
   baseline-shift: 30%;
 }
-.d3-rect-fill.d3-fill-darkest {
+.d3-rect-fill.d3-fill-darker {
   fill: #dce4e7;
+}
+.d3-rect-fill.d3-fill-darkest {
+  fill: #d3dbdd;
 }
 .d3-rect-fill.d3-fill-dark {
   fill: #e3eaed;
@@ -363,7 +366,7 @@ svg.hidden {
   fill: #e3eaed;
 }
 .d3-stats .d3-stats-rect.rect-right {
-  fill: #dce4e7;
+  fill: #d3dbdd;
 }
 .d3-stats .d3-stats-image.hidden {
   display: none;
@@ -438,9 +441,9 @@ svg.hidden {
   font-weight: bold;
   color: #fff;
   background: #ccc;
-  cursor: pointer;
 }
 .d3-settings-basal-schedule .d3-settings-col-label {
+  cursor: pointer;
   text-transform: capitalize;
   background: #9dd8e1;
 }
@@ -483,6 +486,117 @@ svg.hidden {
 .d3-settings-table-head,
 .d3-settings-table-row-data td {
   font-size: 14px;
+}
+.d3-settings-col-label > i {
+  float: left;
+  padding-right: 4px;
+  padding-left: 2px;
+}
+@media print {
+  .d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {
+    display: table;
+  }
+  .d3-settings-section,
+  .d3-settings-col {
+    display: inline;
+    width: auto;
+  }
+  .d3-settings-section .d3-settings-col-label,
+  .d3-settings-col .d3-settings-col-label,
+  .d3-settings-section table,
+  .d3-settings-col table {
+    width: auto;
+  }
+}
+/**
+ * Copyright (c) 2014, Tidepool Project
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ *
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ */
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+  font-family: "Blip Icons";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  /* opacity: .8; */
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+  /* you can be more comfortable with increased icons size */
+  font-size: 110%;
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+.icon-add:before {
+  content: '\e803';
+}
+/* '' */
+.icon-back:before {
+  content: '\e804';
+}
+/* '' */
+.icon-down:before {
+  content: '\e805';
+}
+/* '' */
+.icon-logout:before {
+  content: '\e806';
+}
+/* '' */
+.icon-next:before {
+  content: '\e807';
+}
+/* '' */
+.icon-profile:before {
+  content: '\e808';
+}
+/* '' */
+.icon-unsure-data:before {
+  content: '\e802';
+}
+/* '' */
+.icon-up:before {
+  content: '\e801';
+}
+/* '' */
+.icon-upload:before {
+  content: '\e800';
+}
+/* '' */
+@media print {
+  .icon-back {
+    display: none;
+  }
+  .icon-next {
+    display: none;
+  }
+}
+@font-face {
+  font-family: 'Blip Icons';
+  src: url('../fonts/blip-icons.eot?89887989');
+  src: url('../fonts/blip-icons.eot?89887989#iefix') format('embedded-opentype'), url('../fonts/blip-icons.woff?89887989') format('woff'), url('../fonts/blip-icons.ttf?89887989') format('truetype'), url('../fonts/blip-icons.svg?89887989#fontello') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 @font-face {
   font-family: 'Open Sans';
@@ -585,4 +699,5 @@ svg.hidden {
   width: 960px;
   height: 590px;
   padding: 0;
+  overflow-y: auto;
 }
