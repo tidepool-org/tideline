@@ -109,6 +109,9 @@ svg.hidden {
   fill: #cccccc;
   baseline-shift: 30%;
 }
+.d3-pool-weekend {
+  opacity: 0.7;
+}
 .d3-rect-fill.d3-fill-darker {
   fill: #dce4e7;
 }
@@ -195,7 +198,7 @@ svg.hidden {
   stroke: #bb9ae7;
 }
 .d3-circle-smbg.d3-circle-open {
-  fill: none !important;
+  fill: rgba(255, 255, 255, 0) !important;
 }
 .d3-smbg-numbers.d3-rect-smbg {
   pointer-events: none;
@@ -368,7 +371,7 @@ svg.hidden {
 .d3-stats .d3-stats-rect.rect-right {
   fill: #d3dbdd;
 }
-.d3-stats .d3-stats-image.hidden {
+.d3-stats .d3-stats-circle.hidden {
   display: none;
 }
 .d3-stats.d3-insufficient-data circle {
