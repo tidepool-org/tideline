@@ -109,6 +109,9 @@ svg.hidden {
   fill: #cccccc;
   baseline-shift: 30%;
 }
+.d3-pool-weekend {
+  opacity: 0.7;
+}
 .d3-rect-fill.d3-fill-darker {
   fill: #dce4e7;
 }
