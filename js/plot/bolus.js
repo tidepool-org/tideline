@@ -1,15 +1,15 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -18,6 +18,7 @@
 var d3 = require('../lib/').d3;
 var _ = require('../lib/')._;
 
+var highlight = require('./util/highlight')('#poolBolus .d3-bolus-group, #poolBolus .d3-carbs');
 var Duration = require('../lib/').Duration;
 var format = require('../data/util/format');
 var log = require('../lib/').bows('Bolus');
@@ -90,7 +91,7 @@ module.exports = function(pool, opts) {
     opts.xScale = pool.xScale().copy();
     selection.each(function(currentData) {
       bolus.addAnnotations(_.filter(currentData, function(d) { return d.annotations; }));
-      
+
       var boluses = d3.select(this)
         .selectAll('g.d3-bolus-group')
         .data(currentData, function(d) {
@@ -99,8 +100,10 @@ module.exports = function(pool, opts) {
       var bolusGroups = boluses.enter()
         .append('g')
         .attr({
-          'class': 'd3-bolus-group',
-          'id': function(d) { return 'bolus_group_' + d.id; }
+          class: function(d) {
+            return 'd3-bolus-group d3-wizard-' + Date.parse(d.normalTime);
+          },
+          id: function(d) { return 'bolus_group_' + d.id; }
         });
       var top = opts.yScale.range()[0];
       // boluses where delivered = recommended
@@ -200,7 +203,7 @@ module.exports = function(pool, opts) {
             return 'M' + rightEdge + ' ' + doseHeight + 'L' + doseEnd + ' ' + doseHeight;
           },
           'stroke-width': opts.bolusStroke,
-          'class': function(d){
+          'class': function(d) {
             if (unknownDeliverySplit(d)) {
               return 'd3-path-extended d3-bolus d3-unknown-delivery-split';
             } else {
@@ -228,10 +231,13 @@ module.exports = function(pool, opts) {
 
       // tooltips
       selection.selectAll('.d3-bolus-group').on('mouseover', function(d) {
+        highlight.on('.d3-wizard-' + Date.parse(d.normalTime));
         bolus.addTooltip(d, bolus.getTooltipCategory(d));
         opts.emitter.emit('bolusTooltipOn', Date.parse(d.normalTime));
       });
+
       selection.selectAll('.d3-bolus-group').on('mouseout', function(d) {
+        highlight.off();
         mainGroup.select('#tooltip_' + d.id).remove();
         opts.emitter.emit('bolusTooltipOff', Date.parse(d.normalTime));
       });
@@ -287,7 +293,7 @@ module.exports = function(pool, opts) {
   bolus.addTooltip = function(datum, category) {
     var tooltipWidth = opts.classes[category].width;
     var tooltipHeight = opts.classes[category].height;
-    
+
     mainGroup.select('#' + 'tidelineTooltips_bolus')
       .call(pool.tooltips(),
         datum,
@@ -318,7 +324,7 @@ module.exports = function(pool, opts) {
           } else {
             return pool.height() - tooltipHeight;
           }
-          
+
         },
         // customText
         (function() {
@@ -416,7 +422,7 @@ module.exports = function(pool, opts) {
       return 'over ' + minutes + ' min';
     }
   };
-  
+
   bolus.x = function(datum) {
     return opts.xScale(Date.parse(datum.normalTime)) - opts.width/2;
   };
