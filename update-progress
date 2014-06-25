@@ -1,9 +1,13 @@
 #!/bin/bash
 
-FILE="$1"
+cd ../
+
+gulp pack-for-ghpages
+
+FILE="current-progress"
 HTML=".html"
-cp -r ../example/dist/ example/dist/
-cp ../example/bundle.js example/
-cp ../example/data/device-data.json example/data/
-cp ../example/example.css example/
-cp ../example/index.html example/$FILE$HTML
+cp -r css/ web/css/
+cp example/bundle.js web/example/
+cp example/data/device-data.json web/example/data/
+cp -r example/less/ web/example/less/
+cp example/index.html web/example/$FILE$HTML
