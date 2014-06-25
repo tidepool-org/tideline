@@ -68,7 +68,7 @@
 	      chartPrefs: {
 	        bgUnits: 'mg/dL'
 	      },
-	      imagesBaseUrl: 'tideline/img',
+	      imagesBaseUrl: '../img',
 	      chartType: 'daily'
 	    };
 	  },
