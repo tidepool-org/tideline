@@ -13,3 +13,6 @@ cp example/data/device-data.json web/example/data/
 
 rm -f example/less/ghpages.less
 rm -f example/ghpages.js
+
+rm -f example/example.css
+rm -f example/bundle.js
