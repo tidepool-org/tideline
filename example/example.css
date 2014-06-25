@@ -780,7 +780,7 @@ svg.hidden {
 }
 @font-face {
   font-family: 'Blip Icons';
-  src: url('/fonts/blip-icons.eot') format('embedded-opentype'), url('/fonts/blip-icons.woff') format('woff'), url('/fonts/blip-icons.ttf') format('truetype'), url('/fonts/blip-icons.svg') format('svg');
+  src: url('/tideline/fonts/blip-icons.eot') format('embedded-opentype'), url('/tideline/fonts/blip-icons.woff') format('woff'), url('/tideline/fonts/blip-icons.ttf') format('truetype'), url('/tideline/fonts/blip-icons.svg') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -788,25 +788,25 @@ svg.hidden {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
-  src: local('Open Sans'), local('OpenSans'), url('/fonts/opensans.woff') format('woff');
+  src: local('Open Sans'), local('OpenSans'), url('/tideline/fonts/opensans.woff') format('woff');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
-  src: local('Open Sans Bold'), local('OpenSans-Bold'), url('/fonts/opensans-bold.woff') format('woff');
+  src: local('Open Sans Bold'), local('OpenSans-Bold'), url('/tideline/fonts/opensans-bold.woff') format('woff');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 400;
-  src: local('Open Sans Italic'), local('OpenSans-Italic'), url('/fonts/opensans-italic.woff') format('woff');
+  src: local('Open Sans Italic'), local('OpenSans-Italic'), url('/tideline/fonts/opensans-italic.woff') format('woff');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 700;
-  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url('/fonts/opensans-bolditalic.woff') format('woff');
+  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url('/tideline/fonts/opensans-bolditalic.woff') format('woff');
 }
 .vSpace {
   width: 100vw;

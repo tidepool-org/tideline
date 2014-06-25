@@ -68,6 +68,7 @@
 	      chartPrefs: {
 	        bgUnits: 'mg/dL'
 	      },
+	      imagesBaseUrl: 'tideline/img',
 	      chartType: 'daily'
 	    };
 	  },
@@ -92,6 +93,7 @@
 	          Daily( 
 	            {patientData:this.state.chartData,
 	            chartPrefs:this.state.chartPrefs,
+	            imagesBaseUrl:this.state.imagesBaseUrl,
 	            initialDatetimeLocation:this.state.initialDatetimeLocation,
 	            switchToDaily:this.handleSwitchToDaily,
 	            switchToSettings:this.handleSwitchToSettings,
@@ -104,6 +106,7 @@
 	          Weekly( 
 	            {patientData:this.state.chartData,
 	            chartPrefs:this.state.chartPrefs,
+	            imagesBaseUrl:this.state.imagesBaseUrl,
 	            initialDatetimeLocation:this.state.initialDatetimeLocation,
 	            switchToDaily:this.handleSwitchToDaily,
 	            switchToSettings:this.handleSwitchToSettings,
@@ -150,6 +153,7 @@
 	  document.body
 	);
 
+
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
@@ -174,6 +178,7 @@
 	  propTypes: {
 	    patientData: React.PropTypes.object.isRequired,
 	    chartPrefs: React.PropTypes.object.isRequired,
+	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    switchToDaily: React.PropTypes.func.isRequired,
 	    switchToSettings: React.PropTypes.func.isRequired,
@@ -203,6 +208,7 @@
 	          DailyChart(
 	            {bgUnits:this.props.chartPrefs.bgUnits,
 	            hiddenPools:this.state.hiddenPools,
+	            imagesBaseUrl:this.props.imagesBaseUrl,
 	            initialDatetimeLocation:this.props.initialDatetimeLocation,
 	            patientData:this.props.patientData,
 	            // handlers
@@ -242,7 +248,7 @@
 	        basalSettings: true
 	      }
 	    });
-	    var chartOpts = {imagesBaseUrl: '../../img'};
+	    var chartOpts = {imagesBaseUrl: this.props.imagesBaseUrl};
 	    _.assign(chartOpts, this.state, this.props.chartPrefs);
 	    var chart = this.refs.chart;
 	    chart.unmountChart();
@@ -267,7 +273,7 @@
 	        basalSettings: false
 	      }
 	    });
-	    var chartOpts = {imagesBaseUrl: '../../img'};
+	    var chartOpts = {imagesBaseUrl: this.props.imagesBaseUrl};
 	    _.assign(chartOpts, this.state, this.props.chartPrefs);
 	    var chart = this.refs.chart;
 	    chart.unmountChart();
@@ -282,6 +288,7 @@
 	  propTypes: {
 	    bgUnits: React.PropTypes.string.isRequired,
 	    hiddenPools: React.PropTypes.object.isRequired,
+	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    patientData: React.PropTypes.object.isRequired,
 	    // handlers
@@ -300,7 +307,7 @@
 	  },
 	  mountChart: function(node, chartOpts) {
 	    this.log('Mounting...');
-	    chartOpts = chartOpts || {imagesBaseUrl: '../../img'};
+	    chartOpts = chartOpts || {imagesBaseUrl: this.props.imagesBaseUrl};
 	    this.chart = chartDailyFactory(node, _.assign(chartOpts, _.pick(this.props, this.chartOpts)))
 	      .setupPools();
 	    this.bindEvents();
@@ -388,6 +395,7 @@
 	  propTypes: {
 	    patientData: React.PropTypes.object.isRequired,
 	    chartPrefs: React.PropTypes.object.isRequired,
+	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    switchToDaily: React.PropTypes.func.isRequired,
 	    switchToSettings: React.PropTypes.func.isRequired,
@@ -414,6 +422,7 @@
 	        React.DOM.div( {id:"tidelineOuterContainer"}, 
 	          WeeklyChart(
 	            {bgUnits:this.props.chartPrefs.bgUnits,
+	            imagesBaseUrl:this.props.imagesBaseUrl,
 	            initialDatetimeLocation:this.props.initialDatetimeLocation,
 	            patientData:this.props.patientData,
 	            // handlers
@@ -484,6 +493,7 @@
 	  log: bows('Weekly Chart'),
 	  propTypes: {
 	    bgUnits: React.PropTypes.string.isRequired,
+	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    patientData: React.PropTypes.object.isRequired,
 	    // handlers
@@ -502,7 +512,7 @@
 	  },
 	  mountChart: function(node, chartOpts) {
 	    this.log('Mounting...');
-	    chartOpts = chartOpts || {imagesBaseUrl: '../../img'};
+	    chartOpts = chartOpts || {imagesBaseUrl: this.props.imagesBaseUrl};
 	    this.chart = chartWeeklyFactory(node, _.assign(chartOpts, _.pick(this.props, this.chartOpts)));
 	    this.bindEvents();
 	  },
