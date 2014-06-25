@@ -2,12 +2,8 @@
 
 cd ../
 
-gulp pack-for-ghpages
+gulp ghpages
 
-FILE="current-progress"
-HTML=".html"
-cp -r css/ web/css/
 cp example/bundle.js web/example/
+cp example/example.css web/example/
 cp example/data/device-data.json web/example/data/
-cp -r example/less/ web/example/less/
-cp example/index.html web/example/$FILE$HTML
