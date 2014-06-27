@@ -240,7 +240,7 @@ svg.hidden {
   stroke-width: 1.5;
 }
 .d3-tabular-ui {
-  background-color: #f2f4f6;
+  background-color: none;
 }
 .d3-tabular-ui i {
   color: #989897;

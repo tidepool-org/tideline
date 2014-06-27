@@ -174,12 +174,12 @@
 
 	var Daily = React.createClass({displayName: 'Daily',
 	  chartType: 'daily',
-	  log: bows('One-Day View'),
+	  log: bows('Daily View'),
 	  propTypes: {
-	    patientData: React.PropTypes.object.isRequired,
 	    chartPrefs: React.PropTypes.object.isRequired,
 	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
+	    patientData: React.PropTypes.object.isRequired,
 	    switchToDaily: React.PropTypes.func.isRequired,
 	    switchToSettings: React.PropTypes.func.isRequired,
 	    switchToWeekly: React.PropTypes.func.isRequired
@@ -389,14 +389,14 @@
 	  log: bows('Two Weeks')
 	};
 
-	var TwoWeeks = React.createClass({displayName: 'TwoWeeks',
+	var Weekly = React.createClass({displayName: 'Weekly',
 	  chartType: 'weekly',
-	  log: bows('Two-Week View'),
+	  log: bows('Weekly View'),
 	  propTypes: {
-	    patientData: React.PropTypes.object.isRequired,
 	    chartPrefs: React.PropTypes.object.isRequired,
 	    imagesBaseUrl: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
+	    patientData: React.PropTypes.object.isRequired,
 	    switchToDaily: React.PropTypes.func.isRequired,
 	    switchToSettings: React.PropTypes.func.isRequired,
 	    switchToWeekly: React.PropTypes.func.isRequired
@@ -575,7 +575,7 @@
 	  }
 	});
 
-	module.exports = TwoWeeks;
+	module.exports = Weekly;
 
 /***/ },
 /* 3 */
@@ -602,8 +602,8 @@
 	  chartType: 'settings',
 	  log: bows('Settings View'),
 	  propTypes: {
-	    patientData: React.PropTypes.object.isRequired,
 	    chartPrefs: React.PropTypes.object.isRequired,
+	    patientData: React.PropTypes.object.isRequired,
 	    switchToDaily: React.PropTypes.func.isRequired,
 	    switchToSettings: React.PropTypes.func.isRequired,
 	    switchToWeekly: React.PropTypes.func.isRequired
@@ -745,13 +745,13 @@
 	      widget: __webpack_require__(34)
 	    },
 	    util: {
-	      annotation: __webpack_require__(35),
-	      defs: __webpack_require__(36),
-	      fill: __webpack_require__(37),
-	      legend: __webpack_require__(38),
-	      scales: __webpack_require__(39),
-	      shapes: __webpack_require__(40),
-	      tooltip: __webpack_require__(41)
+	      annotation: __webpack_require__(41),
+	      defs: __webpack_require__(35),
+	      fill: __webpack_require__(36),
+	      legend: __webpack_require__(37),
+	      scales: __webpack_require__(38),
+	      shapes: __webpack_require__(39),
+	      tooltip: __webpack_require__(40)
 	    }
 	  }
 	};
@@ -83638,7 +83638,7 @@
 	var d3 = __webpack_require__(24).d3;
 	var _ = __webpack_require__(24)._;
 
-	var legend = __webpack_require__(38);
+	var legend = __webpack_require__(37);
 
 	var log = __webpack_require__(24).bows('Pool');
 	 
@@ -83933,8 +83933,8 @@
 	var _ = __webpack_require__(24)._;
 
 	var Pool = __webpack_require__(11);
-	var annotation = __webpack_require__(35);
-	var tooltip = __webpack_require__(41);
+	var annotation = __webpack_require__(41);
+	var tooltip = __webpack_require__(40);
 	var dt = __webpack_require__(21);
 
 	var log = __webpack_require__(24).bows('One Day');
@@ -84571,9 +84571,9 @@
 	var _ = __webpack_require__(24)._;
 
 	var Pool = __webpack_require__(11);
-	var annotation = __webpack_require__(35);
-	var tooltip = __webpack_require__(41);
-	var legend = __webpack_require__(38);
+	var annotation = __webpack_require__(41);
+	var tooltip = __webpack_require__(40);
+	var legend = __webpack_require__(37);
 
 	var log = __webpack_require__(24).bows('Two Week');
 
@@ -89121,7 +89121,7 @@
 	var _ = __webpack_require__(24)._;
 
 	var log = __webpack_require__(24).bows('SMBG');
-	var scales = __webpack_require__(39);
+	var scales = __webpack_require__(38);
 	var bgBoundaryClass = __webpack_require__(44);
 
 	module.exports = function(pool, opts) {
@@ -89376,7 +89376,7 @@
 	var _ = __webpack_require__(24)._;
 
 	var log = __webpack_require__(24).bows('Stats');
-	var scales = __webpack_require__(39);
+	var scales = __webpack_require__(38);
 	var dt = __webpack_require__(21);
 	var format = __webpack_require__(22);
 	var Puddle = __webpack_require__(33);
@@ -89860,212 +89860,6 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var d3 = __webpack_require__(24).d3;
-	var _ = __webpack_require__(24)._;
-
-	var shapes = __webpack_require__(40);
-	var defs = __webpack_require__(36);
-	var dt = __webpack_require__(21);
-
-	var log = __webpack_require__(24).bows('AnnotationIcon');
-
-	module.exports = function(container, annotationsGroup) {
-
-	  var id, r = 8;
-
-	  var defaults = {
-	    'foWidth': 200,
-	    'triangleWidth': 18,
-	    'triangleHeight': 12,
-	    'orientation': {}
-	  };
-
-	  function annotation(selection, opts) {
-	    opts = opts || {};
-
-	    _.defaults(opts, defaults);
-
-	    if (!((opts.x != null) && (opts.y != null))) {
-	      log('Sorry, I need x and y coordinates to plot an annotation icon.');
-	      return;
-	    }
-
-	    var hoverTarget;
-
-	    if (opts.d.annotations[0].code !== 'stats-insufficient-data') {
-	      var iconGroup = selection.append('g')
-	        .attr('class', 'd3-data-annotation-group')
-	        .attr('clip-path', 'url(#mainClipPath)')
-	        .attr('id', 'annotation_for_' + opts.d.id);
-
-	      opts.x = annotation.xOffset(opts);
-	      opts.y = annotation.yOffset(opts);
-
-	      hoverTarget = iconGroup.append('circle')
-	        .attr({
-	          'cx': opts.x,
-	          'cy': opts.y,
-	          'r': r,
-	          'class': 'd3-circle-data-annotation',
-	        });
-	      iconGroup.append('text')
-	        .attr({
-	          'x': opts.x,
-	          'y': opts.y,
-	          'class': 'd3-text-data-annotation'
-	        })
-	        .text('?');
-
-	      if (opts.hoverTarget != null) {
-	        hoverTarget = opts.hoverTarget;
-	      }
-	      annotation.tooltip(opts, selection, hoverTarget);
-	    }
-	    else {
-	      if (opts.hoverTarget != null) {
-	        hoverTarget = opts.hoverTarget;
-	      }
-	      annotation.tooltip(opts, selection, hoverTarget);
-	    }
-	  }
-
-	  annotation.tooltip = function(opts, selection, hoverTarget) {
-	    opts = opts || {};
-
-	    if (opts.d.annotations[0].code === 'stats-insufficient-data') {
-	      if (container.type === 'daily') {
-	        opts.x = opts.x - (container.currentTranslation() - container.axisGutter());
-	      }
-	      else if (container.type === 'weekly') {
-	        opts.y = opts.y - container.currentTranslation();
-	      }
-	    }
-
-	    _.defaults(opts, defaults);
-
-	    hoverTarget.on('mouseover', function() {
-
-	      try {
-	        var edge = container.getCurrentDomain().end;
-	        opts.orientation.left = dt.isNearRightEdge(opts.d, edge);
-	      }
-	      catch (TypeError) {}
-
-	      var fo = selection.append('foreignObject')
-	        .attr({
-	          'x': opts.x,
-	          'y': opts.y,
-	          'width': opts.foWidth,
-	          'class': 'd3-tooltip-data-annotation'
-	        });
-	      var div = fo.append('xhtml:body')
-	        .append('div')
-	        .attr('class', 'd3-div-data-annotation');
-
-	      // append lead text, if any
-	      var lead = defs.lead(opts.lead);
-	      if (lead) {
-	        div.append('p')
-	          .attr('class', 'd3-data-annotation-lead')
-	          .html(lead);
-	      }
-
-	      // append all annotation texts
-	      var annotations = opts.d.annotations;
-	      _.each(annotations, function(annotation) {
-	        div.append('p')
-	          .html(defs.main(annotation, opts.d.source));
-	      });
-
-	      // get height of HTML
-	      var foHeight = div[0][0].getBoundingClientRect().height;
-	      var anchorX = opts.orientation.left ? (3/2*opts.triangleWidth) - opts.foWidth : (0-(3/2*opts.triangleWidth));
-	      var anchorY = opts.orientation.up ? -(foHeight + opts.triangleHeight) : opts.triangleHeight;
-
-	      fo.attr({
-	        'height': foHeight,
-	        'transform': 'translate(' + anchorX + ',' + anchorY + ')'
-	      });
-	      var polygon = shapes.tooltipPolygon({
-	          'w': opts.foWidth,
-	          'h': foHeight,
-	          't': opts.triangleWidth,
-	          'k': opts.triangleHeight
-	        });
-	      if (opts.orientation.up) {
-	        polygon = shapes.mirrorImageX(polygon);
-	      }
-	      // not an else if because orientation can be both up & left
-	      if (opts.orientation.left) {
-	        polygon = shapes.mirrorImageY(polygon);
-	      }
-
-	      selection.insert('polygon', '.d3-tooltip-data-annotation')
-	        .attr({
-	          'points': polygon,
-	          'transform': 'translate(' + opts.x + ',' + opts.y + ')',
-	          'width': opts.foWidth,
-	          'height': opts.triangleHeight + foHeight,
-	          'class': 'd3-polygon-data-annotation'
-	        });
-	    });
-	    hoverTarget.on('mouseout', function() {
-	      selection.selectAll('.d3-tooltip-data-annotation').remove();
-	      selection.selectAll('.d3-polygon-data-annotation').remove();
-	    });
-	  };
-
-	  annotation.xOffset = function(opts, multiplier) {
-	    if (multiplier != null) {
-	      return opts.x;
-	    }
-	    return opts.x + (r * opts.xMultiplier);
-	  };
-
-	  annotation.yOffset = function(opts, multiplier) {
-	    if (multiplier != null) {
-	      return opts.y;
-	    }
-	    return opts.y - (r * opts.yMultiplier);
-	  };
-
-	  annotation.addGroup = function(pool, type) {
-	    annotationsGroup.append('g')
-	      .attr('id', annotation.id() + '_' + type)
-	      .attr('transform', pool.attr('transform'));
-	  };
-
-	  // getters & setters
-	  annotation.id = function(x) {
-	    if (!arguments.length) return id;
-	    id = annotationsGroup.attr('id');
-	    return annotation;
-	  };
-
-	  return annotation;
-	};
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
 	// You can view the full text of each annotation by running mocha test/annotations_test.js
 	// Current output:
 	//
@@ -90186,7 +89980,7 @@
 	module.exports = definitions;
 
 /***/ },
-/* 37 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -90338,7 +90132,7 @@
 
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -90639,7 +90433,7 @@
 	module.exports = legend;
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -90739,7 +90533,7 @@
 
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -90810,7 +90604,7 @@
 	module.exports = shapes;
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -91104,6 +90898,212 @@
 	  };
 
 	  return tooltip;
+	};
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var d3 = __webpack_require__(24).d3;
+	var _ = __webpack_require__(24)._;
+
+	var shapes = __webpack_require__(39);
+	var defs = __webpack_require__(35);
+	var dt = __webpack_require__(21);
+
+	var log = __webpack_require__(24).bows('AnnotationIcon');
+
+	module.exports = function(container, annotationsGroup) {
+
+	  var id, r = 8;
+
+	  var defaults = {
+	    'foWidth': 200,
+	    'triangleWidth': 18,
+	    'triangleHeight': 12,
+	    'orientation': {}
+	  };
+
+	  function annotation(selection, opts) {
+	    opts = opts || {};
+
+	    _.defaults(opts, defaults);
+
+	    if (!((opts.x != null) && (opts.y != null))) {
+	      log('Sorry, I need x and y coordinates to plot an annotation icon.');
+	      return;
+	    }
+
+	    var hoverTarget;
+
+	    if (opts.d.annotations[0].code !== 'stats-insufficient-data') {
+	      var iconGroup = selection.append('g')
+	        .attr('class', 'd3-data-annotation-group')
+	        .attr('clip-path', 'url(#mainClipPath)')
+	        .attr('id', 'annotation_for_' + opts.d.id);
+
+	      opts.x = annotation.xOffset(opts);
+	      opts.y = annotation.yOffset(opts);
+
+	      hoverTarget = iconGroup.append('circle')
+	        .attr({
+	          'cx': opts.x,
+	          'cy': opts.y,
+	          'r': r,
+	          'class': 'd3-circle-data-annotation',
+	        });
+	      iconGroup.append('text')
+	        .attr({
+	          'x': opts.x,
+	          'y': opts.y,
+	          'class': 'd3-text-data-annotation'
+	        })
+	        .text('?');
+
+	      if (opts.hoverTarget != null) {
+	        hoverTarget = opts.hoverTarget;
+	      }
+	      annotation.tooltip(opts, selection, hoverTarget);
+	    }
+	    else {
+	      if (opts.hoverTarget != null) {
+	        hoverTarget = opts.hoverTarget;
+	      }
+	      annotation.tooltip(opts, selection, hoverTarget);
+	    }
+	  }
+
+	  annotation.tooltip = function(opts, selection, hoverTarget) {
+	    opts = opts || {};
+
+	    if (opts.d.annotations[0].code === 'stats-insufficient-data') {
+	      if (container.type === 'daily') {
+	        opts.x = opts.x - (container.currentTranslation() - container.axisGutter());
+	      }
+	      else if (container.type === 'weekly') {
+	        opts.y = opts.y - container.currentTranslation();
+	      }
+	    }
+
+	    _.defaults(opts, defaults);
+
+	    hoverTarget.on('mouseover', function() {
+
+	      try {
+	        var edge = container.getCurrentDomain().end;
+	        opts.orientation.left = dt.isNearRightEdge(opts.d, edge);
+	      }
+	      catch (TypeError) {}
+
+	      var fo = selection.append('foreignObject')
+	        .attr({
+	          'x': opts.x,
+	          'y': opts.y,
+	          'width': opts.foWidth,
+	          'class': 'd3-tooltip-data-annotation'
+	        });
+	      var div = fo.append('xhtml:body')
+	        .append('div')
+	        .attr('class', 'd3-div-data-annotation');
+
+	      // append lead text, if any
+	      var lead = defs.lead(opts.lead);
+	      if (lead) {
+	        div.append('p')
+	          .attr('class', 'd3-data-annotation-lead')
+	          .html(lead);
+	      }
+
+	      // append all annotation texts
+	      var annotations = opts.d.annotations;
+	      _.each(annotations, function(annotation) {
+	        div.append('p')
+	          .html(defs.main(annotation, opts.d.source));
+	      });
+
+	      // get height of HTML
+	      var foHeight = div[0][0].getBoundingClientRect().height;
+	      var anchorX = opts.orientation.left ? (3/2*opts.triangleWidth) - opts.foWidth : (0-(3/2*opts.triangleWidth));
+	      var anchorY = opts.orientation.up ? -(foHeight + opts.triangleHeight) : opts.triangleHeight;
+
+	      fo.attr({
+	        'height': foHeight,
+	        'transform': 'translate(' + anchorX + ',' + anchorY + ')'
+	      });
+	      var polygon = shapes.tooltipPolygon({
+	          'w': opts.foWidth,
+	          'h': foHeight,
+	          't': opts.triangleWidth,
+	          'k': opts.triangleHeight
+	        });
+	      if (opts.orientation.up) {
+	        polygon = shapes.mirrorImageX(polygon);
+	      }
+	      // not an else if because orientation can be both up & left
+	      if (opts.orientation.left) {
+	        polygon = shapes.mirrorImageY(polygon);
+	      }
+
+	      selection.insert('polygon', '.d3-tooltip-data-annotation')
+	        .attr({
+	          'points': polygon,
+	          'transform': 'translate(' + opts.x + ',' + opts.y + ')',
+	          'width': opts.foWidth,
+	          'height': opts.triangleHeight + foHeight,
+	          'class': 'd3-polygon-data-annotation'
+	        });
+	    });
+	    hoverTarget.on('mouseout', function() {
+	      selection.selectAll('.d3-tooltip-data-annotation').remove();
+	      selection.selectAll('.d3-polygon-data-annotation').remove();
+	    });
+	  };
+
+	  annotation.xOffset = function(opts, multiplier) {
+	    if (multiplier != null) {
+	      return opts.x;
+	    }
+	    return opts.x + (r * opts.xMultiplier);
+	  };
+
+	  annotation.yOffset = function(opts, multiplier) {
+	    if (multiplier != null) {
+	      return opts.y;
+	    }
+	    return opts.y - (r * opts.yMultiplier);
+	  };
+
+	  annotation.addGroup = function(pool, type) {
+	    annotationsGroup.append('g')
+	      .attr('id', annotation.id() + '_' + type)
+	      .attr('transform', pool.attr('transform'));
+	  };
+
+	  // getters & setters
+	  annotation.id = function(x) {
+	    if (!arguments.length) return id;
+	    id = annotationsGroup.attr('id');
+	    return annotation;
+	  };
+
+	  return annotation;
 	};
 
 /***/ },
@@ -91489,32 +91489,57 @@
 	      .weight(1.5)
 	      .gutterWeight(1.0);
 
-	    // basal data pool
-	    poolBasal = chart.newPool()
-	      .id('poolBasal', chart.poolGroup())
-	      .label([{
-	        'main': 'Basal Rates',
-	        'light': ' (U/hr)'
-	      }])
-	      .legend(['basal'])
-	      .index(chart.pools().indexOf(poolBasal))
-	      .weight(1.0)
-	      .gutterWeight(1.0);
+	    if (chart.options.hiddenPools.basalSettings) {
+	      // basal settings pool, bare
+	      poolBasalSettings = chart.newPool()
+	        .id('poolBasalSettings', chart.poolGroup())
+	        .label('')
+	        .index(chart.pools().indexOf(poolBasal))
+	        .weight(1.0)
+	        .gutterWeight(1.0)
+	        .hidden(chart.options.hiddenPools.basalSettings);
 
-	    // basal settings pool
-	    poolBasalSettings = chart.newPool()
-	      .id('poolBasalSettings', chart.poolGroup())
-	      .index(chart.pools().indexOf(poolBasal))
-	      .weight(1.0)
-	      .gutterWeight(0.0)
-	      .hidden(chart.options.hiddenPools.basalSettings);
+	      // basal data pool with label, legend, and gutter
+	      poolBasal = chart.newPool()
+	        .id('poolBasal', chart.poolGroup())
+	        .label([{
+	          'main': 'Basal Rates',
+	          'light': ' (U/hr)'
+	        }])
+	        .legend(['basal'])
+	        .index(chart.pools().indexOf(poolBasal))
+	        .weight(1.0)
+	        .gutterWeight(1.0);
+	    }
+	    else {
+	      // basal settings pool with label, legend, and gutter
+	      poolBasalSettings = chart.newPool()
+	        .id('poolBasalSettings', chart.poolGroup())
+	        .label([{
+	          'main': 'Basal Rates',
+	          'light': ' (U/hr)'
+	        }])
+	        .legend(['basal'])
+	        .index(chart.pools().indexOf(poolBasal))
+	        .weight(1.0)
+	        .gutterWeight(1.0)
+	        .hidden(chart.options.hiddenPools.basalSettings);
+
+	      // basal data pool, bare
+	      poolBasal = chart.newPool()
+	        .id('poolBasal', chart.poolGroup())
+	        .label('')
+	        .index(chart.pools().indexOf(poolBasal))
+	        .weight(1.0)
+	        .gutterWeight(0.0);
+	    }
 
 	    // stats data pool
 	    poolStats = chart.newPool()
 	      .id('poolStats', chart.poolGroup())
 	      .index(chart.pools().indexOf(poolStats))
 	      .weight(1.0)
-	      .gutterWeight(1.2);
+	      .gutterWeight(1.0);
 
 	    chart.arrangePools();
 
@@ -91756,12 +91781,16 @@
 	  };
 
 	  chart.drawBasalSettingsButton = function() {
+	    var labelGroup = d3.select(el).select('#tidelineLabels');
+	    var labelTextBox = chart.options.hiddenPools.basalSettings ?
+	      labelGroup.select('text#poolBasal_label_0')[0][0].getBBox() :
+	      labelGroup.select('text#poolBasalSettings_label_0')[0][0].getBBox();
 	    var verticalTranslation = chart.options.hiddenPools.basalSettings ?
-	      (poolBasal.yPosition() + poolBasal.height()) : (poolBasal.yPosition() + 2 * poolBasal.height());
-	    var fo = d3.select(el).select('#tidelineLabels')
-	      .append('foreignObject')
+	      poolBasal.yPosition() - labelTextBox.height :
+	      poolBasalSettings.yPosition() - labelTextBox.height;
+	    var fo = labelGroup.append('foreignObject')
 	      .attr({
-	        transform: 'translate(' + chart.axisGutter() + ',' + verticalTranslation + ')'
+	        transform: 'translate(' + (chart.axisGutter() + labelTextBox.width) + ',' + verticalTranslation + ')'
 	      });
 
 	    var div = fo.append('xhtml:div')
