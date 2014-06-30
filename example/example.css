@@ -248,20 +248,19 @@ svg.hidden {
 .d3-tabular-ui p {
   margin: 0px;
   cursor: pointer;
+  font-size: 12px;
+  color: #989897;
 }
 .d3-cell-rect {
   stroke-width: 0.5px;
   stroke: #e6e6e5;
 }
 .d3-cell-rect.d3-unmatched {
-  fill: #f2f4f6;
+  fill: #f7f7f8;
 }
 .d3-cell-rect.d3-matched {
-  fill: #e6e6e5;
-  stroke: white;
-}
-.d3-cell-rect:hover {
-  fill: #fafafa !important;
+  fill: #0b9eb3;
+  opacity: 0.3;
 }
 .d3-cell-label {
   dominant-baseline: central;
@@ -273,8 +272,14 @@ svg.hidden {
   fill: #808080;
 }
 .d3-cell-label.d3-matched {
-  fill: #029eb3;
+  fill: #727375;
   font-weight: bold;
+}
+.d3-row-label {
+  dominant-baseline: central;
+  fill: #808080;
+  font-size: 12px;
+  text-anchor: end;
 }
 .d3-circle-data-annotation {
   fill: #989897;
