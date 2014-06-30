@@ -1,15 +1,15 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -18,6 +18,7 @@
 var d3 = require('../lib/').d3;
 var _ = require('../lib/')._;
 
+var highlight = require('./util/highlight')('#poolBolus .d3-bolus-group, #poolBolus .d3-carbs');
 var log = require('../lib/').bows('Carbs');
 
 module.exports = function(pool, opts) {
@@ -95,7 +96,9 @@ module.exports = function(pool, opts) {
           'height': function(d) {
             return opts.yScale(d.value);
           },
-          'class': 'd3-rect-carbs d3-carbs',
+          'class': function(d) {
+            return 'd3-rect-carbs d3-carbs d3-wizard-' + Date.parse(d.normalTime);
+          } ,
           'id': function(d) {
             return 'carbs_' + d.id;
           }
@@ -106,10 +109,14 @@ module.exports = function(pool, opts) {
       selection.selectAll('.d3-rect-carbs').on('mouseover', function() {
         var d = d3.select(this).datum();
         var t = Date.parse(d.normalTime);
+
+        highlight.on('.d3-wizard-' + t);
         opts.emitter.emit('carbTooltipOn', t);
         carbs.addTooltip(d, opts.tooltipTimestamp);
       });
       selection.selectAll('.d3-rect-carbs').on('mouseout', function() {
+        highlight.off();
+
         var d = d3.select(this).datum();
         var t = Date.parse(d.normalTime);
         mainGroup.select('#tooltip_' + d.id).remove();

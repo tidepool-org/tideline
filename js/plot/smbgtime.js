@@ -1,15 +1,15 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -20,6 +20,7 @@ var _ = require('../lib/')._;
 
 var log = require('../lib/').bows('Two-Week SMBG');
 var bgBoundaryClass = require('./util/bgBoundaryClass');
+var highlight = require('./util/highlight')('.d3-smbg-time-group');
 
 function SMBGTime (opts) {
   var MS_IN_HOUR = 3600000;
@@ -52,7 +53,7 @@ function SMBGTime (opts) {
     // if you don't use poolDaysGroup to subset selection of smbg circles
     // can end up selecting circles in the legend D:
     poolDaysGroup = mainGroup.select('#daysGroup');
-    
+
     var smbg = this;
     return function(selection) {
       selection.each(function(currentData) {
@@ -115,6 +116,8 @@ function SMBGTime (opts) {
 
         // tooltips
         selection.selectAll('.d3-circle-smbg').on('mouseover', function() {
+          highlight.on(d3.select(this).node().parentNode);
+
           if (d3.select(this).classed('d3-bg-low')) {
             smbg.addTooltip(d3.select(this).datum(), 'low', pool);
           }
@@ -126,6 +129,8 @@ function SMBGTime (opts) {
           }
         });
         selection.selectAll('.d3-circle-smbg').on('mouseout', function() {
+          highlight.off();
+
           var id = d3.select(this).attr('id').replace('smbg_time_', 'tooltip_');
           mainGroup.select('#' + id).remove();
         });
