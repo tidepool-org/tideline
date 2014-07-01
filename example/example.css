@@ -96,7 +96,6 @@ svg.hidden {
   font-size: 16px;
   fill: #808080;
   baseline-shift: 30%;
-  xml: space: preserve;
 }
 .d3-pool-label tspan {
   font-weight: normal;
@@ -239,17 +238,22 @@ svg.hidden {
   stroke-dasharray: 1.5, 3;
   stroke-width: 1.5;
 }
-.d3-tabular-ui {
+div.d3-tabular-ui {
   background-color: none;
 }
-.d3-tabular-ui i {
-  color: #989897;
-}
-.d3-tabular-ui p {
-  margin: 0px;
+div.d3-tabular-ui p {
+  color: #cccccc;
   cursor: pointer;
-  font-size: 12px;
-  color: #989897;
+  font-size: 14px;
+}
+div.d3-tabular-ui p [class^="icon-"]:before {
+  vertical-align: text-bottom;
+}
+text.d3-tabular-ui {
+  fill: #cccccc;
+  cursor: pointer;
+  font-size: 14px;
+  baseline-shift: 30%;
 }
 .d3-cell-rect {
   stroke-width: 0.5px;
@@ -874,7 +878,6 @@ body {
   line-height: 40px;
 }
 #tidelineMain .tidelineNav #tidelineLabel img {
-  display: inline-block;
   vertical-align: middle;
   width: 32px;
 }
