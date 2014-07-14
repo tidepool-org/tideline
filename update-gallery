@@ -1,0 +1,51 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "You need to provide a branch name"
+    exit
+fi
+FILENAME=$1
+
+if [ -z "$2" ]; then
+    echo "You need to provide a short description of the option encoded in the branch"
+    exit
+fi
+DESC=$2
+
+TITLE=$3
+
+FILENAME=${FILENAME//\//-}
+
+if [ -z "$DATA" ]; then
+    echo "Using default 'device-data.json'"
+    echo "Set DATA env variable to change"
+    DATA='device-data.json'
+fi
+
+cd ../
+
+sed 's/\/fonts\//\/tideline\/fonts\//g' example/less/example.less > example/less/ghpages.less
+sed 's/img/..\/img/' example/example.js > example/ghpages.js
+
+gulp ghpages
+
+cp example/bundle.js web/example/$FILENAME.js
+cp example/example.css web/example/$FILENAME.css
+cp example/data/$DATA web/example/data/
+cp web/example/current-progress.html web/example/$FILENAME.html
+
+# clean up
+rm -f example/less/ghpages.less
+rm -f example/ghpages.js
+
+rm -f example/example.css
+rm -f example/bundle.js
+
+cd web/
+
+if [ -z "$3" ]; then
+    python update_gallery.py $FILENAME "$DESC"
+    exit
+fi
+
+python update_gallery.py $FILENAME "$DESC" -t "$TITLE"
