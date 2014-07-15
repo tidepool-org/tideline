@@ -28,7 +28,7 @@ if [ -z "$DATA" ]; then
     echo "Set DATA env variable to change"
     DATA='device-data.json'
 else
-    if [ $DATA=$REAL ]; then
+    if [ "$DATA" == "$REAL" ]; then
         # according to Google, sed -i doesn't work on OS X???
         # output to tmp is the poor man's sed -i
         sed 's/device-data/blip-output/' example/ghpages.js > example/tmp.js
