@@ -49,7 +49,7 @@
 	var bows = window.bows;
 	var React = window.React;
 
-	var data = __webpack_require__(6);
+	var data = __webpack_require__(8);
 
 	var Daily = __webpack_require__(1);
 	var Weekly = __webpack_require__(2);
@@ -204,8 +204,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartDailyFactory = blip.oneday;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var Daily = React.createClass({displayName: 'Daily',
 	  chartType: 'daily',
@@ -446,8 +446,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartWeeklyFactory = blip.twoweek;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var tideline = {
 	  log: bows('Two Weeks')
@@ -676,8 +676,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartSettingsFactory = blip.settings;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var tideline = {
 	  log: bows('Settings')
@@ -1203,6 +1203,164 @@
 
 /***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Header')
+	};
+
+	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    inTransition: React.PropTypes.bool.isRequired,
+	    atMostRecent: React.PropTypes.bool.isRequired,
+	    title: React.PropTypes.string.isRequired,
+	    onClickBack: React.PropTypes.func,
+	    onClickMostRecent: React.PropTypes.func.isRequired,
+	    onClickNext: React.PropTypes.func,
+	    onClickOneDay: React.PropTypes.func.isRequired,
+	    onClickTwoWeeks: React.PropTypes.func.isRequired,
+	    onClickSettings: React.PropTypes.func.isRequired
+	  },
+	  render: function() {
+	    var next = this.props.next;
+	    var back = this.props.back;
+	    var mostRecent = this.props.mostRecent;
+
+	    var dayLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'daily'
+	    });
+
+	    var weekLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'weekly'
+	    });
+
+	    var mostRecentLinkClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var backClass = cx({
+	      'active': !this.props.inTransition,
+	      'inactive': this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var nextClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var settingsLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true,
+	      'active': this.props.chartType === 'settings'
+	    });
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.div( {className:"grid-item three-eighths"}, 
+	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
+	          ),
+	          React.DOM.div( {className:"grid-item one-half"}, 
+	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
+	          )
+	        ),
+	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
+	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
+	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
+	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
+	          ),
+	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
+	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
+	        ),
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
+	        )
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineHeader;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Footer')
+	};
+
+	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    onClickValues: React.PropTypes.func,
+	    showingValues: React.PropTypes.bool
+	  },
+	  render: function() {
+	    var valuesLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true
+	    });
+
+	    function getValuesLinkText(props) {
+	      if (props.chartType === 'weekly') {
+	        if (props.showingValues) {
+	          return 'Hide Values';
+	        }
+	        else {
+	          return 'Show Values';
+	        }
+	      }
+	      else {
+	        return '';
+	      }
+	    }
+
+	    var valuesLinkText = getValuesLinkText(this.props);
+
+	    /* jshint ignore:start */
+	    var showValues = (
+	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
+	      );
+	    /* jshint ignore:end */
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-half"}
+	        ),
+	        React.DOM.div( {className:"grid-item one-half"}, showValues)
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineFooter;
+
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = [
@@ -83283,164 +83441,6 @@
 	]
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Header')
-	};
-
-	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    inTransition: React.PropTypes.bool.isRequired,
-	    atMostRecent: React.PropTypes.bool.isRequired,
-	    title: React.PropTypes.string.isRequired,
-	    onClickBack: React.PropTypes.func,
-	    onClickMostRecent: React.PropTypes.func.isRequired,
-	    onClickNext: React.PropTypes.func,
-	    onClickOneDay: React.PropTypes.func.isRequired,
-	    onClickTwoWeeks: React.PropTypes.func.isRequired,
-	    onClickSettings: React.PropTypes.func.isRequired
-	  },
-	  render: function() {
-	    var next = this.props.next;
-	    var back = this.props.back;
-	    var mostRecent = this.props.mostRecent;
-
-	    var dayLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'daily'
-	    });
-
-	    var weekLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'weekly'
-	    });
-
-	    var mostRecentLinkClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var backClass = cx({
-	      'active': !this.props.inTransition,
-	      'inactive': this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var nextClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var settingsLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true,
-	      'active': this.props.chartType === 'settings'
-	    });
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.div( {className:"grid-item three-eighths"}, 
-	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
-	          ),
-	          React.DOM.div( {className:"grid-item one-half"}, 
-	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
-	          )
-	        ),
-	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
-	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
-	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
-	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
-	          ),
-	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
-	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
-	        ),
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
-	        )
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineHeader;
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Footer')
-	};
-
-	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    onClickValues: React.PropTypes.func,
-	    showingValues: React.PropTypes.bool
-	  },
-	  render: function() {
-	    var valuesLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true
-	    });
-
-	    function getValuesLinkText(props) {
-	      if (props.chartType === 'weekly') {
-	        if (props.showingValues) {
-	          return 'Hide Values';
-	        }
-	        else {
-	          return 'Show Values';
-	        }
-	      }
-	      else {
-	        return '';
-	      }
-	    }
-
-	    var valuesLinkText = getValuesLinkText(this.props);
-
-	    /* jshint ignore:start */
-	    var showValues = (
-	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
-	      );
-	    /* jshint ignore:end */
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-half"}
-	        ),
-	        React.DOM.div( {className:"grid-item one-half"}, showValues)
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineFooter;
-
-
-/***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -87216,10 +87216,10 @@
 	  lib.bows = window.bows;
 	}
 	else {
-	  lib._ = __webpack_require__(51);
+	  lib._ = __webpack_require__(50);
 	  lib.crossfilter = __webpack_require__(48);
 	  lib.d3 = __webpack_require__(49);
-	  lib.Duration = __webpack_require__(50);
+	  lib.Duration = __webpack_require__(51);
 	}
 
 	if (!lib._) {
@@ -88896,6 +88896,7 @@
 	    selection.append('image')
 	      .attr({
 	        'xlink:href': opts.imagesBaseUrl + '/message/post_it.svg',
+	        cursor: 'pointer',
 	        x: message.xPosition,
 	        y: message.yPosition,
 	        width: opts.size,
@@ -90389,6 +90390,7 @@
 	        .append('rect')
 	        .attr({
 	          'clip-path': 'url(#mainClipPath)',
+	          cursor: opts.cursor ? opts.cursor : 'auto',
 	          x: function(d, i) {
 	            if (opts.dataGutter) {
 	              if (i === 0) {
@@ -90410,7 +90412,7 @@
 	              return opts.gutter;
 	            }
 	          },
-	          'width': function(d, i) {
+	          width: function(d, i) {
 	            if (opts.dataGutter) {
 	              if ((i === 0) || (i === currentData.length  - 1)) {
 	                return fill.width(d) + opts.dataGutter;
@@ -91295,7 +91297,7 @@
 	  var _ = window._;
 	}
 	else {
-	  var _ = __webpack_require__(51);
+	  var _ = __webpack_require__(50);
 	}
 
 	try {
@@ -91366,7 +91368,7 @@
 	 */
 
 	var _ = __webpack_require__(24)._;
-	var util = __webpack_require__(52);
+	var util = __webpack_require__(53);
 
 	function buildError(message) {
 	  return new Error(util.format.apply(util, [message].concat(Array.prototype.slice.call(arguments, 1))));
@@ -91551,7 +91553,7 @@
 	var bows = window.bows;
 	var d3 = window.d3;
 
-	var EventEmitter = __webpack_require__(53).EventEmitter;
+	var EventEmitter = __webpack_require__(52).EventEmitter;
 
 	var tideline = window.tideline;
 	var fill = tideline.plot.util.fill;
@@ -91849,7 +91851,10 @@
 
 	    // messages pool
 	    // add background fill rectangles to messages pool
-	    poolMessages.addPlotType('fill', fill(poolMessages, {emitter: emitter}), true, true);
+	    poolMessages.addPlotType('fill', fill(poolMessages, {
+	      emitter: emitter,
+	      cursor: 'cell'
+	    }), true, true);
 
 	    // add message images to messages pool
 	    poolMessages.addPlotType('message', tideline.plot.message(poolMessages, {
@@ -92047,7 +92052,7 @@
 	var bows = window.bows;
 	var d3 = window.d3;
 
-	var EventEmitter = __webpack_require__(53).EventEmitter;
+	var EventEmitter = __webpack_require__(52).EventEmitter;
 
 	var tideline = window.tideline;
 	var fill = tideline.plot.util.fill;
@@ -92225,7 +92230,7 @@
 	var bows = window.bows;
 	var d3 = window.d3;
 
-	var EventEmitter = __webpack_require__(53).EventEmitter;
+	var EventEmitter = __webpack_require__(52).EventEmitter;
 
 	var tideline = window.tideline;
 
@@ -101531,191 +101536,6 @@
 /* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Duration = (function () {
-
-	    var millisecond = 1,
-	        second      = 1000 * millisecond,
-	        minute      = 60   * second,
-	        hour        = 60   * minute,
-	        day         = 24   * hour,
-	        week        = 7    * day;
-
-	    var unitMap = {
-	        "ms" : millisecond,
-	        "s"  : second,
-	        "m"  : minute,
-	        "h"  : hour,
-	        "d"  : day,
-	        "w"  : week
-	    };
-
-	    var Duration = function (value) {
-	        if (value instanceof Duration) {
-	          return value;
-	        }
-	        switch (typeof value) {
-	            case "number":
-	                this._milliseconds = value;
-	                break;
-	            case "string":
-	                this._milliseconds = Duration.parse(value).valueOf();
-	                break;
-	            case "undefined":
-	                this._milliseconds = 0;
-	                break;
-	            default:
-	                throw new Error("invalid duration: " + value);
-	        }
-	    };
-
-	    Duration.millisecond = new Duration(millisecond);
-	    Duration.second      = new Duration(second);
-	    Duration.minute      = new Duration(minute);
-	    Duration.hour        = new Duration(hour);
-	    Duration.day         = new Duration(day);
-	    Duration.week        = new Duration(week);
-
-	    Duration.prototype.nanoseconds = function () {
-	        return this._milliseconds * 1000000;
-	    };
-
-	    Duration.prototype.microseconds = function () {
-	        return this._milliseconds * 1000;
-	    };
-
-	    Duration.prototype.milliseconds = function () {
-	        return this._milliseconds;
-	    };
-
-	    Duration.prototype.seconds = function () {
-	        return Math.floor(this._milliseconds / second);
-	    };
-
-	    Duration.prototype.minutes = function () {
-	        return Math.floor(this._milliseconds / minute);
-	    };
-
-	    Duration.prototype.hours = function () {
-	        return Math.floor(this._milliseconds / hour);
-	    };
-
-	    Duration.prototype.days = function () {
-	      return Math.floor(this._milliseconds / day);
-	    };
-
-	    Duration.prototype.weeks = function () {
-	      return Math.floor(this._milliseconds / week);
-	    };
-
-	    Duration.prototype.toString = function () {
-	      var str          = "",
-	          milliseconds = Math.abs(this._milliseconds),
-	          sign         = this._milliseconds < 0 ? "-" : "";
-
-	      // no units for 0 duration
-	      if (milliseconds === 0) {
-	        return "0";
-	      }
-
-	      // days
-	      var days = Math.floor(milliseconds / day);
-	      if (days !== 0) {
-	        milliseconds -= day * days;
-	        str += days.toString() + "d";
-	      }
-
-	      // hours
-	      var hours = Math.floor(milliseconds / hour);
-	      if (hours !== 0) {
-	        milliseconds -= hour * hours;
-	        str += hours.toString() + "h";
-	      }
-
-	      // minutes
-	      var minutes = Math.floor(milliseconds / minute);
-	      if (minutes !== 0) {
-	        milliseconds -= minute * minutes;
-	        str += minutes.toString() + "m";
-	      }
-
-	      // seconds
-	      var seconds = Math.floor(milliseconds / second);
-	      if (seconds !== 0) {
-	        milliseconds -= second * seconds;
-	        str += seconds.toString() + "s";
-	      }
-
-	      // milliseconds
-	      if (milliseconds !== 0) {
-	        str += milliseconds.toString() + "ms";
-	      }
-
-	      return sign + str;
-	    };
-
-	    Duration.prototype.valueOf = function () {
-	      return this._milliseconds;
-	    };
-
-	    Duration.parse = function (duration) {
-
-	        if (duration === "0" || duration === "+0" || duration === "-0") {
-	          return new Duration(0);
-	        }
-
-	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
-	            total = 0,
-	            count = 0,
-	            sign  = duration[0] === '-' ? -1 : 1,
-	            unit, value, match;
-
-	        while (match = regex.exec(duration)) {
-
-	            unit  = match[2];
-	            value = Math.abs(parseFloat(match[1]));
-	            count++;
-
-	            if (isNaN(value)) {
-	              throw new Error("invalid duration");
-	            }
-
-	            if (typeof unitMap[unit] === "undefined") {
-	              throw new Error("invalid unit: " + unit);
-	            }
-
-	            total += value * unitMap[unit];
-	        }
-
-	        if (count === 0) {
-	          throw new Error("invalid duration");
-	        }
-
-	        return new Duration(total * sign);
-	    };
-
-	    Duration.fromMicroseconds = function (us) {
-	        var ms = Math.floor(us / 1000);
-	        return new Duration(ms);
-	    };
-
-	    Duration.fromNanoseconds = function (ns) {
-	        var ms = Math.floor(ns / 1000000);
-	        return new Duration(ms);
-	    };
-
-	    return Duration;
-
-	}).call(this);
-
-	if (true) {
-	   module.exports = Duration;
-	}
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
 	 * @license
 	 * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
@@ -108877,7 +108697,501 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(56)(module), (function() { return this; }())))
 
 /***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Duration = (function () {
+
+	    var millisecond = 1,
+	        second      = 1000 * millisecond,
+	        minute      = 60   * second,
+	        hour        = 60   * minute,
+	        day         = 24   * hour,
+	        week        = 7    * day;
+
+	    var unitMap = {
+	        "ms" : millisecond,
+	        "s"  : second,
+	        "m"  : minute,
+	        "h"  : hour,
+	        "d"  : day,
+	        "w"  : week
+	    };
+
+	    var Duration = function (value) {
+	        if (value instanceof Duration) {
+	          return value;
+	        }
+	        switch (typeof value) {
+	            case "number":
+	                this._milliseconds = value;
+	                break;
+	            case "string":
+	                this._milliseconds = Duration.parse(value).valueOf();
+	                break;
+	            case "undefined":
+	                this._milliseconds = 0;
+	                break;
+	            default:
+	                throw new Error("invalid duration: " + value);
+	        }
+	    };
+
+	    Duration.millisecond = new Duration(millisecond);
+	    Duration.second      = new Duration(second);
+	    Duration.minute      = new Duration(minute);
+	    Duration.hour        = new Duration(hour);
+	    Duration.day         = new Duration(day);
+	    Duration.week        = new Duration(week);
+
+	    Duration.prototype.nanoseconds = function () {
+	        return this._milliseconds * 1000000;
+	    };
+
+	    Duration.prototype.microseconds = function () {
+	        return this._milliseconds * 1000;
+	    };
+
+	    Duration.prototype.milliseconds = function () {
+	        return this._milliseconds;
+	    };
+
+	    Duration.prototype.seconds = function () {
+	        return Math.floor(this._milliseconds / second);
+	    };
+
+	    Duration.prototype.minutes = function () {
+	        return Math.floor(this._milliseconds / minute);
+	    };
+
+	    Duration.prototype.hours = function () {
+	        return Math.floor(this._milliseconds / hour);
+	    };
+
+	    Duration.prototype.days = function () {
+	      return Math.floor(this._milliseconds / day);
+	    };
+
+	    Duration.prototype.weeks = function () {
+	      return Math.floor(this._milliseconds / week);
+	    };
+
+	    Duration.prototype.toString = function () {
+	      var str          = "",
+	          milliseconds = Math.abs(this._milliseconds),
+	          sign         = this._milliseconds < 0 ? "-" : "";
+
+	      // no units for 0 duration
+	      if (milliseconds === 0) {
+	        return "0";
+	      }
+
+	      // days
+	      var days = Math.floor(milliseconds / day);
+	      if (days !== 0) {
+	        milliseconds -= day * days;
+	        str += days.toString() + "d";
+	      }
+
+	      // hours
+	      var hours = Math.floor(milliseconds / hour);
+	      if (hours !== 0) {
+	        milliseconds -= hour * hours;
+	        str += hours.toString() + "h";
+	      }
+
+	      // minutes
+	      var minutes = Math.floor(milliseconds / minute);
+	      if (minutes !== 0) {
+	        milliseconds -= minute * minutes;
+	        str += minutes.toString() + "m";
+	      }
+
+	      // seconds
+	      var seconds = Math.floor(milliseconds / second);
+	      if (seconds !== 0) {
+	        milliseconds -= second * seconds;
+	        str += seconds.toString() + "s";
+	      }
+
+	      // milliseconds
+	      if (milliseconds !== 0) {
+	        str += milliseconds.toString() + "ms";
+	      }
+
+	      return sign + str;
+	    };
+
+	    Duration.prototype.valueOf = function () {
+	      return this._milliseconds;
+	    };
+
+	    Duration.parse = function (duration) {
+
+	        if (duration === "0" || duration === "+0" || duration === "-0") {
+	          return new Duration(0);
+	        }
+
+	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
+	            total = 0,
+	            count = 0,
+	            sign  = duration[0] === '-' ? -1 : 1,
+	            unit, value, match;
+
+	        while (match = regex.exec(duration)) {
+
+	            unit  = match[2];
+	            value = Math.abs(parseFloat(match[1]));
+	            count++;
+
+	            if (isNaN(value)) {
+	              throw new Error("invalid duration");
+	            }
+
+	            if (typeof unitMap[unit] === "undefined") {
+	              throw new Error("invalid unit: " + unit);
+	            }
+
+	            total += value * unitMap[unit];
+	        }
+
+	        if (count === 0) {
+	          throw new Error("invalid duration");
+	        }
+
+	        return new Duration(total * sign);
+	    };
+
+	    Duration.fromMicroseconds = function (us) {
+	        var ms = Math.floor(us / 1000);
+	        return new Duration(ms);
+	    };
+
+	    Duration.fromNanoseconds = function (ns) {
+	        var ms = Math.floor(ns / 1000000);
+	        return new Duration(ms);
+	    };
+
+	    return Duration;
+
+	}).call(this);
+
+	if (true) {
+	   module.exports = Duration;
+	}
+
+
+/***/ },
 /* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	function EventEmitter() {
+	  this._events = this._events || {};
+	  this._maxListeners = this._maxListeners || undefined;
+	}
+	module.exports = EventEmitter;
+
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._maxListeners = undefined;
+
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	EventEmitter.defaultMaxListeners = 10;
+
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function(n) {
+	  if (!isNumber(n) || n < 0 || isNaN(n))
+	    throw TypeError('n must be a positive number');
+	  this._maxListeners = n;
+	  return this;
+	};
+
+	EventEmitter.prototype.emit = function(type) {
+	  var er, handler, len, args, i, listeners;
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // If there is no 'error' event listener then throw.
+	  if (type === 'error') {
+	    if (!this._events.error ||
+	        (isObject(this._events.error) && !this._events.error.length)) {
+	      er = arguments[1];
+	      if (er instanceof Error) {
+	        throw er; // Unhandled 'error' event
+	      } else {
+	        throw TypeError('Uncaught, unspecified "error" event.');
+	      }
+	      return false;
+	    }
+	  }
+
+	  handler = this._events[type];
+
+	  if (isUndefined(handler))
+	    return false;
+
+	  if (isFunction(handler)) {
+	    switch (arguments.length) {
+	      // fast cases
+	      case 1:
+	        handler.call(this);
+	        break;
+	      case 2:
+	        handler.call(this, arguments[1]);
+	        break;
+	      case 3:
+	        handler.call(this, arguments[1], arguments[2]);
+	        break;
+	      // slower
+	      default:
+	        len = arguments.length;
+	        args = new Array(len - 1);
+	        for (i = 1; i < len; i++)
+	          args[i - 1] = arguments[i];
+	        handler.apply(this, args);
+	    }
+	  } else if (isObject(handler)) {
+	    len = arguments.length;
+	    args = new Array(len - 1);
+	    for (i = 1; i < len; i++)
+	      args[i - 1] = arguments[i];
+
+	    listeners = handler.slice();
+	    len = listeners.length;
+	    for (i = 0; i < len; i++)
+	      listeners[i].apply(this, args);
+	  }
+
+	  return true;
+	};
+
+	EventEmitter.prototype.addListener = function(type, listener) {
+	  var m;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // To avoid recursion in the case that type === "newListener"! Before
+	  // adding it to the listeners, first emit "newListener".
+	  if (this._events.newListener)
+	    this.emit('newListener', type,
+	              isFunction(listener.listener) ?
+	              listener.listener : listener);
+
+	  if (!this._events[type])
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    this._events[type] = listener;
+	  else if (isObject(this._events[type]))
+	    // If we've already got an array, just append.
+	    this._events[type].push(listener);
+	  else
+	    // Adding the second element, need to change to array.
+	    this._events[type] = [this._events[type], listener];
+
+	  // Check for listener leak
+	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    var m;
+	    if (!isUndefined(this._maxListeners)) {
+	      m = this._maxListeners;
+	    } else {
+	      m = EventEmitter.defaultMaxListeners;
+	    }
+
+	    if (m && m > 0 && this._events[type].length > m) {
+	      this._events[type].warned = true;
+	      console.error('(node) warning: possible EventEmitter memory ' +
+	                    'leak detected. %d listeners added. ' +
+	                    'Use emitter.setMaxListeners() to increase limit.',
+	                    this._events[type].length);
+	      if (typeof console.trace === 'function') {
+	        // not supported in IE 10
+	        console.trace();
+	      }
+	    }
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+	EventEmitter.prototype.once = function(type, listener) {
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  var fired = false;
+
+	  function g() {
+	    this.removeListener(type, g);
+
+	    if (!fired) {
+	      fired = true;
+	      listener.apply(this, arguments);
+	    }
+	  }
+
+	  g.listener = listener;
+	  this.on(type, g);
+
+	  return this;
+	};
+
+	// emits a 'removeListener' event iff the listener was removed
+	EventEmitter.prototype.removeListener = function(type, listener) {
+	  var list, position, length, i;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events || !this._events[type])
+	    return this;
+
+	  list = this._events[type];
+	  length = list.length;
+	  position = -1;
+
+	  if (list === listener ||
+	      (isFunction(list.listener) && list.listener === listener)) {
+	    delete this._events[type];
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+
+	  } else if (isObject(list)) {
+	    for (i = length; i-- > 0;) {
+	      if (list[i] === listener ||
+	          (list[i].listener && list[i].listener === listener)) {
+	        position = i;
+	        break;
+	      }
+	    }
+
+	    if (position < 0)
+	      return this;
+
+	    if (list.length === 1) {
+	      list.length = 0;
+	      delete this._events[type];
+	    } else {
+	      list.splice(position, 1);
+	    }
+
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.removeAllListeners = function(type) {
+	  var key, listeners;
+
+	  if (!this._events)
+	    return this;
+
+	  // not listening for removeListener, no need to emit
+	  if (!this._events.removeListener) {
+	    if (arguments.length === 0)
+	      this._events = {};
+	    else if (this._events[type])
+	      delete this._events[type];
+	    return this;
+	  }
+
+	  // emit removeListener for all listeners on all events
+	  if (arguments.length === 0) {
+	    for (key in this._events) {
+	      if (key === 'removeListener') continue;
+	      this.removeAllListeners(key);
+	    }
+	    this.removeAllListeners('removeListener');
+	    this._events = {};
+	    return this;
+	  }
+
+	  listeners = this._events[type];
+
+	  if (isFunction(listeners)) {
+	    this.removeListener(type, listeners);
+	  } else {
+	    // LIFO order
+	    while (listeners.length)
+	      this.removeListener(type, listeners[listeners.length - 1]);
+	  }
+	  delete this._events[type];
+
+	  return this;
+	};
+
+	EventEmitter.prototype.listeners = function(type) {
+	  var ret;
+	  if (!this._events || !this._events[type])
+	    ret = [];
+	  else if (isFunction(this._events[type]))
+	    ret = [this._events[type]];
+	  else
+	    ret = this._events[type].slice();
+	  return ret;
+	};
+
+	EventEmitter.listenerCount = function(emitter, type) {
+	  var ret;
+	  if (!emitter._events || !emitter._events[type])
+	    ret = 0;
+	  else if (isFunction(emitter._events[type]))
+	    ret = 1;
+	  else
+	    ret = emitter._events[type].length;
+	  return ret;
+	};
+
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+
+	function isObject(arg) {
+	  return typeof arg === 'object' && arg !== null;
+	}
+
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
+
+
+/***/ },
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -109468,315 +109782,6 @@
 	}
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(57)))
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Copyright Joyent, Inc. and other Node contributors.
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a
-	// copy of this software and associated documentation files (the
-	// "Software"), to deal in the Software without restriction, including
-	// without limitation the rights to use, copy, modify, merge, publish,
-	// distribute, sublicense, and/or sell copies of the Software, and to permit
-	// persons to whom the Software is furnished to do so, subject to the
-	// following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included
-	// in all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-	function EventEmitter() {
-	  this._events = this._events || {};
-	  this._maxListeners = this._maxListeners || undefined;
-	}
-	module.exports = EventEmitter;
-
-	// Backwards-compat with node 0.10.x
-	EventEmitter.EventEmitter = EventEmitter;
-
-	EventEmitter.prototype._events = undefined;
-	EventEmitter.prototype._maxListeners = undefined;
-
-	// By default EventEmitters will print a warning if more than 10 listeners are
-	// added to it. This is a useful default which helps finding memory leaks.
-	EventEmitter.defaultMaxListeners = 10;
-
-	// Obviously not all Emitters should be limited to 10. This function allows
-	// that to be increased. Set to zero for unlimited.
-	EventEmitter.prototype.setMaxListeners = function(n) {
-	  if (!isNumber(n) || n < 0 || isNaN(n))
-	    throw TypeError('n must be a positive number');
-	  this._maxListeners = n;
-	  return this;
-	};
-
-	EventEmitter.prototype.emit = function(type) {
-	  var er, handler, len, args, i, listeners;
-
-	  if (!this._events)
-	    this._events = {};
-
-	  // If there is no 'error' event listener then throw.
-	  if (type === 'error') {
-	    if (!this._events.error ||
-	        (isObject(this._events.error) && !this._events.error.length)) {
-	      er = arguments[1];
-	      if (er instanceof Error) {
-	        throw er; // Unhandled 'error' event
-	      } else {
-	        throw TypeError('Uncaught, unspecified "error" event.');
-	      }
-	      return false;
-	    }
-	  }
-
-	  handler = this._events[type];
-
-	  if (isUndefined(handler))
-	    return false;
-
-	  if (isFunction(handler)) {
-	    switch (arguments.length) {
-	      // fast cases
-	      case 1:
-	        handler.call(this);
-	        break;
-	      case 2:
-	        handler.call(this, arguments[1]);
-	        break;
-	      case 3:
-	        handler.call(this, arguments[1], arguments[2]);
-	        break;
-	      // slower
-	      default:
-	        len = arguments.length;
-	        args = new Array(len - 1);
-	        for (i = 1; i < len; i++)
-	          args[i - 1] = arguments[i];
-	        handler.apply(this, args);
-	    }
-	  } else if (isObject(handler)) {
-	    len = arguments.length;
-	    args = new Array(len - 1);
-	    for (i = 1; i < len; i++)
-	      args[i - 1] = arguments[i];
-
-	    listeners = handler.slice();
-	    len = listeners.length;
-	    for (i = 0; i < len; i++)
-	      listeners[i].apply(this, args);
-	  }
-
-	  return true;
-	};
-
-	EventEmitter.prototype.addListener = function(type, listener) {
-	  var m;
-
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  if (!this._events)
-	    this._events = {};
-
-	  // To avoid recursion in the case that type === "newListener"! Before
-	  // adding it to the listeners, first emit "newListener".
-	  if (this._events.newListener)
-	    this.emit('newListener', type,
-	              isFunction(listener.listener) ?
-	              listener.listener : listener);
-
-	  if (!this._events[type])
-	    // Optimize the case of one listener. Don't need the extra array object.
-	    this._events[type] = listener;
-	  else if (isObject(this._events[type]))
-	    // If we've already got an array, just append.
-	    this._events[type].push(listener);
-	  else
-	    // Adding the second element, need to change to array.
-	    this._events[type] = [this._events[type], listener];
-
-	  // Check for listener leak
-	  if (isObject(this._events[type]) && !this._events[type].warned) {
-	    var m;
-	    if (!isUndefined(this._maxListeners)) {
-	      m = this._maxListeners;
-	    } else {
-	      m = EventEmitter.defaultMaxListeners;
-	    }
-
-	    if (m && m > 0 && this._events[type].length > m) {
-	      this._events[type].warned = true;
-	      console.error('(node) warning: possible EventEmitter memory ' +
-	                    'leak detected. %d listeners added. ' +
-	                    'Use emitter.setMaxListeners() to increase limit.',
-	                    this._events[type].length);
-	      if (typeof console.trace === 'function') {
-	        // not supported in IE 10
-	        console.trace();
-	      }
-	    }
-	  }
-
-	  return this;
-	};
-
-	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-	EventEmitter.prototype.once = function(type, listener) {
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  var fired = false;
-
-	  function g() {
-	    this.removeListener(type, g);
-
-	    if (!fired) {
-	      fired = true;
-	      listener.apply(this, arguments);
-	    }
-	  }
-
-	  g.listener = listener;
-	  this.on(type, g);
-
-	  return this;
-	};
-
-	// emits a 'removeListener' event iff the listener was removed
-	EventEmitter.prototype.removeListener = function(type, listener) {
-	  var list, position, length, i;
-
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  if (!this._events || !this._events[type])
-	    return this;
-
-	  list = this._events[type];
-	  length = list.length;
-	  position = -1;
-
-	  if (list === listener ||
-	      (isFunction(list.listener) && list.listener === listener)) {
-	    delete this._events[type];
-	    if (this._events.removeListener)
-	      this.emit('removeListener', type, listener);
-
-	  } else if (isObject(list)) {
-	    for (i = length; i-- > 0;) {
-	      if (list[i] === listener ||
-	          (list[i].listener && list[i].listener === listener)) {
-	        position = i;
-	        break;
-	      }
-	    }
-
-	    if (position < 0)
-	      return this;
-
-	    if (list.length === 1) {
-	      list.length = 0;
-	      delete this._events[type];
-	    } else {
-	      list.splice(position, 1);
-	    }
-
-	    if (this._events.removeListener)
-	      this.emit('removeListener', type, listener);
-	  }
-
-	  return this;
-	};
-
-	EventEmitter.prototype.removeAllListeners = function(type) {
-	  var key, listeners;
-
-	  if (!this._events)
-	    return this;
-
-	  // not listening for removeListener, no need to emit
-	  if (!this._events.removeListener) {
-	    if (arguments.length === 0)
-	      this._events = {};
-	    else if (this._events[type])
-	      delete this._events[type];
-	    return this;
-	  }
-
-	  // emit removeListener for all listeners on all events
-	  if (arguments.length === 0) {
-	    for (key in this._events) {
-	      if (key === 'removeListener') continue;
-	      this.removeAllListeners(key);
-	    }
-	    this.removeAllListeners('removeListener');
-	    this._events = {};
-	    return this;
-	  }
-
-	  listeners = this._events[type];
-
-	  if (isFunction(listeners)) {
-	    this.removeListener(type, listeners);
-	  } else {
-	    // LIFO order
-	    while (listeners.length)
-	      this.removeListener(type, listeners[listeners.length - 1]);
-	  }
-	  delete this._events[type];
-
-	  return this;
-	};
-
-	EventEmitter.prototype.listeners = function(type) {
-	  var ret;
-	  if (!this._events || !this._events[type])
-	    ret = [];
-	  else if (isFunction(this._events[type]))
-	    ret = [this._events[type]];
-	  else
-	    ret = this._events[type].slice();
-	  return ret;
-	};
-
-	EventEmitter.listenerCount = function(emitter, type) {
-	  var ret;
-	  if (!emitter._events || !emitter._events[type])
-	    ret = 0;
-	  else if (isFunction(emitter._events[type]))
-	    ret = 1;
-	  else
-	    ret = emitter._events[type].length;
-	  return ret;
-	};
-
-	function isFunction(arg) {
-	  return typeof arg === 'function';
-	}
-
-	function isNumber(arg) {
-	  return typeof arg === 'number';
-	}
-
-	function isObject(arg) {
-	  return typeof arg === 'object' && arg !== null;
-	}
-
-	function isUndefined(arg) {
-	  return arg === void 0;
-	}
-
 
 /***/ },
 /* 54 */
