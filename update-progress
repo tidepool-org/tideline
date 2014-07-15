@@ -4,6 +4,8 @@ cd ../
 
 sed 's/\/fonts\//\/tideline\/fonts\//g' example/less/example.less > example/less/ghpages.less
 sed 's/img/..\/img/' example/example.js > example/ghpages.js
+cp -r fonts/ web/fonts/
+cp -r img/ web/img/
 
 gulp ghpages
 
