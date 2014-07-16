@@ -49,7 +49,7 @@
 	var bows = window.bows;
 	var React = window.React;
 
-	var data = __webpack_require__(8);
+	var data = __webpack_require__(6);
 
 	var Daily = __webpack_require__(1);
 	var Weekly = __webpack_require__(2);
@@ -204,8 +204,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartDailyFactory = blip.oneday;
 
-	var Header = __webpack_require__(6);
-	var Footer = __webpack_require__(7);
+	var Header = __webpack_require__(7);
+	var Footer = __webpack_require__(8);
 
 	var Daily = React.createClass({displayName: 'Daily',
 	  chartType: 'daily',
@@ -446,8 +446,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartWeeklyFactory = blip.twoweek;
 
-	var Header = __webpack_require__(6);
-	var Footer = __webpack_require__(7);
+	var Header = __webpack_require__(7);
+	var Footer = __webpack_require__(8);
 
 	var tideline = {
 	  log: bows('Two Weeks')
@@ -676,8 +676,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartSettingsFactory = blip.settings;
 
-	var Header = __webpack_require__(6);
-	var Footer = __webpack_require__(7);
+	var Header = __webpack_require__(7);
+	var Footer = __webpack_require__(8);
 
 	var tideline = {
 	  log: bows('Settings')
@@ -845,8 +845,8 @@
 	        dailyx: __webpack_require__(42)
 	      },
 	      defs: __webpack_require__(36),
-	      fill: __webpack_require__(38),
-	      legend: __webpack_require__(37),
+	      fill: __webpack_require__(37),
+	      legend: __webpack_require__(38),
 	      scales: __webpack_require__(39),
 	      shapes: __webpack_require__(40),
 	      tooltip: __webpack_require__(41)
@@ -1206,164 +1206,6 @@
 
 /***/ },
 /* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Header')
-	};
-
-	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    inTransition: React.PropTypes.bool.isRequired,
-	    atMostRecent: React.PropTypes.bool.isRequired,
-	    title: React.PropTypes.string.isRequired,
-	    onClickBack: React.PropTypes.func,
-	    onClickMostRecent: React.PropTypes.func.isRequired,
-	    onClickNext: React.PropTypes.func,
-	    onClickOneDay: React.PropTypes.func.isRequired,
-	    onClickTwoWeeks: React.PropTypes.func.isRequired,
-	    onClickSettings: React.PropTypes.func.isRequired
-	  },
-	  render: function() {
-	    var next = this.props.next;
-	    var back = this.props.back;
-	    var mostRecent = this.props.mostRecent;
-
-	    var dayLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'daily'
-	    });
-
-	    var weekLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'weekly'
-	    });
-
-	    var mostRecentLinkClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var backClass = cx({
-	      'active': !this.props.inTransition,
-	      'inactive': this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var nextClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var settingsLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true,
-	      'active': this.props.chartType === 'settings'
-	    });
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.div( {className:"grid-item three-eighths"}, 
-	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
-	          ),
-	          React.DOM.div( {className:"grid-item one-half"}, 
-	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
-	          )
-	        ),
-	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
-	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
-	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
-	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
-	          ),
-	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
-	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
-	        ),
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
-	        )
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineHeader;
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Footer')
-	};
-
-	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    onClickValues: React.PropTypes.func,
-	    showingValues: React.PropTypes.bool
-	  },
-	  render: function() {
-	    var valuesLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true
-	    });
-
-	    function getValuesLinkText(props) {
-	      if (props.chartType === 'weekly') {
-	        if (props.showingValues) {
-	          return 'Hide Values';
-	        }
-	        else {
-	          return 'Show Values';
-	        }
-	      }
-	      else {
-	        return '';
-	      }
-	    }
-
-	    var valuesLinkText = getValuesLinkText(this.props);
-
-	    /* jshint ignore:start */
-	    var showValues = (
-	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
-	      );
-	    /* jshint ignore:end */
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-half"}
-	        ),
-	        React.DOM.div( {className:"grid-item one-half"}, showValues)
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineFooter;
-
-
-/***/ },
-/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = [
@@ -83444,6 +83286,164 @@
 	]
 
 /***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Header')
+	};
+
+	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    inTransition: React.PropTypes.bool.isRequired,
+	    atMostRecent: React.PropTypes.bool.isRequired,
+	    title: React.PropTypes.string.isRequired,
+	    onClickBack: React.PropTypes.func,
+	    onClickMostRecent: React.PropTypes.func.isRequired,
+	    onClickNext: React.PropTypes.func,
+	    onClickOneDay: React.PropTypes.func.isRequired,
+	    onClickTwoWeeks: React.PropTypes.func.isRequired,
+	    onClickSettings: React.PropTypes.func.isRequired
+	  },
+	  render: function() {
+	    var next = this.props.next;
+	    var back = this.props.back;
+	    var mostRecent = this.props.mostRecent;
+
+	    var dayLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'daily'
+	    });
+
+	    var weekLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'weekly'
+	    });
+
+	    var mostRecentLinkClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var backClass = cx({
+	      'active': !this.props.inTransition,
+	      'inactive': this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var nextClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var settingsLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true,
+	      'active': this.props.chartType === 'settings'
+	    });
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.div( {className:"grid-item three-eighths"}, 
+	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
+	          ),
+	          React.DOM.div( {className:"grid-item one-half"}, 
+	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
+	          )
+	        ),
+	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
+	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
+	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
+	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
+	          ),
+	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
+	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
+	        ),
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
+	        )
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineHeader;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Footer')
+	};
+
+	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    onClickValues: React.PropTypes.func,
+	    showingValues: React.PropTypes.bool
+	  },
+	  render: function() {
+	    var valuesLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true
+	    });
+
+	    function getValuesLinkText(props) {
+	      if (props.chartType === 'weekly') {
+	        if (props.showingValues) {
+	          return 'Hide Values';
+	        }
+	        else {
+	          return 'Show Values';
+	        }
+	      }
+	      else {
+	        return '';
+	      }
+	    }
+
+	    var valuesLinkText = getValuesLinkText(this.props);
+
+	    /* jshint ignore:start */
+	    var showValues = (
+	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
+	      );
+	    /* jshint ignore:end */
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-half"}
+	        ),
+	        React.DOM.div( {className:"grid-item one-half"}, showValues)
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineFooter;
+
+
+/***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -83723,7 +83723,7 @@
 	var d3 = __webpack_require__(24).d3;
 	var _ = __webpack_require__(24)._;
 
-	var legend = __webpack_require__(37);
+	var legend = __webpack_require__(38);
 
 	var log = __webpack_require__(24).bows('Pool');
 
@@ -84592,7 +84592,7 @@
 	var Pool = __webpack_require__(11);
 	var annotation = __webpack_require__(35);
 	var tooltip = __webpack_require__(41);
-	var legend = __webpack_require__(37);
+	var legend = __webpack_require__(38);
 
 	var log = __webpack_require__(24).bows('Two Week');
 
@@ -87065,7 +87065,7 @@
 
 	  xAxisDayText: function(i) {
 	    var d = new Date(i);
-	    return d3.time.format.utc('%A')(d);
+	    return d3.time.format.utc('%A, %B %-d')(d);
 	  },
 
 	  xAxisTickText: function(i) {
@@ -90305,6 +90305,164 @@
 /* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+	var d3 = __webpack_require__(24).d3;
+	var _ = __webpack_require__(24)._;
+
+	var log = __webpack_require__(24).bows('Fill');
+
+	module.exports = function(pool, opts) {
+
+	  var fills = [],
+	  defaults = {
+	    classes: {
+	        0: 'darkest',
+	        3: 'dark',
+	        6: 'lighter',
+	        9: 'light',
+	        12: 'lightest',
+	        15: 'lighter',
+	        18: 'dark',
+	        21: 'darker'
+	      },
+	      duration: 3,
+	      gutter: 0,
+	      fillClass: '',
+	      x: function(t) { return Date.parse(t); }
+	    };
+
+	  _.defaults(opts || {}, defaults);
+
+	  function fill(selection) {
+	    opts.xScale = pool.xScale().copy();
+
+	    // fillClass is used to control opacity of weekend day pools in two-week view
+	    if(opts.fillClass) {
+	      selection.attr('class', opts.fillClass);
+	    }
+
+	    if (opts.guidelines) {
+	      fill.drawGuidelines(selection);
+	    }
+
+	    selection.each(function(currentData) {
+	      var fills = selection.selectAll('rect.d3-fill')
+	        .data(currentData, function(d) {
+	          return d.id;
+	        });
+
+	      fills.enter()
+	        .append('rect')
+	        .attr({
+	          'clip-path': 'url(#mainClipPath)',
+	          x: function(d, i) {
+	            if (opts.dataGutter) {
+	              if (i === 0) {
+	                return fill.xPosition(d) - opts.dataGutter;
+	              }
+	              else {
+	                return fill.xPosition(d);
+	              }
+	            }
+	            else {
+	              return fill.xPosition(d);
+	            }
+	          },
+	          y: function() {
+	            if (opts.gutter.top) {
+	              return opts.gutter.top;
+	            }
+	            else {
+	              return opts.gutter;
+	            }
+	          },
+	          'width': function(d, i) {
+	            if (opts.dataGutter) {
+	              if ((i === 0) || (i === currentData.length  - 1)) {
+	                return fill.width(d) + opts.dataGutter;
+	              }
+	              else {
+	                return fill.width(d);
+	              }
+	            }
+	            else {
+	              return fill.width(d);
+	            }
+	          },
+	          height: function() {
+	            if (opts.gutter.top) {
+	              return pool.height() - opts.gutter.top - opts.gutter.bottom;
+	            }
+	            else {
+	              return pool.height() - 2 * opts.gutter;
+	            }
+	          },
+	          id: function(d) {
+	            return d.id;
+	          },
+	          'class': function(d) {
+	            return 'd3-fill d3-rect-fill d3-fill-' + d.fillColor;
+	          }
+	        })
+	        .on('click', function() {
+	          if (opts.emitter) {
+	            opts.emitter.emit('clickInPool', d3.event.offsetX);
+	          }
+	        });
+
+	      fills.exit().remove();
+	    });
+	  }
+
+	  fill.xPosition = function(d) {
+	    return opts.xScale(opts.x(d.normalTime));
+	  };
+
+	  fill.width = function(d) {
+	    var s = Date.parse(d.normalTime), e = Date.parse(d.normalEnd);
+	    return opts.xScale(e) - opts.xScale(s);
+	  };
+
+	  fill.drawGuidelines = function(selection) {
+	    var linesGroup = pool.group().selectAll('#' + pool.id() + '_guidelines').data([opts.guidelines]);
+	    linesGroup.enter().append('g').attr('id', pool.id() + '_guidelines');
+	    linesGroup.selectAll('line')
+	      .data(opts.guidelines)
+	      .enter()
+	      .append('line')
+	      .attr({
+	        'class': function(d) { return 'd3-line-guide ' + d['class']; },
+	        x1: opts.xScale.range()[0],
+	        x2: opts.xScale.range()[1],
+	        y1: function(d) { return opts.yScale(d.height); },
+	        y2: function(d) { return opts.yScale(d.height); }
+	      });
+
+	  };
+
+	  return fill;
+	};
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* 
 	 * == BSD2 LICENSE ==
 	 * Copyright (c) 2014, Tidepool Project
@@ -90601,164 +90759,6 @@
 	};
 
 	module.exports = legend;
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-	var d3 = __webpack_require__(24).d3;
-	var _ = __webpack_require__(24)._;
-
-	var log = __webpack_require__(24).bows('Fill');
-
-	module.exports = function(pool, opts) {
-
-	  var fills = [],
-	  defaults = {
-	    classes: {
-	        0: 'darkest',
-	        3: 'dark',
-	        6: 'lighter',
-	        9: 'light',
-	        12: 'lightest',
-	        15: 'lighter',
-	        18: 'dark',
-	        21: 'darker'
-	      },
-	      duration: 3,
-	      gutter: 0,
-	      fillClass: '',
-	      x: function(t) { return Date.parse(t); }
-	    };
-
-	  _.defaults(opts || {}, defaults);
-
-	  function fill(selection) {
-	    opts.xScale = pool.xScale().copy();
-
-	    // fillClass is used to control opacity of weekend day pools in two-week view
-	    if(opts.fillClass) {
-	      selection.attr('class', opts.fillClass);
-	    }
-
-	    if (opts.guidelines) {
-	      fill.drawGuidelines(selection);
-	    }
-
-	    selection.each(function(currentData) {
-	      var fills = selection.selectAll('rect.d3-fill')
-	        .data(currentData, function(d) {
-	          return d.id;
-	        });
-
-	      fills.enter()
-	        .append('rect')
-	        .attr({
-	          'clip-path': 'url(#mainClipPath)',
-	          x: function(d, i) {
-	            if (opts.dataGutter) {
-	              if (i === 0) {
-	                return fill.xPosition(d) - opts.dataGutter;
-	              }
-	              else {
-	                return fill.xPosition(d);
-	              }
-	            }
-	            else {
-	              return fill.xPosition(d);
-	            }
-	          },
-	          y: function() {
-	            if (opts.gutter.top) {
-	              return opts.gutter.top;
-	            }
-	            else {
-	              return opts.gutter;
-	            }
-	          },
-	          'width': function(d, i) {
-	            if (opts.dataGutter) {
-	              if ((i === 0) || (i === currentData.length  - 1)) {
-	                return fill.width(d) + opts.dataGutter;
-	              }
-	              else {
-	                return fill.width(d);
-	              }
-	            }
-	            else {
-	              return fill.width(d);
-	            }
-	          },
-	          height: function() {
-	            if (opts.gutter.top) {
-	              return pool.height() - opts.gutter.top - opts.gutter.bottom;
-	            }
-	            else {
-	              return pool.height() - 2 * opts.gutter;
-	            }
-	          },
-	          id: function(d) {
-	            return d.id;
-	          },
-	          'class': function(d) {
-	            return 'd3-fill d3-rect-fill d3-fill-' + d.fillColor;
-	          }
-	        })
-	        .on('click', function() {
-	          if (opts.emitter) {
-	            opts.emitter.emit('clickInPool', d3.event.offsetX);
-	          }
-	        });
-
-	      fills.exit().remove();
-	    });
-	  }
-
-	  fill.xPosition = function(d) {
-	    return opts.xScale(opts.x(d.normalTime));
-	  };
-
-	  fill.width = function(d) {
-	    var s = Date.parse(d.normalTime), e = Date.parse(d.normalEnd);
-	    return opts.xScale(e) - opts.xScale(s);
-	  };
-
-	  fill.drawGuidelines = function(selection) {
-	    var linesGroup = pool.group().selectAll('#' + pool.id() + '_guidelines').data([opts.guidelines]);
-	    linesGroup.enter().append('g').attr('id', pool.id() + '_guidelines');
-	    linesGroup.selectAll('line')
-	      .data(opts.guidelines)
-	      .enter()
-	      .append('line')
-	      .attr({
-	        'class': function(d) { return 'd3-line-guide ' + d['class']; },
-	        x1: opts.xScale.range()[0],
-	        x2: opts.xScale.range()[1],
-	        y1: function(d) { return opts.yScale(d.height); },
-	        y2: function(d) { return opts.yScale(d.height); }
-	      });
-
-	  };
-
-	  return fill;
-	};
-
 
 /***/ },
 /* 39 */
@@ -91282,7 +91282,7 @@
 	    var d = a[0].start;
 	    // when we're close to midnight, remove the sticky label
 	    // so it doesn't overlap with the midnight-anchored day label
-	    if ((d.getUTCHours() >= 21) || (d.getUTCHours() <= 1)) {
+	    if ((d.getUTCHours() >= 21) || (d.getUTCHours() <= 2)) {
 	      stickyLabel.text('');
 	      return;
 	    }
