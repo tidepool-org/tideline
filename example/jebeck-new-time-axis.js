@@ -49,7 +49,7 @@
 	var bows = window.bows;
 	var React = window.React;
 
-	var data = __webpack_require__(6);
+	var data = __webpack_require__(8);
 
 	var Daily = __webpack_require__(1);
 	var Weekly = __webpack_require__(2);
@@ -204,8 +204,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartDailyFactory = blip.oneday;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var Daily = React.createClass({displayName: 'Daily',
 	  chartType: 'daily',
@@ -446,8 +446,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartWeeklyFactory = blip.twoweek;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var tideline = {
 	  log: bows('Two Weeks')
@@ -676,8 +676,8 @@
 	var blip = tideline.blip = __webpack_require__(9);
 	var chartSettingsFactory = blip.settings;
 
-	var Header = __webpack_require__(7);
-	var Footer = __webpack_require__(8);
+	var Header = __webpack_require__(6);
+	var Footer = __webpack_require__(7);
 
 	var tideline = {
 	  log: bows('Settings')
@@ -1206,6 +1206,164 @@
 
 /***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Header')
+	};
+
+	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    inTransition: React.PropTypes.bool.isRequired,
+	    atMostRecent: React.PropTypes.bool.isRequired,
+	    title: React.PropTypes.string.isRequired,
+	    onClickBack: React.PropTypes.func,
+	    onClickMostRecent: React.PropTypes.func.isRequired,
+	    onClickNext: React.PropTypes.func,
+	    onClickOneDay: React.PropTypes.func.isRequired,
+	    onClickTwoWeeks: React.PropTypes.func.isRequired,
+	    onClickSettings: React.PropTypes.func.isRequired
+	  },
+	  render: function() {
+	    var next = this.props.next;
+	    var back = this.props.back;
+	    var mostRecent = this.props.mostRecent;
+
+	    var dayLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'daily'
+	    });
+
+	    var weekLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'weekly'
+	    });
+
+	    var mostRecentLinkClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var backClass = cx({
+	      'active': !this.props.inTransition,
+	      'inactive': this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var nextClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var settingsLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true,
+	      'active': this.props.chartType === 'settings'
+	    });
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.div( {className:"grid-item three-eighths"}, 
+	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
+	          ),
+	          React.DOM.div( {className:"grid-item one-half"}, 
+	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
+	          )
+	        ),
+	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
+	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
+	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
+	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
+	          ),
+	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
+	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
+	        ),
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
+	        )
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineHeader;
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	var bows = window.bows;
+	var React = window.React;
+	var cx = React.addons.classSet;
+
+	var tideline = {
+	  log: bows('Footer')
+	};
+
+	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    onClickValues: React.PropTypes.func,
+	    showingValues: React.PropTypes.bool
+	  },
+	  render: function() {
+	    var valuesLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true
+	    });
+
+	    function getValuesLinkText(props) {
+	      if (props.chartType === 'weekly') {
+	        if (props.showingValues) {
+	          return 'Hide Values';
+	        }
+	        else {
+	          return 'Show Values';
+	        }
+	      }
+	      else {
+	        return '';
+	      }
+	    }
+
+	    var valuesLinkText = getValuesLinkText(this.props);
+
+	    /* jshint ignore:start */
+	    var showValues = (
+	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
+	      );
+	    /* jshint ignore:end */
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-half"}
+	        ),
+	        React.DOM.div( {className:"grid-item one-half"}, showValues)
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
+
+	module.exports = TidelineFooter;
+
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = [
@@ -83286,164 +83444,6 @@
 	]
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Header')
-	};
-
-	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    inTransition: React.PropTypes.bool.isRequired,
-	    atMostRecent: React.PropTypes.bool.isRequired,
-	    title: React.PropTypes.string.isRequired,
-	    onClickBack: React.PropTypes.func,
-	    onClickMostRecent: React.PropTypes.func.isRequired,
-	    onClickNext: React.PropTypes.func,
-	    onClickOneDay: React.PropTypes.func.isRequired,
-	    onClickTwoWeeks: React.PropTypes.func.isRequired,
-	    onClickSettings: React.PropTypes.func.isRequired
-	  },
-	  render: function() {
-	    var next = this.props.next;
-	    var back = this.props.back;
-	    var mostRecent = this.props.mostRecent;
-
-	    var dayLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'daily'
-	    });
-
-	    var weekLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'weekly'
-	    });
-
-	    var mostRecentLinkClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var backClass = cx({
-	      'active': !this.props.inTransition,
-	      'inactive': this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var nextClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var settingsLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true,
-	      'active': this.props.chartType === 'settings'
-	    });
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.div( {className:"grid-item three-eighths"}, 
-	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
-	          ),
-	          React.DOM.div( {className:"grid-item one-half"}, 
-	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
-	          )
-	        ),
-	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
-	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
-	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
-	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
-	          ),
-	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
-	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
-	        ),
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
-	        )
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineHeader;
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	var bows = window.bows;
-	var React = window.React;
-	var cx = React.addons.classSet;
-
-	var tideline = {
-	  log: bows('Footer')
-	};
-
-	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    onClickValues: React.PropTypes.func,
-	    showingValues: React.PropTypes.bool
-	  },
-	  render: function() {
-	    var valuesLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true
-	    });
-
-	    function getValuesLinkText(props) {
-	      if (props.chartType === 'weekly') {
-	        if (props.showingValues) {
-	          return 'Hide Values';
-	        }
-	        else {
-	          return 'Show Values';
-	        }
-	      }
-	      else {
-	        return '';
-	      }
-	    }
-
-	    var valuesLinkText = getValuesLinkText(this.props);
-
-	    /* jshint ignore:start */
-	    var showValues = (
-	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
-	      );
-	    /* jshint ignore:end */
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-half"}
-	        ),
-	        React.DOM.div( {className:"grid-item one-half"}, showValues)
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineFooter;
-
-
-/***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -87199,8 +87199,8 @@
 	else {
 	  lib._ = __webpack_require__(52);
 	  lib.crossfilter = __webpack_require__(49);
-	  lib.d3 = __webpack_require__(50);
-	  lib.Duration = __webpack_require__(51);
+	  lib.d3 = __webpack_require__(51);
+	  lib.Duration = __webpack_require__(50);
 	}
 
 	if (!lib._) {
@@ -91282,7 +91282,7 @@
 	    var d = a[0].start;
 	    // when we're close to midnight, remove the sticky label
 	    // so it doesn't overlap with the midnight-anchored day label
-	    if (d.getUTCHours() >= 21) {
+	    if ((d.getUTCHours() >= 21) || (d.getUTCHours() <= 1)) {
 	      stickyLabel.text('');
 	      return;
 	    }
@@ -92398,6 +92398,191 @@
 
 /***/ },
 /* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Duration = (function () {
+
+	    var millisecond = 1,
+	        second      = 1000 * millisecond,
+	        minute      = 60   * second,
+	        hour        = 60   * minute,
+	        day         = 24   * hour,
+	        week        = 7    * day;
+
+	    var unitMap = {
+	        "ms" : millisecond,
+	        "s"  : second,
+	        "m"  : minute,
+	        "h"  : hour,
+	        "d"  : day,
+	        "w"  : week
+	    };
+
+	    var Duration = function (value) {
+	        if (value instanceof Duration) {
+	          return value;
+	        }
+	        switch (typeof value) {
+	            case "number":
+	                this._milliseconds = value;
+	                break;
+	            case "string":
+	                this._milliseconds = Duration.parse(value).valueOf();
+	                break;
+	            case "undefined":
+	                this._milliseconds = 0;
+	                break;
+	            default:
+	                throw new Error("invalid duration: " + value);
+	        }
+	    };
+
+	    Duration.millisecond = new Duration(millisecond);
+	    Duration.second      = new Duration(second);
+	    Duration.minute      = new Duration(minute);
+	    Duration.hour        = new Duration(hour);
+	    Duration.day         = new Duration(day);
+	    Duration.week        = new Duration(week);
+
+	    Duration.prototype.nanoseconds = function () {
+	        return this._milliseconds * 1000000;
+	    };
+
+	    Duration.prototype.microseconds = function () {
+	        return this._milliseconds * 1000;
+	    };
+
+	    Duration.prototype.milliseconds = function () {
+	        return this._milliseconds;
+	    };
+
+	    Duration.prototype.seconds = function () {
+	        return Math.floor(this._milliseconds / second);
+	    };
+
+	    Duration.prototype.minutes = function () {
+	        return Math.floor(this._milliseconds / minute);
+	    };
+
+	    Duration.prototype.hours = function () {
+	        return Math.floor(this._milliseconds / hour);
+	    };
+
+	    Duration.prototype.days = function () {
+	      return Math.floor(this._milliseconds / day);
+	    };
+
+	    Duration.prototype.weeks = function () {
+	      return Math.floor(this._milliseconds / week);
+	    };
+
+	    Duration.prototype.toString = function () {
+	      var str          = "",
+	          milliseconds = Math.abs(this._milliseconds),
+	          sign         = this._milliseconds < 0 ? "-" : "";
+
+	      // no units for 0 duration
+	      if (milliseconds === 0) {
+	        return "0";
+	      }
+
+	      // days
+	      var days = Math.floor(milliseconds / day);
+	      if (days !== 0) {
+	        milliseconds -= day * days;
+	        str += days.toString() + "d";
+	      }
+
+	      // hours
+	      var hours = Math.floor(milliseconds / hour);
+	      if (hours !== 0) {
+	        milliseconds -= hour * hours;
+	        str += hours.toString() + "h";
+	      }
+
+	      // minutes
+	      var minutes = Math.floor(milliseconds / minute);
+	      if (minutes !== 0) {
+	        milliseconds -= minute * minutes;
+	        str += minutes.toString() + "m";
+	      }
+
+	      // seconds
+	      var seconds = Math.floor(milliseconds / second);
+	      if (seconds !== 0) {
+	        milliseconds -= second * seconds;
+	        str += seconds.toString() + "s";
+	      }
+
+	      // milliseconds
+	      if (milliseconds !== 0) {
+	        str += milliseconds.toString() + "ms";
+	      }
+
+	      return sign + str;
+	    };
+
+	    Duration.prototype.valueOf = function () {
+	      return this._milliseconds;
+	    };
+
+	    Duration.parse = function (duration) {
+
+	        if (duration === "0" || duration === "+0" || duration === "-0") {
+	          return new Duration(0);
+	        }
+
+	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
+	            total = 0,
+	            count = 0,
+	            sign  = duration[0] === '-' ? -1 : 1,
+	            unit, value, match;
+
+	        while (match = regex.exec(duration)) {
+
+	            unit  = match[2];
+	            value = Math.abs(parseFloat(match[1]));
+	            count++;
+
+	            if (isNaN(value)) {
+	              throw new Error("invalid duration");
+	            }
+
+	            if (typeof unitMap[unit] === "undefined") {
+	              throw new Error("invalid unit: " + unit);
+	            }
+
+	            total += value * unitMap[unit];
+	        }
+
+	        if (count === 0) {
+	          throw new Error("invalid duration");
+	        }
+
+	        return new Duration(total * sign);
+	    };
+
+	    Duration.fromMicroseconds = function (us) {
+	        var ms = Math.floor(us / 1000);
+	        return new Duration(ms);
+	    };
+
+	    Duration.fromNanoseconds = function (ns) {
+	        var ms = Math.floor(ns / 1000000);
+	        return new Duration(ms);
+	    };
+
+	    return Duration;
+
+	}).call(this);
+
+	if (true) {
+	   module.exports = Duration;
+	}
+
+
+/***/ },
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -101655,191 +101840,6 @@
 	    this.d3 = d3;
 	  }
 	}();
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Duration = (function () {
-
-	    var millisecond = 1,
-	        second      = 1000 * millisecond,
-	        minute      = 60   * second,
-	        hour        = 60   * minute,
-	        day         = 24   * hour,
-	        week        = 7    * day;
-
-	    var unitMap = {
-	        "ms" : millisecond,
-	        "s"  : second,
-	        "m"  : minute,
-	        "h"  : hour,
-	        "d"  : day,
-	        "w"  : week
-	    };
-
-	    var Duration = function (value) {
-	        if (value instanceof Duration) {
-	          return value;
-	        }
-	        switch (typeof value) {
-	            case "number":
-	                this._milliseconds = value;
-	                break;
-	            case "string":
-	                this._milliseconds = Duration.parse(value).valueOf();
-	                break;
-	            case "undefined":
-	                this._milliseconds = 0;
-	                break;
-	            default:
-	                throw new Error("invalid duration: " + value);
-	        }
-	    };
-
-	    Duration.millisecond = new Duration(millisecond);
-	    Duration.second      = new Duration(second);
-	    Duration.minute      = new Duration(minute);
-	    Duration.hour        = new Duration(hour);
-	    Duration.day         = new Duration(day);
-	    Duration.week        = new Duration(week);
-
-	    Duration.prototype.nanoseconds = function () {
-	        return this._milliseconds * 1000000;
-	    };
-
-	    Duration.prototype.microseconds = function () {
-	        return this._milliseconds * 1000;
-	    };
-
-	    Duration.prototype.milliseconds = function () {
-	        return this._milliseconds;
-	    };
-
-	    Duration.prototype.seconds = function () {
-	        return Math.floor(this._milliseconds / second);
-	    };
-
-	    Duration.prototype.minutes = function () {
-	        return Math.floor(this._milliseconds / minute);
-	    };
-
-	    Duration.prototype.hours = function () {
-	        return Math.floor(this._milliseconds / hour);
-	    };
-
-	    Duration.prototype.days = function () {
-	      return Math.floor(this._milliseconds / day);
-	    };
-
-	    Duration.prototype.weeks = function () {
-	      return Math.floor(this._milliseconds / week);
-	    };
-
-	    Duration.prototype.toString = function () {
-	      var str          = "",
-	          milliseconds = Math.abs(this._milliseconds),
-	          sign         = this._milliseconds < 0 ? "-" : "";
-
-	      // no units for 0 duration
-	      if (milliseconds === 0) {
-	        return "0";
-	      }
-
-	      // days
-	      var days = Math.floor(milliseconds / day);
-	      if (days !== 0) {
-	        milliseconds -= day * days;
-	        str += days.toString() + "d";
-	      }
-
-	      // hours
-	      var hours = Math.floor(milliseconds / hour);
-	      if (hours !== 0) {
-	        milliseconds -= hour * hours;
-	        str += hours.toString() + "h";
-	      }
-
-	      // minutes
-	      var minutes = Math.floor(milliseconds / minute);
-	      if (minutes !== 0) {
-	        milliseconds -= minute * minutes;
-	        str += minutes.toString() + "m";
-	      }
-
-	      // seconds
-	      var seconds = Math.floor(milliseconds / second);
-	      if (seconds !== 0) {
-	        milliseconds -= second * seconds;
-	        str += seconds.toString() + "s";
-	      }
-
-	      // milliseconds
-	      if (milliseconds !== 0) {
-	        str += milliseconds.toString() + "ms";
-	      }
-
-	      return sign + str;
-	    };
-
-	    Duration.prototype.valueOf = function () {
-	      return this._milliseconds;
-	    };
-
-	    Duration.parse = function (duration) {
-
-	        if (duration === "0" || duration === "+0" || duration === "-0") {
-	          return new Duration(0);
-	        }
-
-	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
-	            total = 0,
-	            count = 0,
-	            sign  = duration[0] === '-' ? -1 : 1,
-	            unit, value, match;
-
-	        while (match = regex.exec(duration)) {
-
-	            unit  = match[2];
-	            value = Math.abs(parseFloat(match[1]));
-	            count++;
-
-	            if (isNaN(value)) {
-	              throw new Error("invalid duration");
-	            }
-
-	            if (typeof unitMap[unit] === "undefined") {
-	              throw new Error("invalid unit: " + unit);
-	            }
-
-	            total += value * unitMap[unit];
-	        }
-
-	        if (count === 0) {
-	          throw new Error("invalid duration");
-	        }
-
-	        return new Duration(total * sign);
-	    };
-
-	    Duration.fromMicroseconds = function (us) {
-	        var ms = Math.floor(us / 1000);
-	        return new Duration(ms);
-	    };
-
-	    Duration.fromNanoseconds = function (ns) {
-	        var ms = Math.floor(ns / 1000000);
-	        return new Duration(ms);
-	    };
-
-	    return Duration;
-
-	}).call(this);
-
-	if (true) {
-	   module.exports = Duration;
-	}
-
 
 /***/ },
 /* 52 */
