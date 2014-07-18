@@ -65,10 +65,14 @@ svg.hidden {
 }
 .d3-axis text {
   font-size: 14px;
-  fill: #989897;
+  fill: #727375;
+}
+.d3-axis text.d3-day-label {
+  dominant-baseline: hanging;
+  fill: #cccccc;
 }
 .d3-axis.d3-y text {
-  fill: #808080;
+  fill: #727375;
   text-transform: lowercase;
 }
 .d3-axis.d3-day-axis text {
@@ -94,7 +98,7 @@ svg.hidden {
   text-transform: uppercase;
   font-weight: bold;
   font-size: 16px;
-  fill: #808080;
+  fill: #727375;
   baseline-shift: 30%;
 }
 .d3-pool-label tspan {
@@ -175,7 +179,7 @@ svg.hidden {
 }
 .d3-cbg.d3-circle-cbg.d3-bg-target,
 .d3-smbg.d3-circle-cbg.d3-bg-target {
-  fill: #9ad859;
+  fill: #76d3a6;
 }
 .d3-cbg.d3-circle-cbg.d3-bg-high,
 .d3-smbg.d3-circle-cbg.d3-bg-high {
@@ -189,8 +193,8 @@ svg.hidden {
   stroke: #ff8b7c;
 }
 .d3-circle-smbg.d3-bg-target {
-  fill: #9ad859;
-  stroke: #9ad859;
+  fill: #76d3a6;
+  stroke: #76d3a6;
 }
 .d3-circle-smbg.d3-bg-high {
   fill: #bb9ae7;
@@ -206,26 +210,26 @@ svg.hidden {
 }
 .d3-smbg-numbers.d3-text-smbg {
   pointer-events: none;
-  fill: #808080;
+  fill: #727375;
   font-size: 11px;
   text-anchor: middle;
   dominant-baseline: central;
 }
 .d3-basal.d3-rect-basal {
-  fill: #029eb3;
+  fill: #15a0d7;
 }
 .d3-basal.d3-rect-basal.d3-legend {
   fill-opacity: 0.3;
-  stroke: #029eb3;
+  stroke: #15a0d7;
   stroke-width: 1.5;
 }
 .d3-basal.d3-basal-invisible {
-  fill: #029eb3;
+  fill: #15a0d7;
   opacity: 0.0;
 }
 .d3-basal.d3-path-basal {
   fill: none;
-  stroke: #029eb3;
+  stroke: #15a0d7;
   stroke-width: 1.5;
 }
 .d3-basal.d3-path-basal.d3-path-basal-undelivered {
@@ -234,7 +238,7 @@ svg.hidden {
 }
 .d3-basal.d3-rect-basal-undelivered {
   fill: none;
-  stroke: #029eb3;
+  stroke: #15a0d7;
   stroke-dasharray: 1.5, 3;
   stroke-width: 1.5;
 }
@@ -273,7 +277,7 @@ text.d3-tabular-ui {
   text-anchor: middle;
 }
 .d3-cell-label.d3-unmatched {
-  fill: #808080;
+  fill: #727375;
 }
 .d3-cell-label.d3-matched {
   fill: #727375;
@@ -281,7 +285,7 @@ text.d3-tabular-ui {
 }
 .d3-row-label {
   dominant-baseline: central;
-  fill: #808080;
+  fill: #727375;
   font-size: 12px;
   text-anchor: end;
 }
@@ -305,7 +309,7 @@ text.d3-tabular-ui {
 }
 .d3-div-data-annotation {
   padding: 10px;
-  color: #808080;
+  color: #727375;
 }
 .d3-div-data-annotation p {
   margin: 5px 0px;
@@ -323,7 +327,7 @@ text.d3-tabular-ui {
   pointer-events: none;
 }
 .d3-tooltip text.d3-tooltip-text {
-  fill: #989897;
+  fill: #727375;
   font-size: 11px;
   text-anchor: middle;
   dominant-baseline: central;
@@ -382,7 +386,7 @@ text.d3-tabular-ui {
   fill: #bb9ae7;
 }
 .d3-stats text tspan.d3-stats-target {
-  fill: #9ad859;
+  fill: #76d3a6;
 }
 .d3-stats text tspan.d3-stats-low {
   fill: #ff8b7c;
@@ -391,13 +395,13 @@ text.d3-tabular-ui {
   fill: #808184;
 }
 .d3-stats text tspan.d3-stats-basal {
-  fill: #029eb3;
+  fill: #15a0d7;
 }
 .d3-stats text tspan.d3-stats-bolus {
   fill: #79d0f2;
 }
 .d3-stats .d3-stats-pie path.d3-stats-slice.d3-basal {
-  fill: #029eb3;
+  fill: #15a0d7;
 }
 .d3-stats .d3-stats-pie path.d3-stats-slice.d3-bolus {
   fill: #79d0f2;
@@ -406,7 +410,7 @@ text.d3-tabular-ui {
   fill: #ff8b7c;
 }
 .d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-target {
-  fill: #9ad859;
+  fill: #76d3a6;
 }
 .d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-high {
   fill: #bb9ae7;
@@ -432,7 +436,7 @@ text.d3-tabular-ui {
 }
 .d3-settings {
   font-size: 14px;
-  color: #808080;
+  color: #727375;
 }
 .d3-settings *,
 .d3-settings *:before,
@@ -476,7 +480,7 @@ text.d3-tabular-ui {
   padding-right: 5px;
   padding-top: 10px;
   text-transform: uppercase;
-  color: #808080;
+  color: #727375;
 }
 .d3-settings-col {
   padding: 5px 5px;
