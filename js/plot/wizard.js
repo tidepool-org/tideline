@@ -244,7 +244,7 @@ module.exports = function(pool, opts) {
           id: function(d) {
             return 'wizard_group_' + d.id;
           }
-        });
+        }).style("filter", "url(#drop-shadow)");
 
       //Sort by size so smaller boluses are drawn last.
       wizardGroups = wizardGroups.sort(function(a,b){
@@ -290,7 +290,7 @@ module.exports = function(pool, opts) {
           return d.bolus;
         }
       });
-      
+
       drawBolus.extended(extended)
 
       wizards.exit().remove();

@@ -58,6 +58,7 @@ module.exports = {
       },
       defs: require('./plot/util/annotationdefinitions'),
       fill: require('./plot/util/fill'),
+      shadow: require('./plot/util/shadow'),
       legend: require('./plot/util/legend'),
       scales: require('./plot/util/scales'),
       shapes: require('./plot/util/shapes'),

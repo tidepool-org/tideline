@@ -24,6 +24,7 @@ var EventEmitter = require('events').EventEmitter;
 var tideline = window.tideline;
 var fill = tideline.plot.util.fill;
 var Scales = tideline.plot.util.scales;
+var shadow = tideline.plot.util.shadow;
 
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
@@ -70,6 +71,8 @@ function chartDailyFactory(el, options) {
     }
 
     d3.select(el).call(chart);
+
+    shadow(d3.select('#' + chart.id()));
 
     return chart;
   };

@@ -121,7 +121,7 @@ module.exports = function(opts) {
           id: function(d) {
             d = pluckBolus(d);
             return 'bolus_' + d.id;
-          }
+          },
         });
     },
     underride: function(underride) {
