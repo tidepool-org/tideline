@@ -16,37 +16,31 @@
  */
 
 module.exports = function(chart) {
-  var defs = chart.append("defs");
+  var defs = chart.insert("defs");
   // black drop shadow
+
+
 
   var filter = defs.append("filter")
       .attr("id", "drop-shadow")
-      .attr('filterUnits', "userSpaceOnUse")
-      .attr('color-interpolation-filters', "sRGB");
-
-  var feComponentTransfer = filter.append("feComponentTransfer")
-    .attr('in', 'SourceAlpha');
-
-  feComponentTransfer.append("feFuncR")
-      .attr("type", "discrete")
-      .attr("tableValues", 0.8);
-  feComponentTransfer.append("feFuncG")
-      .attr("type", "discrete")
-      .attr("tableValues", 0.8);
-  feComponentTransfer.append("feFuncB")
-      .attr("type", "discrete")
-      .attr("tableValues", 0.8);
-
-  filter.append("feGaussianBlur")
-    .attr("stdDeviation", 1)
-
+      //.attr('filterUnits', "userSpaceOnUse")
+      //.attr('color-interpolation-filters', "sRGB");
   filter.append("feOffset")
       .attr("dx", 1)
       .attr("dy", 0)
-      .attr("result", "shadow");
-
-  filter.append("feComposite")
+      .attr('result',"offOut")
+      .attr("in", "SourceGraphic");
+  filter.append("feColorMatrix")
+    .attr("type", 'matrix')
+    .attr("in", 'offOut')
+    .attr("result", 'matrixOut')
+    .attr('values', '.9 0 0 0 0 0 .9 0 0 0 0 0 .9 0 0 0 0 0 0.7 0');
+  filter.append("feGaussianBlur")
+    .attr("stdDeviation", 1)
+    .attr("in", 'matrixOut')
+    .attr("result", 'blurOut');
+  filter.append("feBlend")
       .attr("in", "SourceGraphic")
-      .attr("in2", 'shadow')
-      .attr("operator", 'over');
+      .attr("in2", 'blurOut')
+      .attr("mode", 'normal');
 };

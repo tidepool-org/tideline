@@ -62,6 +62,7 @@ module.exports = function(pool, opts) {
           'clip-path': 'url(#mainClipPath)',
           'class': getBgBoundaryClass
         })
+        .style("filter", "url(#drop-shadow)")
         .classed({'d3-smbg': true, 'd3-circle-smbg': true});
 
       circles.exit().remove();

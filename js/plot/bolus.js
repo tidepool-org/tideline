@@ -62,7 +62,8 @@ module.exports = function(pool, opts) {
           'clip-path': 'url(#mainClipPath)',
           'class': 'd3-bolus-group',
           id: function(d) { return 'bolus_group_' + d.id; }
-        });
+        })
+        .style("filter", "url(#drop-shadow)");
 
       var boluses = wizardGroups.filter(function(d) {
         if (d.bolus) {
