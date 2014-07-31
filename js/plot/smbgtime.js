@@ -68,7 +68,8 @@ function SMBGTime (opts) {
 
         var circleGroups = circles.enter()
           .append('g')
-          .attr('class', 'd3-smbg-time-group');
+          .attr('class', 'd3-smbg-time-group')
+          .style("filter", "url(#drop-shadow)");
 
         circleGroups.append('circle')
           .attr({
@@ -131,7 +132,7 @@ function SMBGTime (opts) {
         });
         selection.selectAll('.d3-circle-smbg').on('mouseout', function() {
           highlight.off();
-          
+
           var id = d3.select(this).attr('id').replace('smbg_time_', 'tooltip_');
           mainGroup.select('#' + id).remove();
         });
