@@ -47,6 +47,34 @@
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
+/*
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2014, Tidepool Project
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ *
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
+g.svg-tooltip-cbg {
+  opacity: 0.7;
+}
+g.svg-tooltip-cbg.d3-bg-low path.tooltip-outline {
+  fill: #ff8b7c;
+}
+g.svg-tooltip-cbg.d3-bg-target path.tooltip-outline {
+  fill: #76d3a6;
+}
+g.svg-tooltip-cbg.d3-bg-high path.tooltip-outline {
+  fill: #bb9ae7;
+}
 svg {
   display: block;
   margin: 0 auto;
@@ -151,6 +179,15 @@ svg.hidden {
 .d3-rect-carbs-legend {
   fill: #ffd382;
 }
+.d3-circle-carbs {
+  fill: #ffd382;
+}
+.d3-carbs-text {
+  fill: #727375;
+  font-size: 12px;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
 .d3-bolus.d3-rect-bolus,
 .d3-bolus.d3-rect-bolus-legend {
   fill: #79d0f2;
@@ -173,16 +210,13 @@ svg.hidden {
 .d3-bolus.d3-rect-recommended-legend {
   fill: #bcecfa;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-low,
-.d3-smbg.d3-circle-cbg.d3-bg-low {
+.d3-cbg.d3-circle-cbg.d3-bg-low {
   fill: #ff8b7c;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-target,
-.d3-smbg.d3-circle-cbg.d3-bg-target {
+.d3-cbg.d3-circle-cbg.d3-bg-target {
   fill: #76d3a6;
 }
-.d3-cbg.d3-circle-cbg.d3-bg-high,
-.d3-smbg.d3-circle-cbg.d3-bg-high {
+.d3-cbg.d3-circle-cbg.d3-bg-high {
   fill: #bb9ae7;
 }
 .d3-circle-smbg {
@@ -547,6 +581,10 @@ text.d3-tabular-ui {
   float: left;
   padding-right: 4px;
   padding-left: 2px;
+}
+.d3-wizard-group,
+.d3-bolus-group {
+  cursor: default;
 }
 @media print {
   .d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {
