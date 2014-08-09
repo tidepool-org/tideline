@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "href": "example/jebeck-overridden-temps.html",
+    "desc": "Visualize temp basals overridden by another temp (or a suspend) with a dotted red line",
+    "bundle": "jebeck-overridden-temps.js",
+    "branch": "jebeck-overridden-temps",
+    "title": "Overridden temp basals"
+  }
+]
