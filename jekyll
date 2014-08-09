@@ -1,8 +1,0 @@
-#!/bin/bash
-
-mkdir -p tideline/fonts/
-cp -r fonts/ tideline/fonts/
-
-bundle exec jekyll server --watch
-
-rm -rf tideline/
