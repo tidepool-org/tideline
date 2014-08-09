@@ -1,9 +1,16 @@
 [
   {
+    "title": "Overridden temp basals",
     "href": "example/jebeck-overridden-temps.html",
-    "desc": "Visualize temp basals overridden by another temp (or a suspend) with a dotted red line",
-    "bundle": "jebeck-overridden-temps.js",
     "branch": "jebeck-overridden-temps",
-    "title": "Overridden temp basals"
+    "bundle": "jebeck-overridden-temps.js",
+    "desc": "Visualize temp basals overridden by another temp (or a suspend) with a dotted red line"
+  },
+  {
+    "href": "example/ianjorgensen-suspendDraw.html",
+    "desc": "Visualize boluses that were interrupted, cancelled, etc., incl. extended boluses that were interrupted by a suspend event",
+    "bundle": "ianjorgensen-suspendDraw.js",
+    "branch": "ianjorgensen-suspendDraw",
+    "title": "Interrupted boluses"
   }
 ]
