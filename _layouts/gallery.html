@@ -1,0 +1,74 @@
+<!-- == BSD2 LICENSE ==
+     Copyright (c) 2014, Tidepool Project
+
+     This program is free software; you can redistribute it and/or modify it under
+     the terms of the associated License, which is identical to the BSD 2-Clause
+     License as published by the Open Source Initiative at opensource.org.
+
+     This program is distributed in the hope that it will be useful, but WITHOUT
+     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+     FOR A PARTICULAR PURPOSE. See the License for more details.
+
+     You should have received a copy of the License along with this program; if
+     not, you can obtain one from Tidepool Project at tidepool.org.
+     == BSD2 LICENSE == -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>
+            Tideline Gallery
+        </title>
+        <!-- Bootstrap -->
+        {# <link href="" rel="stylesheet" type="text/css"> #}
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="jumbotron" id="gallery">
+                <div class="page-header">
+                    <h1>
+                        Gallery
+                        {% if site.data.registry == empty %}
+                            <small>is empty right now... :(</small>
+                        {% endif %}
+                    </h1>
+                </div>
+            </div>
+            {% if site.data.registry != empty %}
+                {% for item in site.data.registry %}
+                <div class="row gallery-item">
+                    <h2 class="col-md-offset-1"></h2>
+                    <div class="col-md-8 col-md-offset-2">
+                        <dl>
+                            <dt>
+                                <a class="lead" href="{{item.href}}" target="_blank">
+                                 {{item.title}}
+                             </a>
+                         </dt>
+                         <dd>
+                            <ul class="list-unstyled">
+                                <li>
+                                    <p>
+                                        {{item.desc}}
+                                    </p>
+                                </li>
+                            </ul>
+                        </dd>
+                    </dl>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+            <div class="jumbotron">
+                <div class="page-header">
+                    <h1>
+                        Current Progress <small>the state of <a href="example/current-progress.html">things as they are</a></small>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
