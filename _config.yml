@@ -1,2 +1,2 @@
 baseurl: /tideline
-exclude: ['license.txt', 'README.md', 'Gemfile', 'Gemfile.lock', 'jekyll']
+exclude: ['Gemfile', 'Gemfile.lock', 'jekyll', 'license.txt', 'README.md']
