@@ -1,15 +1,15 @@
 /*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -35,7 +35,13 @@ function chartDailyFactory(el, options) {
     dynamicCarbs: false,
     hiddenPools: {
       basalSettings: null
-    }
+    },
+    messageImageTags: [
+      {regex: /strava run|#run/, image: 'https://cdn1.iconfinder.com/data/icons/hawcons/32/700324-icon-49-soccer-shoe-128.png'},
+      {regex: /strava bike|#bike/, image: 'https://cdn3.iconfinder.com/data/icons/other-icons/48/bike-128.png'},
+      {regex: /#period|#santa/, image: 'https://cdn0.iconfinder.com/data/icons/christmas-wreath/240/santa-128.png'},
+      {regex: /#strava/, image: 'http://static.squarespace.com/static/514c95e2e4b0470503bd98a1/t/52eab592e4b0efa59d53e88a/1391113618686/Strava-Icon.jpg'},
+    ]
   };
   _.defaults(options, defaults);
 
@@ -341,7 +347,8 @@ function chartDailyFactory(el, options) {
     // add message images to messages pool
     poolMessages.addPlotType('message', tideline.plot.message(poolMessages, {
       size: 30,
-      emitter: emitter
+      emitter: emitter,
+      messageImageTags: messageImageTags
     }), true, true);
 
     // stats pool
