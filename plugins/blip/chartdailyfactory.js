@@ -37,15 +37,24 @@ function chartDailyFactory(el, options) {
       basalSettings: null
     },
     messageImageTags: [
-      {regex: /strava run|#run/i, image: 'https://cdn1.iconfinder.com/data/icons/hawcons/32/700324-icon-49-soccer-shoe-128.png'},
-      {regex: /strava bike|#bike/i, image: 'https://cdn3.iconfinder.com/data/icons/other-icons/48/bike-128.png'},
-      {regex: /#period|#santa/i, image: 'https://cdn0.iconfinder.com/data/icons/christmas-wreath/240/santa-128.png'},
+      {regex: /strava run|#run|#running/i, image: 'https://cdn1.iconfinder.com/data/icons/hawcons/32/700324-icon-49-soccer-shoe-128.png'},
+      {regex: /strava bike|#bike|#bicycle|#biking/i, image: 'https://cdn3.iconfinder.com/data/icons/other-icons/48/bike-128.png'},
+      {regex: /#santa/i, image: 'https://cdn0.iconfinder.com/data/icons/christmas-wreath/240/santa-128.png'},
       {regex: /#cat/i, image: 'https://cdn2.iconfinder.com/data/icons/cat-power/128/cat_walk.png'},
       {regex: /#drink/i, image: 'https://www.google.com/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&docid=EvCw6Zxg2OXnnM&tbnid=uHat1x_LlB-fdM:&ved=0CAIQjBw&url=http%3A%2F%2Ffiles.softicons.com%2Fdownload%2Fweb-icons%2Fawt-travel-blue-icons-by-awt-media%2Fpng%2F200x200%2FAWT-Drink.png&ei=pdnwU8GDKIL5oASi0oLICQ&bvm=bv.73231344,d.cGU&psig=AFQjCNGknbSi-DMtzmcV4_reRkT7pHyMlA&ust=1408379665729346'},
       {regex: /#beer/i, image: 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678063-beer-128.png'},
       {regex: /#binge|#toomuchfood/i, image: 'http://i.dailymail.co.uk/i/pix/2011/01/10/article-1345934-01408A86000004B0-69_233x318.jpg'},
-      {regex: /#peck|#pecking/i, image: require('../../img/message/pigeon.png')},
+      {regex: /#peck|#pecking|#grazing|#graze/i, image: require('../../img/message/pigeon.png')},
       {regex: /#strava/i, image: 'http://static.squarespace.com/static/514c95e2e4b0470503bd98a1/t/52eab592e4b0efa59d53e88a/1391113618686/Strava-Icon.jpg'},
+      {regex: /#period|#menstruation|#menstruate|#cycle/i, image: 'http://etc-mysitemyway.s3.amazonaws.com/icons/legacy-previews/icons/magic-marker-icons-natural-wonders/115637-magic-marker-icon-natural-wonders-moon.png'},
+      {regex: /#question|#\\?|#q/i, image: 'https://cdn1.iconfinder.com/data/icons/defaulticon/icons/png/256x256/help.png'},
+      {regex: /#dr|#doctor/i, image: 'https://cdn3.iconfinder.com/data/icons/healthcare-and-medicine-icons-1/512/Stethoscope-512.png'},
+      {regex: /#hypo|#candy|#hyposave/i, image: 'https://cdn0.iconfinder.com/data/icons/elite-food/512/candy-512.png'},
+      {regex: /#settings|#pump|#pumpsettings|#didntwork|#correction|#ISF|#carbratio/i, image: 'http://www.portescap.com/sites/default/files/prt_industry_353x346_insulin_pumps.png'},
+      {regex: /#travel|#airplane|#plane|#airport/i, image: 'https://cdn1.iconfinder.com/data/icons/dot/256/air_plane_airport.png'},
+      {regex: /#ill|#illness|#sick|#vomit|#vomiting/i, image: 'https://cdn1.iconfinder.com/data/icons/pidginsmilies/sick.png'},
+      {regex: /#meal|#food/i, image: 'https://cdn3.iconfinder.com/data/icons/food-drink/512/Meal-512.png'},
+      {regex: /#shopping|#mall/i, iamge: 'https://cdn2.iconfinder.com/data/icons/shopping-auxiliary-icons-set-2/512/Shopping_Bags-512.png'}
     ]
   };
   _.defaults(options, defaults);
