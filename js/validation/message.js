@@ -1,6 +1,10 @@
-var Joi = require('joi');
+var common = require('./common.js');
+var joy = require('./joy/joy.js');
 
-module.exports = Joi.object().keys({
-  parentMessage: Joi.alternatives().try(Joi.string().required(), Joi.any().valid(null,'').required()),
-  utcTime: Joi.string().isoDate().required()
-});
+module.exports = joy(
+  common,
+  {
+    parentMessage: joy().ifExists().string(),
+    utcTime: joy().isISODateTime()
+  }
+);
