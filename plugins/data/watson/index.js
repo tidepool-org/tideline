@@ -29,6 +29,8 @@
 //
 
 var _ = require('lodash');
+var moment = require('moment');
+
 var log = require('bows')('Watson');
 
 var dt = require('../../../js/data/util/datetime');
@@ -93,8 +95,14 @@ module.exports = {
 
   normalizeAll: function(a) {
     log('Watson normalized the data.');
-    return _.map(a, function(d) {
-      return this.normalize(d);
+    var validDates = [];
+    _.each(a, function(d) {
+      var normalized = this.normalize(d);
+      var date = moment(d.normalTime);
+      if (date.isValid() && date.year() >= 2008) {
+        validDates.push(d);
+      }
     }, this);
+    return validDates;
   }
 };
