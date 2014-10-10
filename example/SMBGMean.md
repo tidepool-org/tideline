@@ -1,5 +1,5 @@
 ---
 layout: example
-title: smbg means
+title: means scatterplot
 bundle: SMBGMean.js
 ---

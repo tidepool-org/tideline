@@ -1,5 +1,5 @@
 ---
 layout: example
-title: smbg boxes
+title: low-mean-high boxes
 bundle: SMBGBox.js
 ---

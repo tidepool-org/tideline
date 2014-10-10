@@ -1,5 +1,5 @@
 ---
 layout: example
-title: smbg heat
+title: means colormap
 bundle: SMBGMeanHeat.js
 ---
