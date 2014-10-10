@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "desc": "Modal day with basic scatterplot of smbg means for the brush area",
+    "href": "example/SMBGMean.html",
+    "bundle": "SMBGMean.js",
+    "branch": "SMBGMean",
+    "title": "smbg means - scatterplot"
+  },
+  {
+    "title": "smbg means - bars",
+    "href": "example/SMBGMeanBars.html",
+    "branch": "SMBGMeanBars",
+    "bundle": "SMBGMeanBars.js",
+    "desc": "Modal day with bar graph of smbg means for the brush area"
+  },
+  {
+    "desc": "Modal day with color map of smbg means for the brush area",
+    "href": "example/SMBGMeanHeat.html",
+    "bundle": "SMBGMeanHeat.js",
+    "branch": "SMBGMeanHeat",
+    "title": "smbg means - colormap"
+  },
+  {
+    "title": "smbg - low-mean-high boxes",
+    "href": "example/SMBGBox.html",
+    "branch": "SMBGBox",
+    "bundle": "SMBGBox.js",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area"
+  },
+  {
+    "href": "example/SMBGBox2.html",
+    "desc": "Example with only 30 days data, simulating our data paging plan",
+    "bundle": "SMBGBox2.js",
+    "branch": "SMBGBox2",
+    "title": "30 days data"
+  }
+]
