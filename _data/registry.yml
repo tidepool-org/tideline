@@ -29,7 +29,7 @@
   },
   {
     "href": "example/SMBGBox2.html",
-    "desc": "Example with only 30 days data, simulating our data paging plan",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area",
     "bundle": "SMBGBox2.js",
     "branch": "SMBGBox2",
     "title": "30 days data"
