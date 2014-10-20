@@ -1,37 +1,44 @@
 [
   {
-    "desc": "Modal day with basic scatterplot of smbg means for the brush area",
+    "title": "smbg means - scatterplot",
     "href": "example/SMBGMean.html",
-    "bundle": "SMBGMean.js",
     "branch": "SMBGMean",
-    "title": "smbg means - scatterplot"
+    "bundle": "SMBGMean.js",
+    "desc": "Modal day with basic scatterplot of smbg means for the brush area"
   },
   {
-    "title": "smbg means - bars",
+    "desc": "Modal day with bar graph of smbg means for the brush area",
     "href": "example/SMBGMeanBars.html",
-    "branch": "SMBGMeanBars",
     "bundle": "SMBGMeanBars.js",
-    "desc": "Modal day with bar graph of smbg means for the brush area"
+    "branch": "SMBGMeanBars",
+    "title": "smbg means - bars"
   },
   {
-    "desc": "Modal day with color map of smbg means for the brush area",
+    "title": "smbg means - colormap",
     "href": "example/SMBGMeanHeat.html",
-    "bundle": "SMBGMeanHeat.js",
     "branch": "SMBGMeanHeat",
-    "title": "smbg means - colormap"
+    "bundle": "SMBGMeanHeat.js",
+    "desc": "Modal day with color map of smbg means for the brush area"
   },
   {
-    "title": "smbg - low-mean-high boxes",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area",
     "href": "example/SMBGBox.html",
-    "branch": "SMBGBox",
     "bundle": "SMBGBox.js",
+    "branch": "SMBGBox",
+    "title": "smbg - low-mean-high boxes"
+  },
+  {
+    "title": "30 days data",
+    "href": "example/SMBGBox2.html",
+    "branch": "SMBGBox2",
+    "bundle": "SMBGBox2.js",
     "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area"
   },
   {
-    "href": "example/SMBGBox2.html",
-    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area",
-    "bundle": "SMBGBox2.js",
-    "branch": "SMBGBox2",
-    "title": "30 days data"
+    "href": "example/stats-explainer-tooltips.html",
+    "desc": "New explainer tooltips for stats widget describing how each statistic is calculated",
+    "bundle": "stats-explainer-tooltips.js",
+    "branch": "stats-explainer-tooltips",
+    "title": "Stats explainers"
   }
 ]
