@@ -85,7 +85,7 @@
 	  log: bows('Example')
 	};
 
-	var dataUrl = "blip-input.json";
+	var dataUrl = "blip-input-30.json";
 	if (_.isEmpty(dataUrl)) {
 	  dataUrl = 'device-data.json';
 	}
@@ -633,14 +633,14 @@
 	var Header = __webpack_require__(21);
 	var Footer = __webpack_require__(22);
 
-	var Brush = __webpack_require__(30);
-	var SMBGMean = __webpack_require__(35);
-	var SMBGMeanBars = __webpack_require__(36);
-	var SMBGBox = __webpack_require__(37);
-	var SMBGMeanHeat = __webpack_require__(38);
-	var ModalDay = __webpack_require__(31);
-	var Stats = __webpack_require__(32);
-	__webpack_require__(33);
+	var Brush = __webpack_require__(24);
+	var SMBGMean = __webpack_require__(29);
+	var SMBGMeanBars = __webpack_require__(30);
+	var SMBGBox = __webpack_require__(31);
+	var SMBGMeanHeat = __webpack_require__(32);
+	var ModalDay = __webpack_require__(25);
+	var Stats = __webpack_require__(26);
+	__webpack_require__(27);
 
 	var Modal = React.createClass({displayName: 'Modal',
 	  chartType: 'modal',
@@ -849,7 +849,7 @@
 	  render: function() {
 	    /* jshint ignore:start */
 	    return (
-	      React.DOM.div( {id:"tidelineContainer"})
+	      React.DOM.div( {id:"tidelineContainer", className:"no-scroll"})
 	      );
 	    /* jshint ignore:end */
 	  },
@@ -1298,13 +1298,13 @@
 	var crossfilter = __webpack_require__(40);
 	var d3 = __webpack_require__(9);
 
-	var validate = __webpack_require__(24);
+	var validate = __webpack_require__(33);
 
-	var BasalUtil = __webpack_require__(25);
-	var BolusUtil = __webpack_require__(26);
-	var BGUtil = __webpack_require__(27);
-	var SettingsUtil = __webpack_require__(28);
-	var dt = __webpack_require__(29);
+	var BasalUtil = __webpack_require__(34);
+	var BolusUtil = __webpack_require__(35);
+	var BGUtil = __webpack_require__(36);
+	var SettingsUtil = __webpack_require__(37);
+	var dt = __webpack_require__(38);
 
 	var log = __webpack_require__(14)('TidelineData');
 
@@ -1675,7 +1675,7 @@
 	// TODO: eventually this will be a Sundial dependency
 	// not a tideline-internal dependency
 	// which is inappropriate for a "plugin" like this
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 
 	function translateBg(value) {
 	  var GLUCOSE_MM = 18.01559;
@@ -11517,7 +11517,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(64);
+	module.exports = __webpack_require__(56);
 
 
 /***/ },
@@ -18722,7 +18722,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports =
-		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/**\n * Copyright (c) 2014, Tidepool Project\n * \n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n * \n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n * \n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n.grid {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n  margin-left: 0;\n}\n.grid-item {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  padding-left: 0;\n}\n/**\n   * Whole\n   */\n.one-whole {\n  width: 100%;\n}\n/**\n   * Halves\n   */\n.one-half,\n.two-quarters,\n.three-sixths,\n.four-eighths,\n.five-tenths,\n.six-twelfths {\n  width: 50%;\n}\n/**\n   * Thirds\n   */\n.one-third,\n.two-sixths,\n.four-twelfths {\n  width: 33.333%;\n}\n.two-thirds,\n.four-sixths,\n.eight-twelfths {\n  width: 66.666%;\n}\n/**\n   * Quarters\n   */\n.one-quarter,\n.two-eighths,\n.three-twelfths {\n  width: 25%;\n}\n.three-quarters,\n.six-eighths,\n.nine-twelfths {\n  width: 75%;\n}\n/**\n   * Fifths\n   */\n.one-fifth,\n.two-tenths {\n  width: 20%;\n}\n.two-fifths,\n.four-tenths {\n  width: 40%;\n}\n.three-fifths,\n.six-tenths {\n  width: 60%;\n}\n.four-fifths,\n.eight-tenths {\n  width: 80%;\n}\n/**\n   * Sixths\n   */\n.one-sixth,\n.two-twelfths {\n  width: 16.666%;\n}\n.five-sixths,\n.ten-twelfths {\n  width: 83.333%;\n}\n/**\n   * Eighths\n   */\n.one-eighth {\n  width: 12.5%;\n}\n.three-eighths {\n  width: 37.5%;\n}\n.five-eighths {\n  width: 62.5%;\n}\n.seven-eighths {\n  width: 87.5%;\n}\n/**\n   * Tenths\n   */\n.one-tenth {\n  width: 10%;\n}\n.three-tenths {\n  width: 30%;\n}\n.seven-tenths {\n  width: 70%;\n}\n.nine-tenths {\n  width: 90%;\n}\n/**\n   * Twelfths\n   */\n.one-twelfth {\n  width: 8.333%;\n}\n.five-twelfths {\n  width: 41.666%;\n}\n.seven-twelfths {\n  width: 58.333%;\n}\n.eleven-twelfths {\n  width: 91.666%;\n}\n/**\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"Blip Icons\";\n  font-style: normal;\n  font-weight: normal;\n  speak: none;\n  display: inline-block;\n  text-decoration: inherit;\n  width: 1em;\n  margin-right: .2em;\n  text-align: center;\n  /* opacity: .8; */\n  /* For safety - reset parent styles, that can break glyph codes*/\n  font-variant: normal;\n  text-transform: none;\n  /* fix buttons height, for twitter bootstrap */\n  line-height: 1em;\n  /* Animation center compensation - margins should be symmetric */\n  /* remove if not needed */\n  margin-left: .2em;\n  /* you can be more comfortable with increased icons size */\n  font-size: 110%;\n  /* Uncomment for 3D effect */\n  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */\n}\n.icon-upload:before {\n  content: '\\e800';\n}\n/* '' */\n.icon-up:before {\n  content: '\\e801';\n}\n/* '' */\n.icon-unsure-data:before {\n  content: '\\e802';\n}\n/* '' */\n.icon-settings:before {\n  content: '\\e803';\n}\n/* '' */\n.icon-refresh:before {\n  content: '\\e804';\n}\n/* '' */\n.icon-profile:before {\n  content: '\\e805';\n}\n/* '' */\n.icon-next:before {\n  content: '\\e806';\n}\n/* '' */\n.icon-next-up:before {\n  content: '\\e807';\n}\n/* '' */\n.icon-most-recent:before {\n  content: '\\e808';\n}\n/* '' */\n.icon-most-recent-up:before {\n  content: '\\e809';\n}\n/* '' */\n.icon-logout:before {\n  content: '\\e80a';\n}\n/* '' */\n.icon-down:before {\n  content: '\\e80b';\n}\n/* '' */\n.icon-close:before {\n  content: '\\e80c';\n}\n/* '' */\n.icon-careteam:before {\n  content: '\\e80d';\n}\n/* '' */\n.icon-back:before {\n  content: '\\e80e';\n}\n/* '' */\n.icon-back-down:before {\n  content: '\\e80f';\n}\n/* '' */\n.icon-add:before {\n  content: '\\e810';\n}\n/* '' */\n.icon-right:before {\n  content: '\\e811';\n}\n/* '' */\n@media print {\n  .icon-back,\n  .icon-next,\n  .icon-next-up,\n  .icon-back-down {\n    display: none;\n  }\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.spinner {\n  width: 40px;\n  height: 40px;\n  position: relative;\n  margin: 10px auto;\n}\n.double-bounce1,\n.double-bounce2 {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  background-color: #989897;\n  opacity: 0.75;\n  position: absolute;\n  top: 0;\n  left: 0;\n  -webkit-animation: bounce 2s infinite ease-in-out;\n  animation: bounce 2s infinite ease-in-out;\n}\n.double-bounce2 {\n  -webkit-animation-delay: -1s;\n  animation-delay: -1s;\n}\n@-webkit-keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@font-face {\n  font-family: 'Blip Icons';\n  src: url("+__webpack_require__(196)+") format('embedded-opentype'), url("+__webpack_require__(197)+") format('woff'), url("+__webpack_require__(198)+") format('truetype'), url("+__webpack_require__(199)+") format('svg');\n  font-weight: normal;\n  font-style: normal;\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 400;\n  src: local('Open Sans'), local('OpenSans'), url("+__webpack_require__(200)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 700;\n  src: local('Open Sans Bold'), local('OpenSans-Bold'), url("+__webpack_require__(201)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 400;\n  src: local('Open Sans Italic'), local('OpenSans-Italic'), url("+__webpack_require__(202)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 700;\n  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url("+__webpack_require__(203)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 300;\n  src: local('Open Sans Light'), local('OpenSans-Light'), url("+__webpack_require__(204)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 600;\n  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url("+__webpack_require__(205)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 300;\n  src: local('Open Sans Light Italic'), local('OpenSansLight-Italic'), url("+__webpack_require__(206)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 600;\n  src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'), url("+__webpack_require__(207)+") format('woff');\n}\n.vSpace {\n  width: 100vw;\n  height: 10px;\n}\nbody {\n  background-color: #F7F7F8;\n}\n@media (max-width: 1024px) {\n  #tidelineMain {\n    width: 100%;\n    margin: 0 0;\n    padding: 0 10px;\n  }\n  .vSpace {\n    height: 44px;\n  }\n}\n#tidelineMain {\n  font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 16px;\n  width: 1000px;\n  height: 100%;\n  margin: 0 auto;\n}\n#tidelineMain a {\n  color: white;\n  text-decoration: none;\n  line-height: 40px;\n  display: inline-block;\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav {\n  background-color: #989897;\n  width: 980px;\n  height: 40px;\n  margin: 0 auto;\n}\n#tidelineMain .tidelineNav .tidelineNavLabelWrapper {\n  min-width: 220px;\n  display: inline-block;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel {\n  font-family: 'Open Sans';\n  font-size: 16px;\n  font-weight: normal;\n  color: white;\n  padding: 0px 10px;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.active {\n  font-weight: bold;\n  cursor: text;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.inactive {\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav .tidelineNavRightLabel {\n  text-align: right !important;\n  float: right;\n}\n#tidelineMain .tidelineNav #tidelineLabel {\n  text-align: center;\n  line-height: 40px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a {\n  vertical-align: middle;\n  width: 32px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.active {\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.inactive {\n  cursor: default;\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.hidden {\n  display: none;\n}\n#tidelineOuterContainer {\n  margin: 0px 10px;\n  padding: 5px 10px;\n  height: 590px;\n  background-color: white;\n}\n#tidelineOuterContainer #fetchAndProcess {\n  height: 100%;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  -webkit-box-pack: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n#tidelineOuterContainer #fetchAndProcess p {\n  color: #585857;\n  font-style: italic;\n  text-align: center;\n  width: 100%;\n}\n#tidelineOuterContainer #tidelineContainer {\n  height: 590px;\n  overflow-y: auto;\n}\n";
+		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/**\n * Copyright (c) 2014, Tidepool Project\n * \n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n * \n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n * \n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n.grid {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n  margin-left: 0;\n}\n.grid-item {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  padding-left: 0;\n}\n/**\n   * Whole\n   */\n.one-whole {\n  width: 100%;\n}\n/**\n   * Halves\n   */\n.one-half,\n.two-quarters,\n.three-sixths,\n.four-eighths,\n.five-tenths,\n.six-twelfths {\n  width: 50%;\n}\n/**\n   * Thirds\n   */\n.one-third,\n.two-sixths,\n.four-twelfths {\n  width: 33.333%;\n}\n.two-thirds,\n.four-sixths,\n.eight-twelfths {\n  width: 66.666%;\n}\n/**\n   * Quarters\n   */\n.one-quarter,\n.two-eighths,\n.three-twelfths {\n  width: 25%;\n}\n.three-quarters,\n.six-eighths,\n.nine-twelfths {\n  width: 75%;\n}\n/**\n   * Fifths\n   */\n.one-fifth,\n.two-tenths {\n  width: 20%;\n}\n.two-fifths,\n.four-tenths {\n  width: 40%;\n}\n.three-fifths,\n.six-tenths {\n  width: 60%;\n}\n.four-fifths,\n.eight-tenths {\n  width: 80%;\n}\n/**\n   * Sixths\n   */\n.one-sixth,\n.two-twelfths {\n  width: 16.666%;\n}\n.five-sixths,\n.ten-twelfths {\n  width: 83.333%;\n}\n/**\n   * Eighths\n   */\n.one-eighth {\n  width: 12.5%;\n}\n.three-eighths {\n  width: 37.5%;\n}\n.five-eighths {\n  width: 62.5%;\n}\n.seven-eighths {\n  width: 87.5%;\n}\n/**\n   * Tenths\n   */\n.one-tenth {\n  width: 10%;\n}\n.three-tenths {\n  width: 30%;\n}\n.seven-tenths {\n  width: 70%;\n}\n.nine-tenths {\n  width: 90%;\n}\n/**\n   * Twelfths\n   */\n.one-twelfth {\n  width: 8.333%;\n}\n.five-twelfths {\n  width: 41.666%;\n}\n.seven-twelfths {\n  width: 58.333%;\n}\n.eleven-twelfths {\n  width: 91.666%;\n}\n/**\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"Blip Icons\";\n  font-style: normal;\n  font-weight: normal;\n  speak: none;\n  display: inline-block;\n  text-decoration: inherit;\n  width: 1em;\n  margin-right: .2em;\n  text-align: center;\n  /* opacity: .8; */\n  /* For safety - reset parent styles, that can break glyph codes*/\n  font-variant: normal;\n  text-transform: none;\n  /* fix buttons height, for twitter bootstrap */\n  line-height: 1em;\n  /* Animation center compensation - margins should be symmetric */\n  /* remove if not needed */\n  margin-left: .2em;\n  /* you can be more comfortable with increased icons size */\n  font-size: 110%;\n  /* Uncomment for 3D effect */\n  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */\n}\n.icon-upload:before {\n  content: '\\e800';\n}\n/* '' */\n.icon-up:before {\n  content: '\\e801';\n}\n/* '' */\n.icon-unsure-data:before {\n  content: '\\e802';\n}\n/* '' */\n.icon-settings:before {\n  content: '\\e803';\n}\n/* '' */\n.icon-refresh:before {\n  content: '\\e804';\n}\n/* '' */\n.icon-profile:before {\n  content: '\\e805';\n}\n/* '' */\n.icon-next:before {\n  content: '\\e806';\n}\n/* '' */\n.icon-next-up:before {\n  content: '\\e807';\n}\n/* '' */\n.icon-most-recent:before {\n  content: '\\e808';\n}\n/* '' */\n.icon-most-recent-up:before {\n  content: '\\e809';\n}\n/* '' */\n.icon-logout:before {\n  content: '\\e80a';\n}\n/* '' */\n.icon-down:before {\n  content: '\\e80b';\n}\n/* '' */\n.icon-close:before {\n  content: '\\e80c';\n}\n/* '' */\n.icon-careteam:before {\n  content: '\\e80d';\n}\n/* '' */\n.icon-back:before {\n  content: '\\e80e';\n}\n/* '' */\n.icon-back-down:before {\n  content: '\\e80f';\n}\n/* '' */\n.icon-add:before {\n  content: '\\e810';\n}\n/* '' */\n.icon-right:before {\n  content: '\\e811';\n}\n/* '' */\n@media print {\n  .icon-back,\n  .icon-next,\n  .icon-next-up,\n  .icon-back-down {\n    display: none;\n  }\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.spinner {\n  width: 40px;\n  height: 40px;\n  position: relative;\n  margin: 10px auto;\n}\n.double-bounce1,\n.double-bounce2 {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  background-color: #989897;\n  opacity: 0.75;\n  position: absolute;\n  top: 0;\n  left: 0;\n  -webkit-animation: bounce 2s infinite ease-in-out;\n  animation: bounce 2s infinite ease-in-out;\n}\n.double-bounce2 {\n  -webkit-animation-delay: -1s;\n  animation-delay: -1s;\n}\n@-webkit-keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@font-face {\n  font-family: 'Blip Icons';\n  src: url("+__webpack_require__(196)+") format('embedded-opentype'), url("+__webpack_require__(197)+") format('woff'), url("+__webpack_require__(198)+") format('truetype'), url("+__webpack_require__(199)+") format('svg');\n  font-weight: normal;\n  font-style: normal;\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 400;\n  src: local('Open Sans'), local('OpenSans'), url("+__webpack_require__(200)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 700;\n  src: local('Open Sans Bold'), local('OpenSans-Bold'), url("+__webpack_require__(201)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 400;\n  src: local('Open Sans Italic'), local('OpenSans-Italic'), url("+__webpack_require__(202)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 700;\n  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url("+__webpack_require__(203)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 300;\n  src: local('Open Sans Light'), local('OpenSans-Light'), url("+__webpack_require__(204)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 600;\n  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url("+__webpack_require__(205)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 300;\n  src: local('Open Sans Light Italic'), local('OpenSansLight-Italic'), url("+__webpack_require__(206)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 600;\n  src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'), url("+__webpack_require__(207)+") format('woff');\n}\n.vSpace {\n  width: 100vw;\n  height: 10px;\n}\nbody {\n  background-color: #F7F7F8;\n}\n@media (max-width: 1024px) {\n  #tidelineMain {\n    width: 100%;\n    margin: 0 0;\n    padding: 0 10px;\n  }\n  .vSpace {\n    height: 44px;\n  }\n}\n#tidelineMain {\n  font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 16px;\n  width: 1000px;\n  height: 100%;\n  margin: 0 auto;\n}\n#tidelineMain a {\n  color: white;\n  text-decoration: none;\n  line-height: 40px;\n  display: inline-block;\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav {\n  background-color: #989897;\n  width: 980px;\n  height: 40px;\n  margin: 0 auto;\n}\n#tidelineMain .tidelineNav .tidelineNavLabelWrapper {\n  min-width: 220px;\n  display: inline-block;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel {\n  font-family: 'Open Sans';\n  font-size: 16px;\n  font-weight: normal;\n  color: white;\n  padding: 0px 10px;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.active {\n  font-weight: bold;\n  cursor: text;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.inactive {\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav .tidelineNavRightLabel {\n  text-align: right !important;\n  float: right;\n}\n#tidelineMain .tidelineNav #tidelineLabel {\n  text-align: center;\n  line-height: 40px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a {\n  vertical-align: middle;\n  width: 32px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.active {\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.inactive {\n  cursor: default;\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.hidden {\n  display: none;\n}\n#tidelineOuterContainer {\n  margin: 0px 10px;\n  padding: 5px 10px;\n  height: 590px;\n  background-color: white;\n}\n#tidelineOuterContainer #fetchAndProcess {\n  height: 100%;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  -webkit-box-pack: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n#tidelineOuterContainer #fetchAndProcess p {\n  color: #585857;\n  font-style: italic;\n  text-align: center;\n  width: 100%;\n}\n#tidelineOuterContainer #tidelineContainer {\n  height: 590px;\n  overflow-y: auto;\n}\n#tidelineOuterContainer #tidelineContainer.no-scroll {\n  overflow: hidden;\n}\n";
 
 /***/ },
 /* 21 */
@@ -18828,7 +18828,7 @@
 	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
 	        ),
 	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
+	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device settings")
 	        )
 	      )
 	      );
@@ -18899,10 +18899,10 @@
 	    function getValuesLinkText(props) {
 	      if (props.chartType === 'weekly') {
 	        if (props.showingValues) {
-	          return 'Hide Values';
+	          return 'Hide values';
 	        }
 	        else {
-	          return 'Show Values';
+	          return 'Show values';
 	        }
 	      }
 	      else {
@@ -18913,10 +18913,10 @@
 	    function getLinesLinkText(props) {
 	      if (props.chartType === 'modal') {
 	        if (props.showingLines) {
-	          return 'Hide Lines';
+	          return 'Hide lines';
 	        }
 	        else {
-	          return 'Show Lines';
+	          return 'Show lines';
 	        }
 	      }
 	      else {
@@ -19018,1048 +19018,10 @@
 /* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-	var util = __webpack_require__(42);
-
-	var schema = __webpack_require__(61);
-
-	var schemas = {
-	  basal: __webpack_require__(54),
-	  bolus: __webpack_require__(55),
-	  cbg: __webpack_require__(56),
-	  common: __webpack_require__(57),
-	  deviceMeta: schema(),
-	  message: __webpack_require__(58),
-	  settings: __webpack_require__(59),
-	  smbg: __webpack_require__(56),
-	  wizard: __webpack_require__(60)
-	};
-
-	module.exports = {
-	  validateOne: function(datum, result) {
-	    result = result || {valid: [], invalid: []};
-	    var handler = schemas[datum.type];
-	    if (handler == null) {
-	      datum.errorMessage = util.format('No schema defined for data.type[%s]', datum.type);
-	      console.log(new Error(datum.errorMessage), datum);
-	      result.invalid.push(datum);
-	    }
-	    else {
-	      try {
-	        handler(datum);
-	        result.valid.push(datum);
-	      }
-	      catch(e) {
-	        console.log('Oh noes! This is wrong:\n', datum);
-	        console.log(util.format('Error Message: %s%s', datum.type, e.message));
-	        datum.errorMessage = e.message;
-	        result.invalid.push(datum);
-	      }
-	    }
-	  },
-	  validateAll: function(data) {
-	    var result = {valid: [], invalid: []};
-	    for (var i = 0; i < data.length; ++i) {
-	      this.validateOne(data[i], result);
-	    }
-	    return result;
-	  }
-	};
-
-
-/***/ },
-/* 25 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-
-	var format = __webpack_require__(44);
-	var dt = __webpack_require__(29);
-
-	var MS_IN_HOUR = 3600000;
-	var MS_IN_DAY = 86400000;
-
-	function BasalUtil(data) {
-
-	  this.scheduleTotal = function(schedule) {
-	    if ((! (schedule && Array.isArray(schedule) && schedule.length > 0))) {
-	      return NaN;
-	    }
-	    var total = 0, duration;
-	    schedule.push({
-	      start: MS_IN_DAY
-	    });
-	    for (var i = 1; i <= schedule.length - 1; i++) {
-	      duration = schedule[i].start - schedule[i - 1].start;
-	      total += this.segmentDose(duration, schedule[i - 1].rate);
-	    }
-
-	    schedule.pop();
-
-	    return format.fixFloatingPoint(total);
-	  };
-
-	  this.segmentDose = function(duration, rate) {
-	    var hours = duration / MS_IN_HOUR;
-	    return format.fixFloatingPoint(hours * rate);
-	  };
-
-	  this.subtotal = function(endpoints) {
-	    var dose = 0.0;
-	    var start = new Date(endpoints.start.datetime), end = new Date(endpoints.end.datetime);
-	    // handle first segment, which may have started before the start endpoint
-	    var segment = this.actual[endpoints.start.index];
-	    dose += this.segmentDose((new Date(segment.normalEnd) - start), segment.rate);
-	    var i = endpoints.start.index + 1;
-	    while (i < endpoints.end.index) {
-	      segment = this.actual[i];
-	      dose += this.segmentDose(segment.duration, segment.rate);
-	      i++;
-	    }
-	    segment = this.actual[endpoints.end.index];
-	    // handle last segment, which may go past the end endpoint
-	    dose += this.segmentDose((end - new Date(segment.normalTime)), segment.rate);
-	    return format.fixFloatingPoint(dose);
-	  };
-
-	  this.isContinuous = function(s, e) {
-	    var start = new Date(s), end = new Date(e);
-	    var startIndex = _.findIndex(this.actual, function(segment) {
-	        return (new Date(segment.normalTime).valueOf() <= start) && (start <= new Date(segment.normalEnd).valueOf());
-	      });
-	    var endIndex = _.findIndex(this.actual, function(segment) {
-	        return (new Date(segment.normalTime).valueOf() <= end) && (end <= new Date(segment.normalEnd).valueOf());
-	      });
-	    if ((startIndex >= 0) && (endIndex >= 0)) {
-	      var i = startIndex;
-	      while (i < endIndex) {
-	        var s1 = this.actual[i], s2 = this.actual[i + 1];
-	        if (s1.normalEnd !== s2.normalTime) {
-	          return false;
-	        }
-	        i++;
-	      }
-	      return {
-	        start: {
-	          datetime: start.toISOString(),
-	          index: startIndex
-	        },
-	        end: {
-	          datetime: end.toISOString(),
-	          index: endIndex
-	        }
-	      };
-	    }
-	    else {
-	      return false;
-	    }
-	  };
-
-	  this.totalBasal = function(s, e, opts) {
-	    opts = opts || {};
-	    if (dt.verifyEndpoints(s, e, this.endpoints)) {
-	      var endpoints;
-	      if (dt.isTwentyFourHours(s, e)) {
-	        endpoints = this.isContinuous(s, e);
-	        if (endpoints) {
-	          return {total: this.subtotal(endpoints)};
-	        }
-	        else {
-	          return {total: NaN};
-	        }
-	      }
-	      else if (dt.isLessThanTwentyFourHours(s, e)) {
-	        return {total: NaN};
-	      }
-	      else {
-	        var dose = 0.0;
-	        var excluded = [];
-	        var start = new Date(s), end = new Date(e);
-	        var n = dt.getNumDays(s, e);
-	        for (var j = 0; j < n; j++) {
-	          var dayStart = new Date(start);
-	          var dayEnd = new Date(dayStart);
-	          dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
-	          endpoints = this.isContinuous(dayStart.toISOString(), dayEnd.toISOString());
-	          if (endpoints && dt.isTwentyFourHours(dayStart.toISOString(), dayEnd.toISOString())) {
-	            if (isNaN(this.subtotal(endpoints))) {
-	              excluded.push(dayStart.toISOString());
-	            }
-	            else {
-	              dose += this.subtotal(endpoints);
-	            }
-	          }
-	          else {
-	            excluded.push(dayStart.toISOString());
-	          }
-	          start.setUTCDate(start.getUTCDate() + 1);
-	        }
-	        if (excluded.length <= opts.exclusionThreshold) {
-	          return {
-	            total: dose,
-	            excluded: excluded
-	          };
-	        }
-	        else {
-	          return {
-	            total: NaN,
-	            excluded: excluded
-	          };
-	        }
-	      }
-	    }
-	    else {
-	      return {total: NaN};
-	    }
-	  };
-
-	  this.actual = data;
-
-	  this.data = data || [];
-	  if (this.data.length > 0) {
-	    this.endpoints = [this.data[0].normalTime, dt.addDuration(this.data[this.data.length - 1].normalTime, this.data[this.data.length - 1].duration)];
-	  }
-	}
-
-	module.exports = BasalUtil;
-
-
-/***/ },
-/* 26 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-	var crossfilter = __webpack_require__(40);
-
-	var commonbolus = __webpack_require__(65);
-	var format = __webpack_require__(44);
-	var datetime = __webpack_require__(29);
-
-	function BolusUtil(data) {
-
-	  this.subtotal = function(s, e) {
-	    var dose = 0.0;
-	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
-	    dataByDate.filter([start, end]);
-	    var currentData = dataByDate.top(Infinity).reverse();
-	    var firstBolus = _.findIndex(currentData, function(bolus) {
-	      var d = bolus.normalTime;
-	      return (d >= start) && (d <= end);
-	    });
-	    if (firstBolus !== -1) {
-	      _.forEach(currentData, function(d) {
-	        dose += commonbolus.getDelivered(d);
-	      });
-	    }
-	    return format.fixFloatingPoint(dose);
-	  };
-
-	  this.totalBolus = function(s, e, opts) {
-	    opts = opts || {};
-	    if (datetime.verifyEndpoints(s, e, this.endpoints)) {
-	      var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	      var total = 0.0;
-	      if (datetime.isTwentyFourHours(s, e)) {
-	        total += this.subtotal(s, e);
-	      }
-	      else if (datetime.isLessThanTwentyFourHours(s, e)) {
-	        return NaN;
-	      }
-	      else {
-	        if ((opts.excluded) && (opts.excluded.length > 0)) {
-	          var first = new Date(start).toISOString();
-	          var ex = opts.excluded[0];
-	          var bolus = this;
-	          opts.excluded.forEach(function(ex) {
-	            // exclude boluses that happen to be directly on first timestamp
-	            if (first !== ex) {
-	              total += bolus.subtotal(first, ex);
-	            }
-	            first = datetime.addDays(ex, 1);
-	          });
-	          if (first !== end) {
-	            total += this.subtotal(first, end);
-	          }
-	        }
-	        else {
-	          total += this.subtotal(start, end);
-	        }
-	      }
-	      return format.fixFloatingPoint(total);
-	    }
-	    else {
-	      return NaN;
-	    }
-	  };
-
-	  this.data = data || [];
-	  var filterData = crossfilter(this.data);
-	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
-	  if (this.data.length > 0) {
-	    this.endpoints = [this.data[0].normalTime, this.data[this.data.length - 1].normalTime];
-	  }
-	}
-
-	module.exports = BolusUtil;
-
-
-/***/ },
-/* 27 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-	var crossfilter = __webpack_require__(40);
-
-	var datetime = __webpack_require__(29);
-
-	function BGUtil(data, opts) {
-
-	  opts = opts || {};
-	  var defaults = {
-	    bgClasses: {
-	      low: {boundary: 80},
-	      target: {boundary: 180}
-	    },
-	    bgUnits: 'mg/dL'
-	  };
-	  _.defaults(opts, defaults);
-
-	  if (opts.DAILY_MIN == null) {
-	    throw new Error('BGUtil needs a daily minimum readings (`opts.DAILY_MIN`) in order to calculate a statistic.');
-	  }
-
-	  var MS_IN_24 = 86400000;
-	  var currentIndex = 0, currentData;
-
-	  var defaultResult = {
-	    low: 0,
-	    target: 0,
-	    high: 0,
-	    total: 0
-	  };
-
-	  var breakdownNaN = {
-	    low: NaN,
-	    target: NaN,
-	    high: NaN,
-	    total: NaN
-	  };
-
-	  function getCategory (n) {
-	    if (n <= opts.bgClasses.low.boundary) {
-	      return 'low';
-	    }
-	    else if ((n > opts.bgClasses.low.boundary) && (n <= opts.bgClasses.target.boundary)) {
-	      return 'target';
-	    }
-	    else {
-	      return 'high';
-	    }
-	  }
-
-	  this.filtered = function(s, e) {
-	    if (!currentData) {
-	      currentData = filterData.getAll(dataByDate);
-	    }
-	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
-	    dataByDate.filter([start, end]);
-	    var filteredObj = {
-	      data: dataByDate.top(Infinity).reverse(),
-	      excluded: []
-	    };
-	    var filtered = filteredObj.data;
-	    if (filtered.length < this.threshold(s, e)) {
-	      filteredObj.excluded.push(new Date(s).toISOString());
-	      filteredObj.data = [];
-	      return filteredObj;
-	    }
-	    else {
-	      return filteredObj;
-	    }
-	  };
-
-	  this.filter = function(s, e, exclusionThreshold) {
-	    if (datetime.verifyEndpoints(s, e, this.endpoints)) {
-	      if (datetime.isTwentyFourHours(s, e)) {
-	        return this.filtered(s, e);
-	      }
-	      else if (datetime.isLessThanTwentyFourHours(s, e)) {
-	        return {data: [], excluded: []};
-	      }
-	      else {
-	        var time = new Date(s).valueOf(), end = new Date(e).valueOf();
-	        var result = [], excluded = [], next;
-	        while (time < end) {
-	          next = new Date(datetime.addDays(time, 1)).valueOf();
-	          if (datetime.isTwentyFourHours(time, next)) {
-	            var filtered = this.filtered(time, next);
-	            result = result.concat(filtered.data);
-	            excluded = excluded.concat(filtered.excluded);
-	          }
-	          time = new Date(next).valueOf();
-	        }
-	        if (excluded.length > exclusionThreshold) {
-	          return {data: [], excluded: excluded};
-	        }
-	        else {
-	          return {data: result, excluded: excluded};
-	        }
-	      }
-	    }
-	    else {
-	      return {data: [], excluded: []};
-	    }
-	  };
-
-	  this.rangeBreakdown = function(filtered) {
-	    if (!this.data[0]) {
-	      return breakdownNaN;
-	    }
-	    var breakdown = {type: this.data[0].type};
-	    if (filtered.length > 0) {
-	      var groups = _.countBy(filtered, function(d) {
-	        return getCategory(d.value);
-	      });
-	      breakdown = _.defaults(breakdown, groups, defaultResult);
-	      breakdown.total = breakdown.low + breakdown.target + breakdown.high;
-	    }
-	    return _.defaults(breakdown, breakdownNaN);
-	  };
-
-	  this.average = function(filtered) {
-	    if (filtered.length > 0) {
-	      var sum = _.reduce(filtered, function(memo, d) {
-	        return memo + d.value;
-	      }, 0);
-	      var average;
-	      if (opts.bgUnits === 'mmol/L') {
-	        average = (sum/filtered.length).toFixed(1);
-	      }
-	      else {
-	        average = parseInt((sum/filtered.length).toFixed(0), 10);
-	      }
-	      
-	      return {value: average, category: getCategory(average)};
-	    }
-	    else {
-	      return {value: NaN, category: '', excluded: filtered.excluded};
-	    }
-	  };
-
-	  this.threshold = function(s, e) {
-	    var difference = new Date(e) - new Date(s);
-	    return Math.floor(opts.DAILY_MIN * (difference/MS_IN_24));
-	  };
-
-	  this.getStats = function(s, e, opts) {
-	    opts = opts || {};
-	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
-	    dataByDate.filter([start, end]);
-	    currentData = dataByDate.top(Infinity).reverse();
-	    var filtered = this.filter(s, e, opts.exclusionThreshold);
-	    var average = this.average(filtered.data);
-	    average.excluded = filtered.excluded;
-	    var breakdown = this.rangeBreakdown(filtered.data);
-	    breakdown.excluded = filtered.excluded;
-	    return {
-	      average: average,
-	      breakdown: breakdown
-	    };
-	  };
-
-	  this.data = data || [];
-	  var filterData = crossfilter(this.data);
-	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
-	  if (this.data.length > 0) {
-	    this.endpoints = [this.data[0].normalTime, this.data[data.length - 1].normalTime];
-	  }
-	}
-
-	module.exports = BGUtil;
-
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-
-	var dt = __webpack_require__(29);
-
-	function SettingsUtil(data, endpoints) {
-
-	  function findStarts(ms, starts) {
-	    for (var i = 0; i < starts.length; ++i) {
-	      var start = starts[i];
-	      if (i !== starts.length - 1) {
-	        if (ms >= start && ms < starts[i + 1]) {
-	          return {starts: [start, starts[i + 1]], startIndex: i+1};
-	        }
-	      }
-	      else {
-	        return {starts:[start], startIndex: 0};
-	      }
-	    }
-	  }
-
-	  function getSegmentsForSchedule(opts) {
-	    var sched = opts.schedule;
-	    if (sched.value.length === 0) {
-	      return [];
-	    }
-	    var s = opts.start, e = opts.end;
-	    var starts = [];
-	    var ratesByStart = {};
-	    var segments;
-	    for (var i = 0; i < sched.value.length; ++i) {
-	      starts.push(sched.value[i].start);
-	      ratesByStart[sched.value[i].start] = sched.value[i].rate;
-	    }
-	    var startsObj = findStarts(dt.getMsFromMidnight(s), starts);
-	    var startPair = startsObj.starts;
-	    var firstSegmentEnd = (startPair.length === 2) ?
-	      dt.composeMsAndDateString(startPair[1], s) :
-	      dt.composeMsAndDateString(starts[0], dt.addDays(s, 1));
-	    segments = [{
-	      type: 'basal-settings-segment',
-	      schedule: sched.name,
-	      normalTime: s,
-	      normalEnd: firstSegmentEnd,
-	      value: ratesByStart[startPair[0]],
-	      active: opts.active,
-	      confidence: opts.confidence,
-	      id: sched.name.replace(' ', '_') + '_' + s.replace(/[^\w\s]|_/g, '')
-	    }];
-	    var currentDatetime = firstSegmentEnd, currentIndex = startsObj.startIndex;
-	    while (currentDatetime < e) {
-	      var end;
-	      if (currentIndex !== starts.length - 1) {
-	        end =  dt.composeMsAndDateString(starts[currentIndex + 1], currentDatetime);
-	      }
-	      else {
-	        end = dt.composeMsAndDateString(0, dt.addDays(currentDatetime, 1));
-	      }
-	      if (end > e) {
-	        end = e;
-	      }
-	      segments.push({
-	        type: 'basal-settings-segment',
-	        schedule: sched.name,
-	        normalTime: currentDatetime,
-	        normalEnd: end,
-	        value: ratesByStart[starts[currentIndex]],
-	        active: opts.active,
-	        confidence: opts.confidence,
-	        id: sched.name.replace(' ', '_') + '_' + currentDatetime.replace(/[^\w\s]|_/g, '')
-	      });
-	      if (currentIndex !== starts.length - 1) {
-	        currentIndex++;
-	      }
-	      else {
-	        currentIndex = 0;
-	      }
-	      currentDatetime = end;
-	    }
-	    return segments;
-	  }
-
-	  this.annotateBasalSettings = function(a) {
-	    // don't necessarily want unsquashing of midnights to propogate beyond this method
-	    // hence using _.cloneDeep() to copy the array
-	    var actuals = _.cloneDeep(a) || [];
-
-	    var actualsByInterval = {};
-
-	    for (var i = 0; i < actuals.length; ++i) {
-	      var actual = actuals[i];
-	      if (dt.isSegmentAcrossMidnight(actual.normalTime, dt.addDuration(actual.normalTime, actual.duration))) {
-	        var midnight = dt.getMidnight(actual.normalTime, true);
-	        var end = dt.addDuration(actual.normalTime, actual.duration);
-	        var firstDuration = Date.parse(midnight) - Date.parse(actual.normalTime);
-	        var newActual = _.clone(actual);
-	        newActual.normalTime = midnight;
-	        newActual.duration = actual.duration - firstDuration;
-	        actual.duration = firstDuration;
-	        actuals.splice(i + 1, 0, newActual);
-	        actual = actuals[i];
-	      }
-	      // Animas basal schedules have a resolution of thirty minutes
-	      var s = dt.roundToNearestMinutes(actual.normalTime, 30);
-	      var e = dt.roundToNearestMinutes(dt.addDuration(actual.normalTime, actual.duration), 30);
-	      actualsByInterval[s + '/' + e] = actual;
-	    }
-	    for (var key in this.segmentsBySchedule) {
-	      var currentSchedule = this.segmentsBySchedule[key];
-	      if (currentSchedule.length === 0) {
-	        return;
-	      }
-	      for (var j = 0; j < currentSchedule.length; ++j) {
-	        var segment = currentSchedule[j];
-	        var interval = segment.normalTime + '/' + segment.normalEnd;
-	        if (actualsByInterval[interval]) {
-	          var matchedActual = actualsByInterval[interval];
-	          if (segment.value === matchedActual.rate) {
-	            segment.actualized = true;
-	          }
-	        }
-	      }
-	    }
-	    return this.segmentsBySchedule;
-	  };
-
-	  this.getAllSchedules = function(s, e) {
-	    if (dt.verifyEndpoints(s, e, this.endpoints) && this.data.length !== 0) {
-	      var settingsIntervals = this.getIntervals(s, e);
-	      var segmentsBySchedule = {};
-	      if (settingsIntervals) {
-	        for (var i = 0; i < settingsIntervals.length; ++i) {
-	          var interval = settingsIntervals[i];
-	          for (var j = 0; j < interval.settings.basalSchedules.length; ++j) {
-	            var schedule = interval.settings.basalSchedules[j];
-	            if (segmentsBySchedule[schedule.name]) {
-	              segmentsBySchedule[schedule.name] = segmentsBySchedule[schedule.name].concat(getSegmentsForSchedule({
-	                schedule: schedule,
-	                start: interval.start,
-	                end: interval.end,
-	                active: schedule.name === interval.settings.activeBasalSchedule,
-	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
-	              }));
-	            }
-	            // there can be schedules in the settings with an empty array as their value
-	            else if (schedule.value.length > 0) {
-	              segmentsBySchedule[schedule.name] = getSegmentsForSchedule({
-	                schedule: schedule,
-	                start: interval.start,
-	                end: interval.end,
-	                active: schedule.name === interval.settings.activeBasalSchedule,
-	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
-	              });
-	            }
-	          }
-	        }
-	        this.segmentsBySchedule = segmentsBySchedule;
-	        return segmentsBySchedule;
-	      }
-	      else {
-	        return [];
-	      }
-	    }
-	    else {
-	      return [];
-	    }
-	  };
-
-	  this.getIntervals = function(s, e) {
-	    var actualIntervals = [];
-	    for (var i = 0; i < this.intervals.length; ++i) {
-	      var interval = this.intervals[i];
-	      var intervalEndpoints = [interval.start, interval.end];
-	      if (dt.checkIfDateInRange(s, intervalEndpoints) &&
-	        dt.checkIfDateInRange(e, intervalEndpoints)) {
-	        actualIntervals.push({
-	          start: s,
-	          end: e,
-	          settings: interval.settings
-	        });
-	      }
-	      else {
-	        if (dt.checkIfDateInRange(s, intervalEndpoints)) {
-	          actualIntervals.push({
-	            start: s,
-	            end: interval.end,
-	            settings: interval.settings
-	          });
-	        }
-	        if (dt.checkIfDateInRange(e, intervalEndpoints)) {
-	          actualIntervals.push({
-	            start: interval.start,
-	            end: e,
-	            settings: interval.settings
-	          });
-	        }
-	        if (s < interval.start && e > interval.end) {
-	          actualIntervals.push({
-	            start: interval.start,
-	            end: interval.end,
-	            settings: interval.settings
-	          });
-	        }
-	      }
-	    }
-	    if (actualIntervals.length === 0) {
-	      return undefined;
-	    }
-	    return actualIntervals;
-	  };
-
-	  this.data = data || [];
-	  // valid endpoints for settings are endpoints of all diabetes data
-	  this.endpoints = endpoints;
-	  // intervals of effectiveness of a settings object
-	  this.intervals = _.reject(_.flatten(_.map(this.data, function(d, i, data) {
-	    if (i === 0) {
-	      if (this.endpoints[1] === d.normalTime) {
-	        return {
-	          start: this.endpoints[0],
-	          end: this.endpoints[1],
-	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
-	        };
-	      }
-	      else {
-	        return [{
-	          start: this.endpoints[0],
-	          end: d.normalTime,
-	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
-	        },{
-	          start: d.normalTime,
-	          end: data[1] ? data[1].normalTime : this.endpoints[1],
-	          settings: _.clone(d)
-	        }];
-	      }
-	    }
-	    else {
-	      if (i !== data.length - 1) {
-	        return {
-	          start: d.normalTime,
-	          end: data[i + 1].normalTime,
-	          settings: _.clone(d)
-	        };
-	      }
-	      else {
-	        return {
-	          start: d.normalTime,
-	          end: this.endpoints[1],
-	          settings: _.clone(d)
-	        };
-	      }
-	    }
-	  }, this)), function(d) {
-	    return d.start === d.end;
-	  });
-	}
-
-	module.exports = SettingsUtil;
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(16);
-	var moment = __webpack_require__(41);
-
-	var datetime = {
-
-	  APPEND: 'T00:00:00.000Z',
-
-	  MS_IN_24: 86400000,
-
-	  addDays: function(s, n) {
-	    var d = moment(s);
-	    d.add(n, 'days');
-	    return d.toISOString();
-	  },
-
-	  addDuration: function(datetime, duration) {
-	    datetime = new Date(datetime);
-
-	    return new Date(datetime.valueOf() + duration).toISOString();
-	  },
-
-	  adjustToInnerEndpoints: function(s, e, endpoints) {
-	    if (!endpoints) {
-	      return null;
-	    }
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    var thisTypeStart = new Date(endpoints[0]).valueOf(), thisTypeEnd = new Date(endpoints[1]).valueOf();
-	    if (start < thisTypeStart) {
-	      return [thisTypeStart, end];
-	    }
-	    else if (end > thisTypeEnd) {
-	      return [start, thisTypeEnd];
-	    }
-	    else {
-	      return [start, end];
-	    }
-	  },
-
-	  checkIfDateInRange: function(s, endpoints) {
-	    var d = new Date(s);
-	    var start = new Date(endpoints[0]);
-	    var end = new Date(endpoints[1]);
-	    if ((d.valueOf() >= start.valueOf()) && (d.valueOf() <= end.valueOf())) {
-	      return true;
-	    }
-	    else {
-	      return false;
-	    }
-	  },
-
-	  checkIfUTCDate: function(s) {
-	    var d = new Date(s);
-	    if (typeof s === 'number') {
-	      if (d.getUTCFullYear() < 2008) {
-	        return false;
-	      }
-	      else {
-	        return true;
-	      }
-	    }
-	    else if (s.slice(s.length - 1, s.length) !== 'Z') {
-	      return false;
-	    }
-	    else {
-	      if (s === d.toISOString()) {
-	        return true;
-	      }
-	      else {
-	        return false;
-	      }
-	    }
-	  },
-
-	  composeMsAndDateString: function(ms, d) {
-	    return new Date(ms + new Date(this.toISODateString(d) + this.APPEND).valueOf()).toISOString();
-	  },
-
-	  difference: function(d2, d1) {
-	    return new Date(d2) - new Date(d1);
-	  },
-
-	  getDuration: function(d1, d2) {
-	    return new Date(d2).valueOf() - new Date(d1).valueOf();
-	  },
-
-	  getMidnight: function(d, next) {
-	    if (next) {
-	      return this.getMidnight(this.addDays(d, 1));
-	    }
-	    else {
-	      return this.toISODateString(d) + this.APPEND;
-	    }
-	  },
-
-	  getMsFromMidnight: function(d) {
-	    var midnight = new Date(this.getMidnight(d)).valueOf();
-	    return new Date(d).valueOf() - midnight;
-	  },
-
-	  getNumDays: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    return Math.ceil((end - start)/this.MS_IN_24);
-	  },
-
-	  isLessThanTwentyFourHours: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    if (end - start < this.MS_IN_24) {
-	      return true;
-	    }
-	    else { return false; }
-	  },
-
-	  isNearRightEdge: function(d, edge) {
-	    // check if d.normalTime is within six hours before edge
-	    var t = new Date(d.normalTime);
-	    if (edge.valueOf() - t.valueOf() < this.MS_IN_24/4) {
-	      return true;
-	    }
-	    return false;
-	  },
-
-	  isSegmentAcrossMidnight: function(s, e) {
-	    var start = new Date(s), end = new Date(e);
-	    var startDate = this.toISODateString(s), endDate = this.toISODateString(e);
-	    if (startDate === endDate) {
-	      return false;
-	    }
-	    else {
-	      if (end.getUTCDate() === start.getUTCDate() + 1) {
-	        if (this.getMidnight(e) === e) {
-	          return false;
-	        }
-	        return true;
-	      }
-	      else {
-	        return false;
-	      }
-	    }
-	  },
-
-	  isTwentyFourHours: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    if (end - start === this.MS_IN_24) {
-	      return true;
-	    }
-	    else { return false; }
-	  },
-
-	  roundToNearestMinutes: function(d, resolution) {
-	    var date = new Date(d);
-	    var min = date.getUTCMinutes();
-	    var values = _.range(0, 60, resolution);
-	    for (var i = 0; i < values.length; ++i) {
-	      if (min - values[i] < resolution/2) {
-	        date.setUTCMinutes(values[i]);
-	        return date.toISOString();
-	      }
-	      else if (i === values.length - 1) {
-	        date.setUTCMinutes(0);
-	        date.setUTCHours(date.getUTCHours() + 1);
-	        return date.toISOString();
-	      }
-	    }
-	  },
-
-	  toISODateString: function(d) {
-	    var date = new Date(d);
-	    return date.toISOString().slice(0,10);
-	  },
-
-	  smbgEdge: function(d) {
-	    var date = new Date(d);
-	    if (date.getUTCHours() <= 2) {
-	      return 'left';
-	    }
-	    else if (date.getUTCHours() >= 21) {
-	      return 'right';
-	    }
-	    else {
-	      return null;
-	    }
-	  },
-
-	  verifyEndpoints: function(s, e, endpoints) {
-	    if (!endpoints) {
-	      return null;
-	    }
-	    if (this.checkIfUTCDate(s) && this.checkIfUTCDate(e)) {
-	      endpoints = this.adjustToInnerEndpoints(s, e, endpoints);
-	      s = endpoints[0];
-	      e = endpoints[1];
-	      if (this.checkIfDateInRange(s, endpoints) && this.checkIfDateInRange(e, endpoints)) {
-	        return true;
-	      }
-	      else {
-	        return false;
-	      }
-	    }
-	    else {
-	      return false;
-	    }
-	  }
-	};
-
-	module.exports = datetime;
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var _ = __webpack_require__(16);
 	var crossfilter = __webpack_require__(40);
 	var d3 = window.d3;
-	var EventEmitter = __webpack_require__(69).EventEmitter;
+	var EventEmitter = __webpack_require__(67).EventEmitter;
 
 	d3.chart('Brush', {
 	  initialize: function() {
@@ -20148,15 +19110,27 @@
 	        }
 	      }
 	      emitter.emit('brushed', [newExtent[0].toISOString(), newExtent[1].toISOString()]);
+	      brushHandleGroup.selectAll('text')
+	        .data(newExtent)
+	        .attr({
+	          x: function(d) {
+	            return xScale(d);
+	          }
+	        })
+	        .text(function(d) {
+	          return d3.time.format.utc('%a, %b %-d')(d);
+	        });
 	      d3.select(this).call(chart.brush.extent(newExtent));
 	    }
 
 	    var xScale = this.xScale();
 	    var initial = chart.initialExtent();
+
+	    var extentDates = [Date.parse(initial[0]), Date.parse(initial[1])];
 	      
 	    this.brush = d3.svg.brush()
 	      .x(xScale)
-	      .extent([Date.parse(initial[0]), Date.parse(initial[1])])
+	      .extent(extentDates)
 	      .on('brush', brushed);
 
 	    var brushHandleGroup = this.base.append('g')
@@ -20169,6 +19143,35 @@
 	      .attr({
 	        height: this.height - mainMargins.top - mainMargins.bottom,
 	        transform: 'translate(0,' + mainMargins.top + ')'
+	      })
+	      .on('mouseover', function() {
+	        brushHandleGroup.selectAll('text')
+	          .classed('hidden', false);
+	      })
+	      .on('mouseout', function() {
+	        brushHandleGroup.selectAll('text')
+	          .classed('hidden', true);
+	      });
+
+	    brushHandleGroup.selectAll('text')
+	      .data(extentDates)
+	      .enter()
+	      .append('text')
+	      .attr({
+	        x: function(d) {
+	          return xScale(d);
+	        },
+	        y: this.height - mainMargins.bottom/2,
+	        'class': function(d, i) {
+	          if (i === 0) {
+	            return 'left';
+	          }
+	          return 'right';
+	        }
+	      })
+	      .classed('hidden', true)
+	      .text(function(d) {
+	        return d3.time.format.utc('%a, %b %-d')(new Date(d));
 	      });
 	  },
 	  reducedData: function(data) {
@@ -20243,7 +19246,7 @@
 	      main: {
 	        top: 3,
 	        right: defaults.baseMargin,
-	        bottom: defaults.baseMargin,
+	        bottom: defaults.baseMargin + 15,
 	        left: 50 + defaults.baseMargin
 	      }
 	    };
@@ -20261,7 +19264,7 @@
 	        width: el.offsetWidth,
 	        height: opts.brushHeight
 	      })
-	      .chart('SMBGMeanHeat')
+	      .chart('SMBGBox')
 	      .emitter(this.emitter)
 	      .initialExtent(opts.initialExtent)
 	      .margins(opts.margins)
@@ -20291,16 +19294,16 @@
 	};
 
 /***/ },
-/* 31 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(16);
 	var d3 = window.d3;
-	var EventEmitter = __webpack_require__(69).EventEmitter;
+	var EventEmitter = __webpack_require__(67).EventEmitter;
 	var moment = __webpack_require__(41);
 
-	var SMBGDay = __webpack_require__(62);
-	var SMBGInfo = __webpack_require__(63);
+	var SMBGDay = __webpack_require__(54);
+	var SMBGInfo = __webpack_require__(55);
 
 	d3.chart('ModalDay', {
 	  initialize: function() {
@@ -20501,7 +19504,7 @@
 	          var infoPlot;
 	          this.attr('id', function(d) { return d; })
 	            .attr('class', function(d) {
-	              return 'modalDay ' + moment(d).utc().format('dddd').toLowerCase();
+	              return 'modalDay ' + d3.time.format.utc('%A')(new Date(d)).toLowerCase();
 	            })
 	            .each(function(d) {
 	              var dayPlot = SMBGDay.create(this, {x: chart.xScale(), y: chart.yScale()}, {
@@ -20708,15 +19711,15 @@
 	};
 
 /***/ },
-/* 32 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(16);
 	var crossfilter = __webpack_require__(40);
 	var d3 = window.d3;
 
-	var bgboundaryClass = __webpack_require__(66);
-	var commonbolus = __webpack_require__(65);
+	var bgboundaryClass = __webpack_require__(65);
+	var commonbolus = __webpack_require__(66);
 	var format = __webpack_require__(44);
 
 	d3.chart('Stats', {
@@ -20736,9 +19739,7 @@
 	    // TODO: pass in some kind of bgDomain or calculate domain from reducedData
 	    var yScale = d3.scale.linear().domain([40,300]);
 
-	    var pieDataFn = d3.layout.pie().value(function(d) { return d.value; }).sort(function(a, b) {
-	      return a.key < b.key;
-	    });
+	    var pieDataFn = d3.layout.pie().value(function(d) { return d.value; }).sort(null);
 	    var arcFn = d3.svg.arc().innerRadius(0);
 
 	    this.layer('basalBolusRatio', this.base.select('#basalBolusRatio'), {
@@ -20786,7 +19787,7 @@
 	          }];
 	        }
 	        return this.selectAll('tspan')
-	          .data(data.ratio);
+	          .data(_.sortBy(data.ratio, function(d) { return d.key; }));
 	      },
 	      insert: function() {
 	        return this.append('tspan')
@@ -21349,12 +20350,12 @@
 	    if (basal.totalTime/basal.nDays >= 864e5/2) {
 	      var totalInsulin = basal.totalInsulin + totalBolus;
 	      res.ratio.push({
-	        key: 'basal',
-	        value: basal.totalInsulin/totalInsulin
-	      });
-	      res.ratio.push({
 	        key: 'bolus',
 	        value: totalBolus/totalInsulin
+	      });
+	      res.ratio.push({
+	        key: 'basal',
+	        value: basal.totalInsulin/totalInsulin
 	      });
 	    }
 	    if (cbg.totalN/cbg.nDays >= 216/2) {
@@ -21444,27 +20445,27 @@
 	};
 
 /***/ },
-/* 33 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	var dispose = __webpack_require__(39)
 		// The css code:
-		(__webpack_require__(34))
+		(__webpack_require__(28))
 	if(false) {
 		module.hot.accept();
 		module.hot.dispose(dispose);
 	}
 
 /***/ },
-/* 34 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports =
-		".tidelineNavLabel.monday {\n  background-color: #66c2a5 !important;\n}\n.tidelineNavLabel.tuesday {\n  background-color: #fc8d62 !important;\n}\n.tidelineNavLabel.wednesday {\n  background-color: #8da0cb !important;\n}\n.tidelineNavLabel.thursday {\n  background-color: #e78ac3 !important;\n}\n.tidelineNavLabel.friday {\n  background-color: #a6d854 !important;\n}\n.tidelineNavLabel.saturday {\n  background-color: #ffd92f !important;\n}\n.tidelineNavLabel.sunday {\n  background-color: #e5c494 !important;\n}\n.svg-tooltip-smbg.monday {\n  stroke: #66c2a5;\n}\n.svg-tooltip-smbg.tuesday {\n  stroke: #fc8d62;\n}\n.svg-tooltip-smbg.wednesday {\n  stroke: #8da0cb;\n}\n.svg-tooltip-smbg.thursday {\n  stroke: #e78ac3;\n}\n.svg-tooltip-smbg.friday {\n  stroke: #a6d854;\n}\n.svg-tooltip-smbg.saturday {\n  stroke: #ffd92f;\n}\n.svg-tooltip-smbg.sunday {\n  stroke: #e5c494;\n}\n.d3-axis.d3-left text {\n  text-anchor: end;\n  dominant-baseline: central;\n}\n.solid {\n  opacity: 1.0;\n}\n.modalDay circle {\n  opacity: 0.75;\n}\n.modalDay path {\n  fill: none;\n  opacity: 0.75;\n}\n.modalDay rect {\n  fill: white;\n  opacity: 0.75;\n  pointer-events: none;\n}\n.modalDay text {\n  text-anchor: middle;\n  fill: #727375;\n  font-size: 14px;\n  pointer-events: none;\n}\n.modalDay text.smbgDayLabel {\n  text-anchor: end;\n  font-size: 16px;\n}\n.modalDay.highlight circle {\n  opacity: 1.0;\n}\n.modalDay.highlight path {\n  opacity: 1.0;\n}\n.monday circle {\n  fill: #66c2a5;\n}\n.monday path {\n  stroke: #66c2a5;\n}\n.tuesday circle {\n  fill: #fc8d62;\n}\n.tuesday path {\n  stroke: #fc8d62;\n}\n.wednesday circle {\n  fill: #8da0cb;\n}\n.wednesday path {\n  stroke: #8da0cb;\n}\n.thursday circle {\n  fill: #e78ac3;\n}\n.thursday path {\n  stroke: #e78ac3;\n}\n.friday circle {\n  fill: #a6d854;\n}\n.friday path {\n  stroke: #a6d854;\n}\n.saturday circle {\n  fill: #ffd92f;\n}\n.saturday path {\n  stroke: #ffd92f;\n}\n.sunday circle {\n  fill: #e5c494;\n}\n.sunday path {\n  stroke: #e5c494;\n}\n.brushBackgroundDayGroup rect {\n  fill: #f1f1f1;\n}\n#brushHandleGroup rect.extent {\n  fill: #cbcbca;\n  fill-opacity: 0.5;\n  stroke-width: 2.5;\n  stroke: #989897;\n  shape-rendering: crispEdges;\n}\n";
+		".tidelineNavLabel.monday {\n  background-color: #66c2a5 !important;\n}\n.tidelineNavLabel.tuesday {\n  background-color: #fc8d62 !important;\n}\n.tidelineNavLabel.wednesday {\n  background-color: #8da0cb !important;\n}\n.tidelineNavLabel.thursday {\n  background-color: #e78ac3 !important;\n}\n.tidelineNavLabel.friday {\n  background-color: #a6d854 !important;\n}\n.tidelineNavLabel.saturday {\n  background-color: #ffd92f !important;\n}\n.tidelineNavLabel.sunday {\n  background-color: #e5c494 !important;\n}\n.svg-tooltip-smbg.monday {\n  stroke: #66c2a5;\n}\n.svg-tooltip-smbg.tuesday {\n  stroke: #fc8d62;\n}\n.svg-tooltip-smbg.wednesday {\n  stroke: #8da0cb;\n}\n.svg-tooltip-smbg.thursday {\n  stroke: #e78ac3;\n}\n.svg-tooltip-smbg.friday {\n  stroke: #a6d854;\n}\n.svg-tooltip-smbg.saturday {\n  stroke: #ffd92f;\n}\n.svg-tooltip-smbg.sunday {\n  stroke: #e5c494;\n}\n.d3-axis.d3-left text {\n  text-anchor: end;\n  dominant-baseline: central;\n}\n.solid {\n  opacity: 1.0;\n}\n.modalDay circle {\n  opacity: 0.75;\n}\n.modalDay path {\n  fill: none;\n  opacity: 0.75;\n}\n.modalDay rect {\n  fill: white;\n  opacity: 0.75;\n  pointer-events: none;\n}\n.modalDay text {\n  text-anchor: middle;\n  fill: #727375;\n  font-size: 14px;\n  pointer-events: none;\n}\n.modalDay text.smbgDayLabel {\n  text-anchor: end;\n  font-size: 16px;\n}\n.modalDay.highlight circle {\n  opacity: 1.0;\n}\n.modalDay.highlight path {\n  opacity: 1.0;\n}\n.monday circle {\n  fill: #66c2a5;\n}\n.monday path {\n  stroke: #66c2a5;\n}\n.tuesday circle {\n  fill: #fc8d62;\n}\n.tuesday path {\n  stroke: #fc8d62;\n}\n.wednesday circle {\n  fill: #8da0cb;\n}\n.wednesday path {\n  stroke: #8da0cb;\n}\n.thursday circle {\n  fill: #e78ac3;\n}\n.thursday path {\n  stroke: #e78ac3;\n}\n.friday circle {\n  fill: #a6d854;\n}\n.friday path {\n  stroke: #a6d854;\n}\n.saturday circle {\n  fill: #ffd92f;\n}\n.saturday path {\n  stroke: #ffd92f;\n}\n.sunday circle {\n  fill: #e5c494;\n}\n.sunday path {\n  stroke: #e5c494;\n}\n.smbgPath {\n  stroke-dasharray: 5,7;\n  stroke-linecap: round;\n}\n.brushBackgroundDayGroup rect {\n  fill: #f1f1f1;\n}\n#brushHandleGroup rect.extent {\n  fill: #cbcbca;\n  fill-opacity: 0.5;\n  stroke-width: 2.5;\n  stroke: #989897;\n  shape-rendering: crispEdges;\n}\n#brushHandleGroup text {\n  dominant-baseline: central;\n  fill: #989897;\n  font-size: 14px;\n}\n#brushHandleGroup text.hidden {\n  visibility: hidden;\n}\n#brushHandleGroup text.left {\n  text-anchor: end;\n}\n#brushHandleGroup text.right {\n  text-anchor: start;\n}\n";
 
 /***/ },
-/* 35 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(16);
@@ -21511,7 +20512,7 @@
 	});
 
 /***/ },
-/* 36 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var d3 = window.d3;
@@ -21561,7 +20562,7 @@
 	});
 
 /***/ },
-/* 37 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _ = __webpack_require__(16);
@@ -21629,7 +20630,7 @@
 	});
 
 /***/ },
-/* 38 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var d3 = window.d3;
@@ -21685,6 +20686,1044 @@
 	});
 
 /***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+	var util = __webpack_require__(42);
+
+	var schema = __webpack_require__(64);
+
+	var schemas = {
+	  basal: __webpack_require__(57),
+	  bolus: __webpack_require__(58),
+	  cbg: __webpack_require__(59),
+	  common: __webpack_require__(60),
+	  deviceMeta: schema(),
+	  message: __webpack_require__(61),
+	  settings: __webpack_require__(62),
+	  smbg: __webpack_require__(59),
+	  wizard: __webpack_require__(63)
+	};
+
+	module.exports = {
+	  validateOne: function(datum, result) {
+	    result = result || {valid: [], invalid: []};
+	    var handler = schemas[datum.type];
+	    if (handler == null) {
+	      datum.errorMessage = util.format('No schema defined for data.type[%s]', datum.type);
+	      console.log(new Error(datum.errorMessage), datum);
+	      result.invalid.push(datum);
+	    }
+	    else {
+	      try {
+	        handler(datum);
+	        result.valid.push(datum);
+	      }
+	      catch(e) {
+	        console.log('Oh noes! This is wrong:\n', datum);
+	        console.log(util.format('Error Message: %s%s', datum.type, e.message));
+	        datum.errorMessage = e.message;
+	        result.invalid.push(datum);
+	      }
+	    }
+	  },
+	  validateAll: function(data) {
+	    var result = {valid: [], invalid: []};
+	    for (var i = 0; i < data.length; ++i) {
+	      this.validateOne(data[i], result);
+	    }
+	    return result;
+	  }
+	};
+
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+
+	var format = __webpack_require__(44);
+	var dt = __webpack_require__(38);
+
+	var MS_IN_HOUR = 3600000;
+	var MS_IN_DAY = 86400000;
+
+	function BasalUtil(data) {
+
+	  this.scheduleTotal = function(schedule) {
+	    if ((! (schedule && Array.isArray(schedule) && schedule.length > 0))) {
+	      return NaN;
+	    }
+	    var total = 0, duration;
+	    schedule.push({
+	      start: MS_IN_DAY
+	    });
+	    for (var i = 1; i <= schedule.length - 1; i++) {
+	      duration = schedule[i].start - schedule[i - 1].start;
+	      total += this.segmentDose(duration, schedule[i - 1].rate);
+	    }
+
+	    schedule.pop();
+
+	    return format.fixFloatingPoint(total);
+	  };
+
+	  this.segmentDose = function(duration, rate) {
+	    var hours = duration / MS_IN_HOUR;
+	    return format.fixFloatingPoint(hours * rate);
+	  };
+
+	  this.subtotal = function(endpoints) {
+	    var dose = 0.0;
+	    var start = new Date(endpoints.start.datetime), end = new Date(endpoints.end.datetime);
+	    // handle first segment, which may have started before the start endpoint
+	    var segment = this.actual[endpoints.start.index];
+	    dose += this.segmentDose((new Date(segment.normalEnd) - start), segment.rate);
+	    var i = endpoints.start.index + 1;
+	    while (i < endpoints.end.index) {
+	      segment = this.actual[i];
+	      dose += this.segmentDose(segment.duration, segment.rate);
+	      i++;
+	    }
+	    segment = this.actual[endpoints.end.index];
+	    // handle last segment, which may go past the end endpoint
+	    dose += this.segmentDose((end - new Date(segment.normalTime)), segment.rate);
+	    return format.fixFloatingPoint(dose);
+	  };
+
+	  this.isContinuous = function(s, e) {
+	    var start = new Date(s), end = new Date(e);
+	    var startIndex = _.findIndex(this.actual, function(segment) {
+	        return (new Date(segment.normalTime).valueOf() <= start) && (start <= new Date(segment.normalEnd).valueOf());
+	      });
+	    var endIndex = _.findIndex(this.actual, function(segment) {
+	        return (new Date(segment.normalTime).valueOf() <= end) && (end <= new Date(segment.normalEnd).valueOf());
+	      });
+	    if ((startIndex >= 0) && (endIndex >= 0)) {
+	      var i = startIndex;
+	      while (i < endIndex) {
+	        var s1 = this.actual[i], s2 = this.actual[i + 1];
+	        if (s1.normalEnd !== s2.normalTime) {
+	          return false;
+	        }
+	        i++;
+	      }
+	      return {
+	        start: {
+	          datetime: start.toISOString(),
+	          index: startIndex
+	        },
+	        end: {
+	          datetime: end.toISOString(),
+	          index: endIndex
+	        }
+	      };
+	    }
+	    else {
+	      return false;
+	    }
+	  };
+
+	  this.totalBasal = function(s, e, opts) {
+	    opts = opts || {};
+	    if (dt.verifyEndpoints(s, e, this.endpoints)) {
+	      var endpoints;
+	      if (dt.isTwentyFourHours(s, e)) {
+	        endpoints = this.isContinuous(s, e);
+	        if (endpoints) {
+	          return {total: this.subtotal(endpoints)};
+	        }
+	        else {
+	          return {total: NaN};
+	        }
+	      }
+	      else if (dt.isLessThanTwentyFourHours(s, e)) {
+	        return {total: NaN};
+	      }
+	      else {
+	        var dose = 0.0;
+	        var excluded = [];
+	        var start = new Date(s), end = new Date(e);
+	        var n = dt.getNumDays(s, e);
+	        for (var j = 0; j < n; j++) {
+	          var dayStart = new Date(start);
+	          var dayEnd = new Date(dayStart);
+	          dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+	          endpoints = this.isContinuous(dayStart.toISOString(), dayEnd.toISOString());
+	          if (endpoints && dt.isTwentyFourHours(dayStart.toISOString(), dayEnd.toISOString())) {
+	            if (isNaN(this.subtotal(endpoints))) {
+	              excluded.push(dayStart.toISOString());
+	            }
+	            else {
+	              dose += this.subtotal(endpoints);
+	            }
+	          }
+	          else {
+	            excluded.push(dayStart.toISOString());
+	          }
+	          start.setUTCDate(start.getUTCDate() + 1);
+	        }
+	        if (excluded.length <= opts.exclusionThreshold) {
+	          return {
+	            total: dose,
+	            excluded: excluded
+	          };
+	        }
+	        else {
+	          return {
+	            total: NaN,
+	            excluded: excluded
+	          };
+	        }
+	      }
+	    }
+	    else {
+	      return {total: NaN};
+	    }
+	  };
+
+	  this.actual = data;
+
+	  this.data = data || [];
+	  if (this.data.length > 0) {
+	    this.endpoints = [this.data[0].normalTime, dt.addDuration(this.data[this.data.length - 1].normalTime, this.data[this.data.length - 1].duration)];
+	  }
+	}
+
+	module.exports = BasalUtil;
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+	var crossfilter = __webpack_require__(40);
+
+	var commonbolus = __webpack_require__(66);
+	var format = __webpack_require__(44);
+	var datetime = __webpack_require__(38);
+
+	function BolusUtil(data) {
+
+	  this.subtotal = function(s, e) {
+	    var dose = 0.0;
+	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
+	    dataByDate.filter([start, end]);
+	    var currentData = dataByDate.top(Infinity).reverse();
+	    var firstBolus = _.findIndex(currentData, function(bolus) {
+	      var d = bolus.normalTime;
+	      return (d >= start) && (d <= end);
+	    });
+	    if (firstBolus !== -1) {
+	      _.forEach(currentData, function(d) {
+	        dose += commonbolus.getDelivered(d);
+	      });
+	    }
+	    return format.fixFloatingPoint(dose);
+	  };
+
+	  this.totalBolus = function(s, e, opts) {
+	    opts = opts || {};
+	    if (datetime.verifyEndpoints(s, e, this.endpoints)) {
+	      var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	      var total = 0.0;
+	      if (datetime.isTwentyFourHours(s, e)) {
+	        total += this.subtotal(s, e);
+	      }
+	      else if (datetime.isLessThanTwentyFourHours(s, e)) {
+	        return NaN;
+	      }
+	      else {
+	        if ((opts.excluded) && (opts.excluded.length > 0)) {
+	          var first = new Date(start).toISOString();
+	          var ex = opts.excluded[0];
+	          var bolus = this;
+	          opts.excluded.forEach(function(ex) {
+	            // exclude boluses that happen to be directly on first timestamp
+	            if (first !== ex) {
+	              total += bolus.subtotal(first, ex);
+	            }
+	            first = datetime.addDays(ex, 1);
+	          });
+	          if (first !== end) {
+	            total += this.subtotal(first, end);
+	          }
+	        }
+	        else {
+	          total += this.subtotal(start, end);
+	        }
+	      }
+	      return format.fixFloatingPoint(total);
+	    }
+	    else {
+	      return NaN;
+	    }
+	  };
+
+	  this.data = data || [];
+	  var filterData = crossfilter(this.data);
+	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
+	  if (this.data.length > 0) {
+	    this.endpoints = [this.data[0].normalTime, this.data[this.data.length - 1].normalTime];
+	  }
+	}
+
+	module.exports = BolusUtil;
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+	var crossfilter = __webpack_require__(40);
+
+	var datetime = __webpack_require__(38);
+
+	function BGUtil(data, opts) {
+
+	  opts = opts || {};
+	  var defaults = {
+	    bgClasses: {
+	      low: {boundary: 80},
+	      target: {boundary: 180}
+	    },
+	    bgUnits: 'mg/dL'
+	  };
+	  _.defaults(opts, defaults);
+
+	  if (opts.DAILY_MIN == null) {
+	    throw new Error('BGUtil needs a daily minimum readings (`opts.DAILY_MIN`) in order to calculate a statistic.');
+	  }
+
+	  var MS_IN_24 = 86400000;
+	  var currentIndex = 0, currentData;
+
+	  var defaultResult = {
+	    low: 0,
+	    target: 0,
+	    high: 0,
+	    total: 0
+	  };
+
+	  var breakdownNaN = {
+	    low: NaN,
+	    target: NaN,
+	    high: NaN,
+	    total: NaN
+	  };
+
+	  function getCategory (n) {
+	    if (n <= opts.bgClasses.low.boundary) {
+	      return 'low';
+	    }
+	    else if ((n > opts.bgClasses.low.boundary) && (n <= opts.bgClasses.target.boundary)) {
+	      return 'target';
+	    }
+	    else {
+	      return 'high';
+	    }
+	  }
+
+	  this.filtered = function(s, e) {
+	    if (!currentData) {
+	      currentData = filterData.getAll(dataByDate);
+	    }
+	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
+	    dataByDate.filter([start, end]);
+	    var filteredObj = {
+	      data: dataByDate.top(Infinity).reverse(),
+	      excluded: []
+	    };
+	    var filtered = filteredObj.data;
+	    if (filtered.length < this.threshold(s, e)) {
+	      filteredObj.excluded.push(new Date(s).toISOString());
+	      filteredObj.data = [];
+	      return filteredObj;
+	    }
+	    else {
+	      return filteredObj;
+	    }
+	  };
+
+	  this.filter = function(s, e, exclusionThreshold) {
+	    if (datetime.verifyEndpoints(s, e, this.endpoints)) {
+	      if (datetime.isTwentyFourHours(s, e)) {
+	        return this.filtered(s, e);
+	      }
+	      else if (datetime.isLessThanTwentyFourHours(s, e)) {
+	        return {data: [], excluded: []};
+	      }
+	      else {
+	        var time = new Date(s).valueOf(), end = new Date(e).valueOf();
+	        var result = [], excluded = [], next;
+	        while (time < end) {
+	          next = new Date(datetime.addDays(time, 1)).valueOf();
+	          if (datetime.isTwentyFourHours(time, next)) {
+	            var filtered = this.filtered(time, next);
+	            result = result.concat(filtered.data);
+	            excluded = excluded.concat(filtered.excluded);
+	          }
+	          time = new Date(next).valueOf();
+	        }
+	        if (excluded.length > exclusionThreshold) {
+	          return {data: [], excluded: excluded};
+	        }
+	        else {
+	          return {data: result, excluded: excluded};
+	        }
+	      }
+	    }
+	    else {
+	      return {data: [], excluded: []};
+	    }
+	  };
+
+	  this.rangeBreakdown = function(filtered) {
+	    if (!this.data[0]) {
+	      return breakdownNaN;
+	    }
+	    var breakdown = {type: this.data[0].type};
+	    if (filtered.length > 0) {
+	      var groups = _.countBy(filtered, function(d) {
+	        return getCategory(d.value);
+	      });
+	      breakdown = _.defaults(breakdown, groups, defaultResult);
+	      breakdown.total = breakdown.low + breakdown.target + breakdown.high;
+	    }
+	    return _.defaults(breakdown, breakdownNaN);
+	  };
+
+	  this.average = function(filtered) {
+	    if (filtered.length > 0) {
+	      var sum = _.reduce(filtered, function(memo, d) {
+	        return memo + d.value;
+	      }, 0);
+	      var average;
+	      if (opts.bgUnits === 'mmol/L') {
+	        average = (sum/filtered.length).toFixed(1);
+	      }
+	      else {
+	        average = parseInt((sum/filtered.length).toFixed(0), 10);
+	      }
+	      
+	      return {value: average, category: getCategory(average)};
+	    }
+	    else {
+	      return {value: NaN, category: '', excluded: filtered.excluded};
+	    }
+	  };
+
+	  this.threshold = function(s, e) {
+	    var difference = new Date(e) - new Date(s);
+	    return Math.floor(opts.DAILY_MIN * (difference/MS_IN_24));
+	  };
+
+	  this.getStats = function(s, e, opts) {
+	    opts = opts || {};
+	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
+	    dataByDate.filter([start, end]);
+	    currentData = dataByDate.top(Infinity).reverse();
+	    var filtered = this.filter(s, e, opts.exclusionThreshold);
+	    var average = this.average(filtered.data);
+	    average.excluded = filtered.excluded;
+	    var breakdown = this.rangeBreakdown(filtered.data);
+	    breakdown.excluded = filtered.excluded;
+	    return {
+	      average: average,
+	      breakdown: breakdown
+	    };
+	  };
+
+	  this.data = data || [];
+	  var filterData = crossfilter(this.data);
+	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
+	  if (this.data.length > 0) {
+	    this.endpoints = [this.data[0].normalTime, this.data[data.length - 1].normalTime];
+	  }
+	}
+
+	module.exports = BGUtil;
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+
+	var dt = __webpack_require__(38);
+
+	function SettingsUtil(data, endpoints) {
+
+	  function findStarts(ms, starts) {
+	    for (var i = 0; i < starts.length; ++i) {
+	      var start = starts[i];
+	      if (i !== starts.length - 1) {
+	        if (ms >= start && ms < starts[i + 1]) {
+	          return {starts: [start, starts[i + 1]], startIndex: i+1};
+	        }
+	      }
+	      else {
+	        return {starts:[start], startIndex: 0};
+	      }
+	    }
+	  }
+
+	  function getSegmentsForSchedule(opts) {
+	    var sched = opts.schedule;
+	    if (sched.value.length === 0) {
+	      return [];
+	    }
+	    var s = opts.start, e = opts.end;
+	    var starts = [];
+	    var ratesByStart = {};
+	    var segments;
+	    for (var i = 0; i < sched.value.length; ++i) {
+	      starts.push(sched.value[i].start);
+	      ratesByStart[sched.value[i].start] = sched.value[i].rate;
+	    }
+	    var startsObj = findStarts(dt.getMsFromMidnight(s), starts);
+	    var startPair = startsObj.starts;
+	    var firstSegmentEnd = (startPair.length === 2) ?
+	      dt.composeMsAndDateString(startPair[1], s) :
+	      dt.composeMsAndDateString(starts[0], dt.addDays(s, 1));
+	    segments = [{
+	      type: 'basal-settings-segment',
+	      schedule: sched.name,
+	      normalTime: s,
+	      normalEnd: firstSegmentEnd,
+	      value: ratesByStart[startPair[0]],
+	      active: opts.active,
+	      confidence: opts.confidence,
+	      id: sched.name.replace(' ', '_') + '_' + s.replace(/[^\w\s]|_/g, '')
+	    }];
+	    var currentDatetime = firstSegmentEnd, currentIndex = startsObj.startIndex;
+	    while (currentDatetime < e) {
+	      var end;
+	      if (currentIndex !== starts.length - 1) {
+	        end =  dt.composeMsAndDateString(starts[currentIndex + 1], currentDatetime);
+	      }
+	      else {
+	        end = dt.composeMsAndDateString(0, dt.addDays(currentDatetime, 1));
+	      }
+	      if (end > e) {
+	        end = e;
+	      }
+	      segments.push({
+	        type: 'basal-settings-segment',
+	        schedule: sched.name,
+	        normalTime: currentDatetime,
+	        normalEnd: end,
+	        value: ratesByStart[starts[currentIndex]],
+	        active: opts.active,
+	        confidence: opts.confidence,
+	        id: sched.name.replace(' ', '_') + '_' + currentDatetime.replace(/[^\w\s]|_/g, '')
+	      });
+	      if (currentIndex !== starts.length - 1) {
+	        currentIndex++;
+	      }
+	      else {
+	        currentIndex = 0;
+	      }
+	      currentDatetime = end;
+	    }
+	    return segments;
+	  }
+
+	  this.annotateBasalSettings = function(a) {
+	    // don't necessarily want unsquashing of midnights to propogate beyond this method
+	    // hence using _.cloneDeep() to copy the array
+	    var actuals = _.cloneDeep(a) || [];
+
+	    var actualsByInterval = {};
+
+	    for (var i = 0; i < actuals.length; ++i) {
+	      var actual = actuals[i];
+	      if (dt.isSegmentAcrossMidnight(actual.normalTime, dt.addDuration(actual.normalTime, actual.duration))) {
+	        var midnight = dt.getMidnight(actual.normalTime, true);
+	        var end = dt.addDuration(actual.normalTime, actual.duration);
+	        var firstDuration = Date.parse(midnight) - Date.parse(actual.normalTime);
+	        var newActual = _.clone(actual);
+	        newActual.normalTime = midnight;
+	        newActual.duration = actual.duration - firstDuration;
+	        actual.duration = firstDuration;
+	        actuals.splice(i + 1, 0, newActual);
+	        actual = actuals[i];
+	      }
+	      // Animas basal schedules have a resolution of thirty minutes
+	      var s = dt.roundToNearestMinutes(actual.normalTime, 30);
+	      var e = dt.roundToNearestMinutes(dt.addDuration(actual.normalTime, actual.duration), 30);
+	      actualsByInterval[s + '/' + e] = actual;
+	    }
+	    for (var key in this.segmentsBySchedule) {
+	      var currentSchedule = this.segmentsBySchedule[key];
+	      if (currentSchedule.length === 0) {
+	        return;
+	      }
+	      for (var j = 0; j < currentSchedule.length; ++j) {
+	        var segment = currentSchedule[j];
+	        var interval = segment.normalTime + '/' + segment.normalEnd;
+	        if (actualsByInterval[interval]) {
+	          var matchedActual = actualsByInterval[interval];
+	          if (segment.value === matchedActual.rate) {
+	            segment.actualized = true;
+	          }
+	        }
+	      }
+	    }
+	    return this.segmentsBySchedule;
+	  };
+
+	  this.getAllSchedules = function(s, e) {
+	    if (dt.verifyEndpoints(s, e, this.endpoints) && this.data.length !== 0) {
+	      var settingsIntervals = this.getIntervals(s, e);
+	      var segmentsBySchedule = {};
+	      if (settingsIntervals) {
+	        for (var i = 0; i < settingsIntervals.length; ++i) {
+	          var interval = settingsIntervals[i];
+	          for (var j = 0; j < interval.settings.basalSchedules.length; ++j) {
+	            var schedule = interval.settings.basalSchedules[j];
+	            if (segmentsBySchedule[schedule.name]) {
+	              segmentsBySchedule[schedule.name] = segmentsBySchedule[schedule.name].concat(getSegmentsForSchedule({
+	                schedule: schedule,
+	                start: interval.start,
+	                end: interval.end,
+	                active: schedule.name === interval.settings.activeBasalSchedule,
+	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
+	              }));
+	            }
+	            // there can be schedules in the settings with an empty array as their value
+	            else if (schedule.value.length > 0) {
+	              segmentsBySchedule[schedule.name] = getSegmentsForSchedule({
+	                schedule: schedule,
+	                start: interval.start,
+	                end: interval.end,
+	                active: schedule.name === interval.settings.activeBasalSchedule,
+	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
+	              });
+	            }
+	          }
+	        }
+	        this.segmentsBySchedule = segmentsBySchedule;
+	        return segmentsBySchedule;
+	      }
+	      else {
+	        return [];
+	      }
+	    }
+	    else {
+	      return [];
+	    }
+	  };
+
+	  this.getIntervals = function(s, e) {
+	    var actualIntervals = [];
+	    for (var i = 0; i < this.intervals.length; ++i) {
+	      var interval = this.intervals[i];
+	      var intervalEndpoints = [interval.start, interval.end];
+	      if (dt.checkIfDateInRange(s, intervalEndpoints) &&
+	        dt.checkIfDateInRange(e, intervalEndpoints)) {
+	        actualIntervals.push({
+	          start: s,
+	          end: e,
+	          settings: interval.settings
+	        });
+	      }
+	      else {
+	        if (dt.checkIfDateInRange(s, intervalEndpoints)) {
+	          actualIntervals.push({
+	            start: s,
+	            end: interval.end,
+	            settings: interval.settings
+	          });
+	        }
+	        if (dt.checkIfDateInRange(e, intervalEndpoints)) {
+	          actualIntervals.push({
+	            start: interval.start,
+	            end: e,
+	            settings: interval.settings
+	          });
+	        }
+	        if (s < interval.start && e > interval.end) {
+	          actualIntervals.push({
+	            start: interval.start,
+	            end: interval.end,
+	            settings: interval.settings
+	          });
+	        }
+	      }
+	    }
+	    if (actualIntervals.length === 0) {
+	      return undefined;
+	    }
+	    return actualIntervals;
+	  };
+
+	  this.data = data || [];
+	  // valid endpoints for settings are endpoints of all diabetes data
+	  this.endpoints = endpoints;
+	  // intervals of effectiveness of a settings object
+	  this.intervals = _.reject(_.flatten(_.map(this.data, function(d, i, data) {
+	    if (i === 0) {
+	      if (this.endpoints[1] === d.normalTime) {
+	        return {
+	          start: this.endpoints[0],
+	          end: this.endpoints[1],
+	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
+	        };
+	      }
+	      else {
+	        return [{
+	          start: this.endpoints[0],
+	          end: d.normalTime,
+	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
+	        },{
+	          start: d.normalTime,
+	          end: data[1] ? data[1].normalTime : this.endpoints[1],
+	          settings: _.clone(d)
+	        }];
+	      }
+	    }
+	    else {
+	      if (i !== data.length - 1) {
+	        return {
+	          start: d.normalTime,
+	          end: data[i + 1].normalTime,
+	          settings: _.clone(d)
+	        };
+	      }
+	      else {
+	        return {
+	          start: d.normalTime,
+	          end: this.endpoints[1],
+	          settings: _.clone(d)
+	        };
+	      }
+	    }
+	  }, this)), function(d) {
+	    return d.start === d.end;
+	  });
+	}
+
+	module.exports = SettingsUtil;
+
+/***/ },
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(16);
+	var moment = __webpack_require__(41);
+
+	var datetime = {
+
+	  APPEND: 'T00:00:00.000Z',
+
+	  MS_IN_24: 86400000,
+
+	  addDays: function(s, n) {
+	    var d = moment(s);
+	    d.add(n, 'days');
+	    return d.toISOString();
+	  },
+
+	  addDuration: function(datetime, duration) {
+	    datetime = new Date(datetime);
+
+	    return new Date(datetime.valueOf() + duration).toISOString();
+	  },
+
+	  adjustToInnerEndpoints: function(s, e, endpoints) {
+	    if (!endpoints) {
+	      return null;
+	    }
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    var thisTypeStart = new Date(endpoints[0]).valueOf(), thisTypeEnd = new Date(endpoints[1]).valueOf();
+	    if (start < thisTypeStart) {
+	      return [thisTypeStart, end];
+	    }
+	    else if (end > thisTypeEnd) {
+	      return [start, thisTypeEnd];
+	    }
+	    else {
+	      return [start, end];
+	    }
+	  },
+
+	  checkIfDateInRange: function(s, endpoints) {
+	    var d = new Date(s);
+	    var start = new Date(endpoints[0]);
+	    var end = new Date(endpoints[1]);
+	    if ((d.valueOf() >= start.valueOf()) && (d.valueOf() <= end.valueOf())) {
+	      return true;
+	    }
+	    else {
+	      return false;
+	    }
+	  },
+
+	  checkIfUTCDate: function(s) {
+	    var d = new Date(s);
+	    if (typeof s === 'number') {
+	      if (d.getUTCFullYear() < 2008) {
+	        return false;
+	      }
+	      else {
+	        return true;
+	      }
+	    }
+	    else if (s.slice(s.length - 1, s.length) !== 'Z') {
+	      return false;
+	    }
+	    else {
+	      if (s === d.toISOString()) {
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	  },
+
+	  composeMsAndDateString: function(ms, d) {
+	    return new Date(ms + new Date(this.toISODateString(d) + this.APPEND).valueOf()).toISOString();
+	  },
+
+	  difference: function(d2, d1) {
+	    return new Date(d2) - new Date(d1);
+	  },
+
+	  getDuration: function(d1, d2) {
+	    return new Date(d2).valueOf() - new Date(d1).valueOf();
+	  },
+
+	  getMidnight: function(d, next) {
+	    if (next) {
+	      return this.getMidnight(this.addDays(d, 1));
+	    }
+	    else {
+	      return this.toISODateString(d) + this.APPEND;
+	    }
+	  },
+
+	  getMsFromMidnight: function(d) {
+	    var midnight = new Date(this.getMidnight(d)).valueOf();
+	    return new Date(d).valueOf() - midnight;
+	  },
+
+	  getNumDays: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    return Math.ceil((end - start)/this.MS_IN_24);
+	  },
+
+	  isLessThanTwentyFourHours: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    if (end - start < this.MS_IN_24) {
+	      return true;
+	    }
+	    else { return false; }
+	  },
+
+	  isNearRightEdge: function(d, edge) {
+	    // check if d.normalTime is within six hours before edge
+	    var t = new Date(d.normalTime);
+	    if (edge.valueOf() - t.valueOf() < this.MS_IN_24/4) {
+	      return true;
+	    }
+	    return false;
+	  },
+
+	  isSegmentAcrossMidnight: function(s, e) {
+	    var start = new Date(s), end = new Date(e);
+	    var startDate = this.toISODateString(s), endDate = this.toISODateString(e);
+	    if (startDate === endDate) {
+	      return false;
+	    }
+	    else {
+	      if (end.getUTCDate() === start.getUTCDate() + 1) {
+	        if (this.getMidnight(e) === e) {
+	          return false;
+	        }
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	  },
+
+	  isTwentyFourHours: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    if (end - start === this.MS_IN_24) {
+	      return true;
+	    }
+	    else { return false; }
+	  },
+
+	  roundToNearestMinutes: function(d, resolution) {
+	    var date = new Date(d);
+	    var min = date.getUTCMinutes();
+	    var values = _.range(0, 60, resolution);
+	    for (var i = 0; i < values.length; ++i) {
+	      if (min - values[i] < resolution/2) {
+	        date.setUTCMinutes(values[i]);
+	        return date.toISOString();
+	      }
+	      else if (i === values.length - 1) {
+	        date.setUTCMinutes(0);
+	        date.setUTCHours(date.getUTCHours() + 1);
+	        return date.toISOString();
+	      }
+	    }
+	  },
+
+	  toISODateString: function(d) {
+	    var date = new Date(d);
+	    return date.toISOString().slice(0,10);
+	  },
+
+	  smbgEdge: function(d) {
+	    var date = new Date(d);
+	    if (date.getUTCHours() <= 2) {
+	      return 'left';
+	    }
+	    else if (date.getUTCHours() >= 21) {
+	      return 'right';
+	    }
+	    else {
+	      return null;
+	    }
+	  },
+
+	  verifyEndpoints: function(s, e, endpoints) {
+	    if (!endpoints) {
+	      return null;
+	    }
+	    if (this.checkIfUTCDate(s) && this.checkIfUTCDate(e)) {
+	      endpoints = this.adjustToInnerEndpoints(s, e, endpoints);
+	      s = endpoints[0];
+	      e = endpoints[1];
+	      if (this.checkIfDateInRange(s, endpoints) && this.checkIfDateInRange(e, endpoints)) {
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	    else {
+	      return false;
+	    }
+	  }
+	};
+
+	module.exports = datetime;
+
+/***/ },
 /* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -21715,7 +21754,7 @@
 /* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(67).crossfilter;
+	module.exports = __webpack_require__(69).crossfilter;
 
 
 /***/ },
@@ -25062,7 +25101,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(95);
+	exports.isBuffer = __webpack_require__(74);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -25106,7 +25145,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(176);
+	exports.inherits = __webpack_require__(175);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -25198,7 +25237,7 @@
 	 */
 
 	var d3 = __webpack_require__(9);
-	var Duration = __webpack_require__(175);
+	var Duration = __webpack_require__(176);
 	var moment = __webpack_require__(41);
 
 	var format = {
@@ -25348,7 +25387,7 @@
 	var bows = __webpack_require__(14);
 	var d3 = __webpack_require__(9);
 
-	var EventEmitter = __webpack_require__(69).EventEmitter;
+	var EventEmitter = __webpack_require__(67).EventEmitter;
 
 	var tideline = __webpack_require__(72);
 	var fill = tideline.plot.util.fill;
@@ -25889,7 +25928,7 @@
 	var bows = __webpack_require__(14);
 	var d3 = __webpack_require__(9);
 
-	var EventEmitter = __webpack_require__(69).EventEmitter;
+	var EventEmitter = __webpack_require__(67).EventEmitter;
 
 	var tideline = __webpack_require__(72);
 	var fill = tideline.plot.util.fill;
@@ -26069,7 +26108,7 @@
 	var bows = __webpack_require__(14);
 	var d3 = __webpack_require__(9);
 
-	var EventEmitter = __webpack_require__(69).EventEmitter;
+	var EventEmitter = __webpack_require__(67).EventEmitter;
 
 	var tideline = __webpack_require__(72);
 
@@ -26107,45 +26146,450 @@
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
+	var _ = __webpack_require__(16);
+	var d3 = window.d3;
+	var moment = __webpack_require__(41);
 
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
+	var format = __webpack_require__(44);
+	var shapes = __webpack_require__(73);
 
-	var basalCommon = {
-	  deliveryType: schema().in(['scheduled', 'suspend', 'temp']),
-	  deviceTime: schema().isDeviceTime(),
-	  duration: schema().ifExists().number().min(0),
-	  normalEnd: schema().isISODateTime(),
-	  rate: schema().number().min(0)
-	};
+	d3.chart('SMBGDay', {
+	  initialize: function() {
+	    var chart = this;
 
-	module.exports = schema(
-	  common,
-	  schema(basalCommon),
-	  {
-	    suppressed: schema().ifExists().object(basalCommon)
+	    var xPosition = function(d) {
+	      var msPer24Pos = Date.parse(d.normalTime) - d3.time.day.utc.floor(new Date(d.normalTime));
+	      return chart.xScale()(msPer24Pos);
+	    };
+
+	    var yPosition = function(d) {
+	      return chart.yScale()(d.value);
+	    };
+
+	    this.layer('smbgLines', this.base.append('g').attr('class', 'smbgLines'), {
+	      dataBind: function(data) {
+	        var pathData = _.map(_.sortBy(data, function(d) { return d.normalTime; }), function(d) {
+	          return [
+	            xPosition(d),
+	            yPosition(d)
+	          ];
+	        });
+	        return this.selectAll('path')
+	          .data([pathData]);
+	      },
+	      insert: function() {
+	        return this.append('path')
+	          .attr('class', 'smbgPath');
+	      },
+	      events: {
+	        enter: function() {
+	          var line = d3.svg.line()
+	            .x(function(d) { return d[0]; })
+	            .y(function(d) { return d[1]; })
+	            .interpolate('linear');
+	          this.attr({
+	            d: function(d) {
+	              return line(d);
+	            },
+	            'stroke-width': chart.smbgOpts().stroke,
+	            visibility: chart.showingLines() ? 'visible': 'hidden'
+	          });
+	        },
+	        exit: function() {
+	          this.remove();
+	        }
+	      }
+	    });
+
+	    this.layer('smbgCircles', this.base.append('g').attr('class', 'smbgCircles'), {
+	      dataBind: function(data) {
+	        return this.selectAll('circle')
+	          .data(data, function(d) { return d.id; });
+	      },
+	      insert: function() {
+	        return this.append('circle')
+	          .attr('class', 'smbgCircle');
+	      },
+	      events: {
+	        enter: function() {
+	          this.attr({
+	            cx: xPosition,
+	            cy: yPosition,
+	            r: chart.smbgOpts().r
+	          })
+	          .on('mouseover', function(d) {
+	            chart.base.select('.smbgPath').attr('visibility', 'visible');
+	            var day = chart.base.attr('class').replace('modalDay ', '');
+	            var tooltipGroup = d3.select('#modalHighlightGroup').append('g')
+	              .attr({
+	                id: 'tooltip_' + d.id,
+	                'class': 'd3-tooltip d3-smbg svg-tooltip-smbg ' + day,
+	                transform: 'translate(' + xPosition(d) + ',' + yPosition(d) + ')'
+	              });
+	            var foGroup = tooltipGroup.append('foreignObject')
+	              .attr({
+	                // need to set an initial width to give the HTML something to shape itself in relation to
+	                width: 200,
+	                // hide the foreignObject initially so that the resizing isn't visible
+	                visibility: 'hidden',
+	                'class': 'svg-tooltip-fo svg-tooltip-left-and-up'
+	              })
+	              .append('xhtml:div')
+	              .attr({
+	                'class': 'tooltip-div'
+	              });
+	            foGroup.append('p')
+	              .append('span')
+	              .attr('class', 'secondary')
+	              .html('<span class="fromto">at</span> ' + format.timestamp(d.normalTime));
+	            foGroup.append('p')
+	              .attr('class', 'value')
+	              .append('span')
+	              .html(format.tooltipBG(d, chart.smbgOpts().units));
+	            var widths = [];
+	            foGroup.selectAll('span')
+	              .each(function() {
+	                widths.push(d3.select(this)[0][0].getBoundingClientRect().width);
+	              });
+	            var foWidth = d3.max(widths), foHeight = foGroup[0][0].offsetHeight;
+	            var opts = {w: foWidth + 20, h: foHeight, y:-foHeight, orientation: {
+	              'default': 'normal'
+	            }};
+	            var foItself = tooltipGroup.select('.svg-tooltip-fo')
+	              .attr({
+	                width: opts.w,
+	                height: opts.h,
+	                visibility: 'visible'
+	              });
+	            var shape = 'smbg';
+	            var offsetVal = shapes[shape].offset();
+	            shapes[shape].offset(foItself, {x: offsetVal, y: opts.y - offsetVal});
+	            _.each(shapes[shape].els, function(el) {
+	              var attrs = _.clone(el.attrs);
+	              for (var prop in attrs) {
+	                // polygons have a pointsFn to generate the proper size polygon given the input dimensions
+	                if (typeof attrs[prop] === 'function') {
+	                  var res = attrs[prop](opts);
+	                  if (shapes[shape].orientations) {
+	                    res = shapes[shape].orientations[opts.orientation['default']](res);
+	                  }
+	                  // pointsFn isn't a proper SVG attribute, of course, so must be deleted
+	                  delete attrs[prop];
+	                  attrs[prop.replace('Fn', '')] = res;
+	                }
+	              }
+	              tooltipGroup.insert(el.el, '.svg-tooltip-fo')
+	                .attr(attrs);
+	            });
+	          })
+	          .on('mouseout', function(d) {
+	            chart.base.select('.smbgPath').attr('visibility', chart.showingLines() ? 'visible': 'hidden');
+	            d3.select('#tooltip_' + d.id).remove();
+	          });
+	        },
+	        exit: function() {
+	          this.remove();
+	        }
+	      }
+	    });
+	  },
+	  showingLines: function(showingLines) {
+	    if (!arguments.length) { return this._showingLines; }
+	    this._showingLines = showingLines;
+	    return this;
+	  },
+	  smbgOpts: function(smbgOpts) {
+	    if (!arguments.length) { return this._smbgOpts; }
+	    this._smbgOpts = smbgOpts;
+	    return this;
+	  },
+	  xScale: function(xScale) {
+	    if (!arguments.length) { return this._xScale; }
+	    this._xScale = xScale;
+	    return this;
+	  },
+	  yScale: function(yScale) {
+	    if (!arguments.length) { return this._yScale; }
+	    this._yScale = yScale;
+	    return this;
 	  }
-	);
+	});
 
+	var chart;
+
+	module.exports = {
+	  create: function(el, scales, opts) {
+	    opts = opts || {};
+	    var defaults = {
+	      smbg: {
+	        r: 5,
+	        stroke: 3,
+	        units: 'mg/dL'
+	      }
+	    };
+	    _.defaults(opts, defaults);
+
+	    chart = d3.select(el)
+	      .chart('SMBGDay')
+	      .showingLines(opts.showingLines)
+	      .smbgOpts(opts.smbg)
+	      .xScale(scales.x)
+	      .yScale(scales.y);
+
+	    return this;
+	  },
+	  render: function(data, opts) {
+	    opts = opts || {};
+	    var defaults = {};
+	    _.defaults(opts, defaults);
+
+	    chart.draw(data);
+
+	    return this;
+	  }
+	};
 
 /***/ },
 /* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(16);
+	var d3 = window.d3;
+	var moment = __webpack_require__(41);
+
+	d3.chart('SMBGInfo', {
+	  initialize: function() {
+	    var chart = this;
+
+	    var xPosition = function(d) {
+	      var msPer24Pos = Date.parse(d.normalTime) - d3.time.day.utc.floor(new Date(d.normalTime));
+	      return chart.xScale()(msPer24Pos);
+	    };
+
+	    var yPosition = function(d) {
+	      return chart.yScale()(d.value);
+	    };
+
+	    this.layer('smbgInfo', this.base.append('g').attr('class', 'smbgInfo'), {
+	      dataBind: function(data) {
+	        return this.selectAll('g')
+	          .data(data, function(d) { return d.id; });
+	      },
+	      insert: function() {
+	        return this.append('g').attr('class', 'smbgInfoGroup');
+	      },
+	      events: {
+	        enter: function() {
+	          var toEnter = this;
+	          toEnter.append('rect')
+	            .attr({
+	              x: function(d) {
+	                return xPosition(d) - 15;
+	              },
+	              y: function(d) {
+	                return yPosition(d) + 10;
+	              },
+	              width: 30,
+	              height: 20,
+	              fill: '#FFFFFF',
+	              opacity: 0.75
+	            });
+
+	          toEnter.append('text')
+	            .attr({
+	              x: xPosition,
+	              y: function(d) {
+	                return yPosition(d) + 25;
+	              }
+	            })
+	            .text(function(d) { return d.value; });
+	        }
+	      }
+	    });
+	  },
+	  smbgOpts: function(smbgOpts) {
+	    if (!arguments.length) { return this._smbgOpts; }
+	    this._smbgOpts = smbgOpts;
+	    return this;
+	  },
+	  xScale: function(xScale) {
+	    if (!arguments.length) { return this._xScale; }
+	    this._xScale = xScale;
+	    return this;
+	  },
+	  yScale: function(yScale) {
+	    if (!arguments.length) { return this._yScale; }
+	    this._yScale = yScale;
+	    return this;
+	  }
+	});
+
+	var chart;
+
+	module.exports = {
+	  create: function(el, scales, opts) {
+	    opts = opts || {};
+	    var defaults = {};
+	    _.defaults(opts, defaults);
+
+	    chart = d3.select(el)
+	      .chart('SMBGInfo')
+	      .xScale(scales.x)
+	      .yScale(scales.y);
+
+	    return this;
+	  },
+	  render: function(data, opts) {
+	    opts = opts || {};
+	    var defaults = {};
+	    _.defaults(opts, defaults);
+
+	    chart.draw(data);
+
+	    return this;
+	  }
+	};
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule React
+	 */
+
+	"use strict";
+
+	var DOMPropertyOperations = __webpack_require__(75);
+	var EventPluginUtils = __webpack_require__(76);
+	var ReactChildren = __webpack_require__(77);
+	var ReactComponent = __webpack_require__(78);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactContext = __webpack_require__(80);
+	var ReactCurrentOwner = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
+	var ReactDOM = __webpack_require__(83);
+	var ReactDOMComponent = __webpack_require__(84);
+	var ReactDefaultInjection = __webpack_require__(85);
+	var ReactInstanceHandles = __webpack_require__(86);
+	var ReactMount = __webpack_require__(87);
+	var ReactMultiChild = __webpack_require__(88);
+	var ReactPerf = __webpack_require__(89);
+	var ReactPropTypes = __webpack_require__(90);
+	var ReactServerRendering = __webpack_require__(91);
+	var ReactTextComponent = __webpack_require__(92);
+
+	var onlyChild = __webpack_require__(93);
+
+	ReactDefaultInjection.inject();
+
+	var React = {
+	  Children: {
+	    map: ReactChildren.map,
+	    forEach: ReactChildren.forEach,
+	    count: ReactChildren.count,
+	    only: onlyChild
+	  },
+	  DOM: ReactDOM,
+	  PropTypes: ReactPropTypes,
+	  initializeTouchEvents: function(shouldUseTouch) {
+	    EventPluginUtils.useTouchEvents = shouldUseTouch;
+	  },
+	  createClass: ReactCompositeComponent.createClass,
+	  createDescriptor: function(type, props, children) {
+	    var args = Array.prototype.slice.call(arguments, 1);
+	    return type.apply(null, args);
+	  },
+	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
+	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
+	  renderComponent: ReactPerf.measure(
+	    'React',
+	    'renderComponent',
+	    ReactMount.renderComponent
+	  ),
+	  renderComponentToString: ReactServerRendering.renderComponentToString,
+	  renderComponentToStaticMarkup:
+	    ReactServerRendering.renderComponentToStaticMarkup,
+	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
+	  isValidClass: ReactDescriptor.isValidFactory,
+	  isValidComponent: ReactDescriptor.isValidDescriptor,
+	  withContext: ReactContext.withContext,
+	  __internals: {
+	    Component: ReactComponent,
+	    CurrentOwner: ReactCurrentOwner,
+	    DOMComponent: ReactDOMComponent,
+	    DOMPropertyOperations: DOMPropertyOperations,
+	    InstanceHandles: ReactInstanceHandles,
+	    Mount: ReactMount,
+	    MultiChild: ReactMultiChild,
+	    TextComponent: ReactTextComponent
+	  }
+	};
+
+	if ("production" !== process.env.NODE_ENV) {
+	  var ExecutionEnvironment = __webpack_require__(94);
+	  if (ExecutionEnvironment.canUseDOM &&
+	      window.top === window.self &&
+	      navigator.userAgent.indexOf('Chrome') > -1) {
+	    console.debug(
+	      'Download the React DevTools for a better development experience: ' +
+	      'http://fb.me/react-devtools'
+	    );
+
+	    var expectedFeatures = [
+	      // shims
+	      Array.isArray,
+	      Array.prototype.every,
+	      Array.prototype.forEach,
+	      Array.prototype.indexOf,
+	      Array.prototype.map,
+	      Date.now,
+	      Function.prototype.bind,
+	      Object.keys,
+	      String.prototype.split,
+	      String.prototype.trim,
+
+	      // shams
+	      Object.create,
+	      Object.freeze
+	    ];
+
+	    for (var i in expectedFeatures) {
+	      if (!expectedFeatures[i]) {
+	        console.error(
+	          'One or more ES5 shim/shams expected by React are not available: ' +
+	          'http://fb.me/react-warning-polyfills'
+	        );
+	        break;
+	      }
+	    }
+	  }
+	}
+
+	// Version exists only in the open-source version of React, not in Facebook's
+	// internal version.
+	React.version = '0.11.1';
+
+	module.exports = React;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
+
+/***/ },
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -26165,8 +26609,49 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
+
+	var basalCommon = {
+	  deliveryType: schema().in(['scheduled', 'suspend', 'temp']),
+	  deviceTime: schema().isDeviceTime(),
+	  duration: schema().ifExists().number().min(0),
+	  normalEnd: schema().isISODateTime(),
+	  rate: schema().number().min(0)
+	};
+
+	module.exports = schema(
+	  common,
+	  schema(basalCommon),
+	  {
+	    suppressed: schema().ifExists().object(basalCommon)
+	  }
+	);
+
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
 
 	var bolusCommon = schema(
 	  {
@@ -26206,108 +26691,6 @@
 	);
 
 /***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
-
-	module.exports = schema(
-	  common,
-	  {
-	    deviceTime: schema().isDeviceTime(),
-	    units: schema().in(['mg/dL', 'mmol/L']),
-	    value: schema().number()
-	  }
-	);
-
-
-/***/ },
-/* 57 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var schema = __webpack_require__(61);
-
-	module.exports = schema(
-	  {
-	    id: schema().isId(),
-	    joinKey: schema().ifExists().isId(),
-	    normalTime: schema().isISODateTime(),
-	    time: schema().isISODateTime(),
-	    type: schema().string().in(['basal', 'bolus', 'cbg', 'message', 'smbg', 'settings', 'wizard'])
-	  }
-	);
-
-
-/***/ },
-/* 58 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
-
-	module.exports = schema(
-	  common,
-	  {
-	    parentMessage: schema().oneOf(
-	        schema(schema().isNull()), 
-	        schema(schema().isId())
-	    )
-	  }
-	);
-
-/***/ },
 /* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -26328,8 +26711,110 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
+
+	module.exports = schema(
+	  common,
+	  {
+	    deviceTime: schema().isDeviceTime(),
+	    units: schema().in(['mg/dL', 'mmol/L']),
+	    value: schema().number()
+	  }
+	);
+
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var schema = __webpack_require__(64);
+
+	module.exports = schema(
+	  {
+	    id: schema().isId(),
+	    joinKey: schema().ifExists().isId(),
+	    normalTime: schema().isISODateTime(),
+	    time: schema().isISODateTime(),
+	    type: schema().string().in(['basal', 'bolus', 'cbg', 'message', 'smbg', 'settings', 'wizard'])
+	  }
+	);
+
+
+/***/ },
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
+
+	module.exports = schema(
+	  common,
+	  {
+	    parentMessage: schema().oneOf(
+	        schema(schema().isNull()), 
+	        schema(schema().isId())
+	    )
+	  }
+	);
+
+/***/ },
+/* 62 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
 
 	module.exports = schema(
 	  common,
@@ -26409,7 +26894,7 @@
 	);
 
 /***/ },
-/* 60 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -26429,8 +26914,8 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var common = __webpack_require__(57);
-	var schema = __webpack_require__(61);
+	var common = __webpack_require__(60);
+	var schema = __webpack_require__(64);
 
 	module.exports = schema(
 	  common,
@@ -26484,7 +26969,7 @@
 	);
 
 /***/ },
-/* 61 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -26508,7 +26993,7 @@
 
 	var _ = __webpack_require__(16);
 
-	var validator = __webpack_require__(73);
+	var validator = __webpack_require__(95);
 
 	function error() {
 	  var args = Array.prototype.slice.call(arguments, 0);
@@ -26756,453 +27241,66 @@
 
 
 /***/ },
-/* 62 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var _ = __webpack_require__(16);
-	var d3 = window.d3;
-	var moment = __webpack_require__(41);
-
-	var format = __webpack_require__(44);
-	var shapes = __webpack_require__(94);
-
-	d3.chart('SMBGDay', {
-	  initialize: function() {
-	    var chart = this;
-
-	    var xPosition = function(d) {
-	      var msPer24Pos = Date.parse(d.normalTime) - d3.time.day.utc.floor(new Date(d.normalTime));
-	      return chart.xScale()(msPer24Pos);
-	    };
-
-	    var yPosition = function(d) {
-	      return chart.yScale()(d.value);
-	    };
-
-	    this.layer('smbgLines', this.base.append('g').attr('class', 'smbgLines'), {
-	      dataBind: function(data) {
-	        var pathData = _.map(_.sortBy(data, function(d) { return d.normalTime; }), function(d) {
-	          return [
-	            xPosition(d),
-	            yPosition(d)
-	          ];
-	        });
-	        return this.selectAll('path')
-	          .data([pathData]);
-	      },
-	      insert: function() {
-	        return this.append('path')
-	          .attr('class', 'smbgPath');
-	      },
-	      events: {
-	        enter: function() {
-	          var line = d3.svg.line()
-	            .x(function(d) { return d[0]; })
-	            .y(function(d) { return d[1]; })
-	            .interpolate('linear');
-	          this.attr({
-	            d: function(d) {
-	              return line(d);
-	            },
-	            'stroke-width': chart.smbgOpts().stroke,
-	            visibility: chart.showingLines() ? 'visible': 'hidden'
-	          });
-	        },
-	        exit: function() {
-	          this.remove();
-	        }
-	      }
-	    });
-
-	    this.layer('smbgCircles', this.base.append('g').attr('class', 'smbgCircles'), {
-	      dataBind: function(data) {
-	        return this.selectAll('circle')
-	          .data(data, function(d) { return d.id; });
-	      },
-	      insert: function() {
-	        return this.append('circle')
-	          .attr('class', 'smbgCircle');
-	      },
-	      events: {
-	        enter: function() {
-	          this.attr({
-	            cx: xPosition,
-	            cy: yPosition,
-	            r: chart.smbgOpts().r
-	          })
-	          .on('mouseover', function(d) {
-	            chart.base.select('.smbgPath').attr('visibility', 'visible');
-	            var day = chart.base.attr('class').replace('modalDay ', '');
-	            var tooltipGroup = d3.select('#modalHighlightGroup').append('g')
-	              .attr({
-	                id: 'tooltip_' + d.id,
-	                'class': 'd3-tooltip d3-smbg svg-tooltip-smbg ' + day,
-	                transform: 'translate(' + xPosition(d) + ',' + yPosition(d) + ')'
-	              });
-	            var foGroup = tooltipGroup.append('foreignObject')
-	              .attr({
-	                // need to set an initial width to give the HTML something to shape itself in relation to
-	                width: 200,
-	                // hide the foreignObject initially so that the resizing isn't visible
-	                visibility: 'hidden',
-	                'class': 'svg-tooltip-fo svg-tooltip-left-and-up'
-	              })
-	              .append('xhtml:div')
-	              .attr({
-	                'class': 'tooltip-div'
-	              });
-	            foGroup.append('p')
-	              .append('span')
-	              .attr('class', 'secondary')
-	              .html('<span class="fromto">at</span> ' + format.timestamp(d.normalTime));
-	            foGroup.append('p')
-	              .attr('class', 'value')
-	              .append('span')
-	              .html(format.tooltipBG(d, chart.smbgOpts().units));
-	            var widths = [];
-	            foGroup.selectAll('span')
-	              .each(function() {
-	                widths.push(d3.select(this)[0][0].getBoundingClientRect().width);
-	              });
-	            var foWidth = d3.max(widths), foHeight = foGroup[0][0].offsetHeight;
-	            var opts = {w: foWidth + 20, h: foHeight, y:-foHeight, orientation: {
-	              'default': 'normal'
-	            }};
-	            var foItself = tooltipGroup.select('.svg-tooltip-fo')
-	              .attr({
-	                width: opts.w,
-	                height: opts.h,
-	                visibility: 'visible'
-	              });
-	            var shape = 'smbg';
-	            var offsetVal = shapes[shape].offset();
-	            shapes[shape].offset(foItself, {x: offsetVal, y: opts.y - offsetVal});
-	            _.each(shapes[shape].els, function(el) {
-	              var attrs = _.clone(el.attrs);
-	              for (var prop in attrs) {
-	                // polygons have a pointsFn to generate the proper size polygon given the input dimensions
-	                if (typeof attrs[prop] === 'function') {
-	                  var res = attrs[prop](opts);
-	                  if (shapes[shape].orientations) {
-	                    res = shapes[shape].orientations[opts.orientation['default']](res);
-	                  }
-	                  // pointsFn isn't a proper SVG attribute, of course, so must be deleted
-	                  delete attrs[prop];
-	                  attrs[prop.replace('Fn', '')] = res;
-	                }
-	              }
-	              tooltipGroup.insert(el.el, '.svg-tooltip-fo')
-	                .attr(attrs);
-	            });
-	          })
-	          .on('mouseout', function(d) {
-	            chart.base.select('.smbgPath').attr('visibility', chart.showingLines() ? 'visible': 'hidden');
-	            d3.select('#tooltip_' + d.id).remove();
-	          });
-	        },
-	        exit: function() {
-	          this.remove();
-	        }
-	      }
-	    });
-	  },
-	  showingLines: function(showingLines) {
-	    if (!arguments.length) { return this._showingLines; }
-	    this._showingLines = showingLines;
-	    return this;
-	  },
-	  smbgOpts: function(smbgOpts) {
-	    if (!arguments.length) { return this._smbgOpts; }
-	    this._smbgOpts = smbgOpts;
-	    return this;
-	  },
-	  xScale: function(xScale) {
-	    if (!arguments.length) { return this._xScale; }
-	    this._xScale = xScale;
-	    return this;
-	  },
-	  yScale: function(yScale) {
-	    if (!arguments.length) { return this._yScale; }
-	    this._yScale = yScale;
-	    return this;
-	  }
-	});
-
-	var chart;
-
-	module.exports = {
-	  create: function(el, scales, opts) {
-	    opts = opts || {};
-	    var defaults = {
-	      smbg: {
-	        r: 5,
-	        stroke: 3,
-	        units: 'mg/dL'
-	      }
-	    };
-	    _.defaults(opts, defaults);
-
-	    chart = d3.select(el)
-	      .chart('SMBGDay')
-	      .showingLines(opts.showingLines)
-	      .smbgOpts(opts.smbg)
-	      .xScale(scales.x)
-	      .yScale(scales.y);
-
-	    return this;
-	  },
-	  render: function(data, opts) {
-	    opts = opts || {};
-	    var defaults = {};
-	    _.defaults(opts, defaults);
-
-	    chart.draw(data);
-
-	    return this;
-	  }
-	};
-
-/***/ },
-/* 63 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(16);
-	var d3 = window.d3;
-	var moment = __webpack_require__(41);
-
-	d3.chart('SMBGInfo', {
-	  initialize: function() {
-	    var chart = this;
-
-	    var xPosition = function(d) {
-	      var msPer24Pos = Date.parse(d.normalTime) - d3.time.day.utc.floor(new Date(d.normalTime));
-	      return chart.xScale()(msPer24Pos);
-	    };
-
-	    var yPosition = function(d) {
-	      return chart.yScale()(d.value);
-	    };
-
-	    this.layer('smbgInfo', this.base.append('g').attr('class', 'smbgInfo'), {
-	      dataBind: function(data) {
-	        return this.selectAll('g')
-	          .data(data, function(d) { return d.id; });
-	      },
-	      insert: function() {
-	        return this.append('g').attr('class', 'smbgInfoGroup');
-	      },
-	      events: {
-	        enter: function() {
-	          var toEnter = this;
-	          toEnter.append('rect')
-	            .attr({
-	              x: function(d) {
-	                return xPosition(d) - 15;
-	              },
-	              y: function(d) {
-	                return yPosition(d) + 10;
-	              },
-	              width: 30,
-	              height: 20,
-	              fill: '#FFFFFF',
-	              opacity: 0.75
-	            });
-
-	          toEnter.append('text')
-	            .attr({
-	              x: xPosition,
-	              y: function(d) {
-	                return yPosition(d) + 25;
-	              }
-	            })
-	            .text(function(d) { return d.value; });
-	        }
-	      }
-	    });
-	  },
-	  smbgOpts: function(smbgOpts) {
-	    if (!arguments.length) { return this._smbgOpts; }
-	    this._smbgOpts = smbgOpts;
-	    return this;
-	  },
-	  xScale: function(xScale) {
-	    if (!arguments.length) { return this._xScale; }
-	    this._xScale = xScale;
-	    return this;
-	  },
-	  yScale: function(yScale) {
-	    if (!arguments.length) { return this._yScale; }
-	    this._yScale = yScale;
-	    return this;
-	  }
-	});
-
-	var chart;
-
-	module.exports = {
-	  create: function(el, scales, opts) {
-	    opts = opts || {};
-	    var defaults = {};
-	    _.defaults(opts, defaults);
-
-	    chart = d3.select(el)
-	      .chart('SMBGInfo')
-	      .xScale(scales.x)
-	      .yScale(scales.y);
-
-	    return this;
-	  },
-	  render: function(data, opts) {
-	    opts = opts || {};
-	    var defaults = {};
-	    _.defaults(opts, defaults);
-
-	    chart.draw(data);
-
-	    return this;
-	  }
-	};
-
-/***/ },
-/* 64 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule React
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
 	 */
 
-	"use strict";
+	var _ = __webpack_require__(16);
 
-	var DOMPropertyOperations = __webpack_require__(74);
-	var EventPluginUtils = __webpack_require__(75);
-	var ReactChildren = __webpack_require__(76);
-	var ReactComponent = __webpack_require__(77);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactContext = __webpack_require__(79);
-	var ReactCurrentOwner = __webpack_require__(80);
-	var ReactDescriptor = __webpack_require__(81);
-	var ReactDOM = __webpack_require__(82);
-	var ReactDOMComponent = __webpack_require__(83);
-	var ReactDefaultInjection = __webpack_require__(84);
-	var ReactInstanceHandles = __webpack_require__(85);
-	var ReactMount = __webpack_require__(86);
-	var ReactMultiChild = __webpack_require__(87);
-	var ReactPerf = __webpack_require__(88);
-	var ReactPropTypes = __webpack_require__(89);
-	var ReactServerRendering = __webpack_require__(90);
-	var ReactTextComponent = __webpack_require__(91);
-
-	var onlyChild = __webpack_require__(92);
-
-	ReactDefaultInjection.inject();
-
-	var React = {
-	  Children: {
-	    map: ReactChildren.map,
-	    forEach: ReactChildren.forEach,
-	    count: ReactChildren.count,
-	    only: onlyChild
-	  },
-	  DOM: ReactDOM,
-	  PropTypes: ReactPropTypes,
-	  initializeTouchEvents: function(shouldUseTouch) {
-	    EventPluginUtils.useTouchEvents = shouldUseTouch;
-	  },
-	  createClass: ReactCompositeComponent.createClass,
-	  createDescriptor: function(type, props, children) {
-	    var args = Array.prototype.slice.call(arguments, 1);
-	    return type.apply(null, args);
-	  },
-	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
-	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
-	  renderComponent: ReactPerf.measure(
-	    'React',
-	    'renderComponent',
-	    ReactMount.renderComponent
-	  ),
-	  renderComponentToString: ReactServerRendering.renderComponentToString,
-	  renderComponentToStaticMarkup:
-	    ReactServerRendering.renderComponentToStaticMarkup,
-	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
-	  isValidClass: ReactDescriptor.isValidFactory,
-	  isValidComponent: ReactDescriptor.isValidDescriptor,
-	  withContext: ReactContext.withContext,
-	  __internals: {
-	    Component: ReactComponent,
-	    CurrentOwner: ReactCurrentOwner,
-	    DOMComponent: ReactDOMComponent,
-	    DOMPropertyOperations: DOMPropertyOperations,
-	    InstanceHandles: ReactInstanceHandles,
-	    Mount: ReactMount,
-	    MultiChild: ReactMultiChild,
-	    TextComponent: ReactTextComponent
+	module.exports = function(classes) {
+	  if (Object.keys(classes).length > 3) {
+	    return function(datum) {
+	      if (datum.value < classes['very-low'].boundary) {
+	        return 'd3-bg-low';
+	      }
+	      else if ((datum.value >= classes['very-low'].boundary) && (datum.value < classes.low.boundary)) {
+	        return 'd3-bg-low d3-circle-open';
+	      }
+	      else if ((datum.value >= classes.low.boundary) && (datum.value <= classes.target.boundary)) {
+	        return 'd3-bg-target';
+	      }
+	      else if ((datum.value > classes.target.boundary) && (datum.value <= classes.high.boundary)) {
+	        return 'd3-bg-high d3-circle-open';
+	      }
+	      else if (datum.value > classes.high.boundary) {
+	        return 'd3-bg-high';
+	      }
+	    };
+	  }
+	  else {
+	    return function(datum) {
+	      if (datum.value < classes.low.boundary) {
+	        return 'd3-bg-low';
+	      }
+	      else if ((datum.value >= classes.low.boundary) && (datum.value <= classes.target.boundary)) {
+	        return 'd3-bg-target';
+	      }
+	      else if (datum.value > classes.target.boundary) {
+	        return 'd3-bg-high';
+	      }
+	    };
 	  }
 	};
 
-	if ("production" !== process.env.NODE_ENV) {
-	  var ExecutionEnvironment = __webpack_require__(93);
-	  if (ExecutionEnvironment.canUseDOM &&
-	      window.top === window.self &&
-	      navigator.userAgent.indexOf('Chrome') > -1) {
-	    console.debug(
-	      'Download the React DevTools for a better development experience: ' +
-	      'http://fb.me/react-devtools'
-	    );
-
-	    var expectedFeatures = [
-	      // shims
-	      Array.isArray,
-	      Array.prototype.every,
-	      Array.prototype.forEach,
-	      Array.prototype.indexOf,
-	      Array.prototype.map,
-	      Date.now,
-	      Function.prototype.bind,
-	      Object.keys,
-	      String.prototype.split,
-	      String.prototype.trim,
-
-	      // shams
-	      Object.create,
-	      Object.freeze
-	    ];
-
-	    for (var i in expectedFeatures) {
-	      if (!expectedFeatures[i]) {
-	        console.error(
-	          'One or more ES5 shim/shams expected by React are not available: ' +
-	          'http://fb.me/react-warning-polyfills'
-	        );
-	        break;
-	      }
-	    }
-	  }
-	}
-
-	// Version exists only in the open-source version of React, not in Facebook's
-	// internal version.
-	React.version = '0.11.1';
-
-	module.exports = React;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -27333,66 +27431,490 @@
 	};
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	var _ = __webpack_require__(16);
+	function EventEmitter() {
+	  this._events = this._events || {};
+	  this._maxListeners = this._maxListeners || undefined;
+	}
+	module.exports = EventEmitter;
 
-	module.exports = function(classes) {
-	  if (Object.keys(classes).length > 3) {
-	    return function(datum) {
-	      if (datum.value < classes['very-low'].boundary) {
-	        return 'd3-bg-low';
-	      }
-	      else if ((datum.value >= classes['very-low'].boundary) && (datum.value < classes.low.boundary)) {
-	        return 'd3-bg-low d3-circle-open';
-	      }
-	      else if ((datum.value >= classes.low.boundary) && (datum.value <= classes.target.boundary)) {
-	        return 'd3-bg-target';
-	      }
-	      else if ((datum.value > classes.target.boundary) && (datum.value <= classes.high.boundary)) {
-	        return 'd3-bg-high d3-circle-open';
-	      }
-	      else if (datum.value > classes.high.boundary) {
-	        return 'd3-bg-high';
-	      }
-	    };
-	  }
-	  else {
-	    return function(datum) {
-	      if (datum.value < classes.low.boundary) {
-	        return 'd3-bg-low';
-	      }
-	      else if ((datum.value >= classes.low.boundary) && (datum.value <= classes.target.boundary)) {
-	        return 'd3-bg-target';
-	      }
-	      else if (datum.value > classes.target.boundary) {
-	        return 'd3-bg-high';
-	      }
-	    };
-	  }
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._maxListeners = undefined;
+
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	EventEmitter.defaultMaxListeners = 10;
+
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function(n) {
+	  if (!isNumber(n) || n < 0 || isNaN(n))
+	    throw TypeError('n must be a positive number');
+	  this._maxListeners = n;
+	  return this;
 	};
+
+	EventEmitter.prototype.emit = function(type) {
+	  var er, handler, len, args, i, listeners;
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // If there is no 'error' event listener then throw.
+	  if (type === 'error') {
+	    if (!this._events.error ||
+	        (isObject(this._events.error) && !this._events.error.length)) {
+	      er = arguments[1];
+	      if (er instanceof Error) {
+	        throw er; // Unhandled 'error' event
+	      }
+	      throw TypeError('Uncaught, unspecified "error" event.');
+	    }
+	  }
+
+	  handler = this._events[type];
+
+	  if (isUndefined(handler))
+	    return false;
+
+	  if (isFunction(handler)) {
+	    switch (arguments.length) {
+	      // fast cases
+	      case 1:
+	        handler.call(this);
+	        break;
+	      case 2:
+	        handler.call(this, arguments[1]);
+	        break;
+	      case 3:
+	        handler.call(this, arguments[1], arguments[2]);
+	        break;
+	      // slower
+	      default:
+	        len = arguments.length;
+	        args = new Array(len - 1);
+	        for (i = 1; i < len; i++)
+	          args[i - 1] = arguments[i];
+	        handler.apply(this, args);
+	    }
+	  } else if (isObject(handler)) {
+	    len = arguments.length;
+	    args = new Array(len - 1);
+	    for (i = 1; i < len; i++)
+	      args[i - 1] = arguments[i];
+
+	    listeners = handler.slice();
+	    len = listeners.length;
+	    for (i = 0; i < len; i++)
+	      listeners[i].apply(this, args);
+	  }
+
+	  return true;
+	};
+
+	EventEmitter.prototype.addListener = function(type, listener) {
+	  var m;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events)
+	    this._events = {};
+
+	  // To avoid recursion in the case that type === "newListener"! Before
+	  // adding it to the listeners, first emit "newListener".
+	  if (this._events.newListener)
+	    this.emit('newListener', type,
+	              isFunction(listener.listener) ?
+	              listener.listener : listener);
+
+	  if (!this._events[type])
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    this._events[type] = listener;
+	  else if (isObject(this._events[type]))
+	    // If we've already got an array, just append.
+	    this._events[type].push(listener);
+	  else
+	    // Adding the second element, need to change to array.
+	    this._events[type] = [this._events[type], listener];
+
+	  // Check for listener leak
+	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    var m;
+	    if (!isUndefined(this._maxListeners)) {
+	      m = this._maxListeners;
+	    } else {
+	      m = EventEmitter.defaultMaxListeners;
+	    }
+
+	    if (m && m > 0 && this._events[type].length > m) {
+	      this._events[type].warned = true;
+	      console.error('(node) warning: possible EventEmitter memory ' +
+	                    'leak detected. %d listeners added. ' +
+	                    'Use emitter.setMaxListeners() to increase limit.',
+	                    this._events[type].length);
+	      if (typeof console.trace === 'function') {
+	        // not supported in IE 10
+	        console.trace();
+	      }
+	    }
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+	EventEmitter.prototype.once = function(type, listener) {
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  var fired = false;
+
+	  function g() {
+	    this.removeListener(type, g);
+
+	    if (!fired) {
+	      fired = true;
+	      listener.apply(this, arguments);
+	    }
+	  }
+
+	  g.listener = listener;
+	  this.on(type, g);
+
+	  return this;
+	};
+
+	// emits a 'removeListener' event iff the listener was removed
+	EventEmitter.prototype.removeListener = function(type, listener) {
+	  var list, position, length, i;
+
+	  if (!isFunction(listener))
+	    throw TypeError('listener must be a function');
+
+	  if (!this._events || !this._events[type])
+	    return this;
+
+	  list = this._events[type];
+	  length = list.length;
+	  position = -1;
+
+	  if (list === listener ||
+	      (isFunction(list.listener) && list.listener === listener)) {
+	    delete this._events[type];
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+
+	  } else if (isObject(list)) {
+	    for (i = length; i-- > 0;) {
+	      if (list[i] === listener ||
+	          (list[i].listener && list[i].listener === listener)) {
+	        position = i;
+	        break;
+	      }
+	    }
+
+	    if (position < 0)
+	      return this;
+
+	    if (list.length === 1) {
+	      list.length = 0;
+	      delete this._events[type];
+	    } else {
+	      list.splice(position, 1);
+	    }
+
+	    if (this._events.removeListener)
+	      this.emit('removeListener', type, listener);
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.removeAllListeners = function(type) {
+	  var key, listeners;
+
+	  if (!this._events)
+	    return this;
+
+	  // not listening for removeListener, no need to emit
+	  if (!this._events.removeListener) {
+	    if (arguments.length === 0)
+	      this._events = {};
+	    else if (this._events[type])
+	      delete this._events[type];
+	    return this;
+	  }
+
+	  // emit removeListener for all listeners on all events
+	  if (arguments.length === 0) {
+	    for (key in this._events) {
+	      if (key === 'removeListener') continue;
+	      this.removeAllListeners(key);
+	    }
+	    this.removeAllListeners('removeListener');
+	    this._events = {};
+	    return this;
+	  }
+
+	  listeners = this._events[type];
+
+	  if (isFunction(listeners)) {
+	    this.removeListener(type, listeners);
+	  } else {
+	    // LIFO order
+	    while (listeners.length)
+	      this.removeListener(type, listeners[listeners.length - 1]);
+	  }
+	  delete this._events[type];
+
+	  return this;
+	};
+
+	EventEmitter.prototype.listeners = function(type) {
+	  var ret;
+	  if (!this._events || !this._events[type])
+	    ret = [];
+	  else if (isFunction(this._events[type]))
+	    ret = [this._events[type]];
+	  else
+	    ret = this._events[type].slice();
+	  return ret;
+	};
+
+	EventEmitter.listenerCount = function(emitter, type) {
+	  var ret;
+	  if (!emitter._events || !emitter._events[type])
+	    ret = 0;
+	  else if (isFunction(emitter._events[type]))
+	    ret = 1;
+	  else
+	    ret = emitter._events[type].length;
+	  return ret;
+	};
+
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+
+	function isObject(arg) {
+	  return typeof arg === 'object' && arg !== null;
+	}
+
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
 
 
 /***/ },
-/* 67 */
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./af": 96,
+		"./af.js": 96,
+		"./ar": 99,
+		"./ar-ma": 97,
+		"./ar-ma.js": 97,
+		"./ar-sa": 98,
+		"./ar-sa.js": 98,
+		"./ar.js": 99,
+		"./az": 100,
+		"./az.js": 100,
+		"./be": 101,
+		"./be.js": 101,
+		"./bg": 102,
+		"./bg.js": 102,
+		"./bn": 103,
+		"./bn.js": 103,
+		"./bo": 104,
+		"./bo.js": 104,
+		"./br": 105,
+		"./br.js": 105,
+		"./bs": 106,
+		"./bs.js": 106,
+		"./ca": 107,
+		"./ca.js": 107,
+		"./cs": 108,
+		"./cs.js": 108,
+		"./cv": 109,
+		"./cv.js": 109,
+		"./cy": 110,
+		"./cy.js": 110,
+		"./da": 111,
+		"./da.js": 111,
+		"./de": 113,
+		"./de-at": 112,
+		"./de-at.js": 112,
+		"./de.js": 113,
+		"./el": 114,
+		"./el.js": 114,
+		"./en-au": 115,
+		"./en-au.js": 115,
+		"./en-ca": 116,
+		"./en-ca.js": 116,
+		"./en-gb": 117,
+		"./en-gb.js": 117,
+		"./eo": 118,
+		"./eo.js": 118,
+		"./es": 119,
+		"./es.js": 119,
+		"./et": 120,
+		"./et.js": 120,
+		"./eu": 121,
+		"./eu.js": 121,
+		"./fa": 122,
+		"./fa.js": 122,
+		"./fi": 123,
+		"./fi.js": 123,
+		"./fo": 124,
+		"./fo.js": 124,
+		"./fr": 126,
+		"./fr-ca": 125,
+		"./fr-ca.js": 125,
+		"./fr.js": 126,
+		"./gl": 127,
+		"./gl.js": 127,
+		"./he": 128,
+		"./he.js": 128,
+		"./hi": 129,
+		"./hi.js": 129,
+		"./hr": 130,
+		"./hr.js": 130,
+		"./hu": 131,
+		"./hu.js": 131,
+		"./hy-am": 132,
+		"./hy-am.js": 132,
+		"./id": 133,
+		"./id.js": 133,
+		"./is": 134,
+		"./is.js": 134,
+		"./it": 135,
+		"./it.js": 135,
+		"./ja": 136,
+		"./ja.js": 136,
+		"./ka": 137,
+		"./ka.js": 137,
+		"./km": 138,
+		"./km.js": 138,
+		"./ko": 139,
+		"./ko.js": 139,
+		"./lb": 140,
+		"./lb.js": 140,
+		"./lt": 141,
+		"./lt.js": 141,
+		"./lv": 142,
+		"./lv.js": 142,
+		"./mk": 143,
+		"./mk.js": 143,
+		"./ml": 144,
+		"./ml.js": 144,
+		"./mr": 145,
+		"./mr.js": 145,
+		"./ms-my": 146,
+		"./ms-my.js": 146,
+		"./my": 147,
+		"./my.js": 147,
+		"./nb": 148,
+		"./nb.js": 148,
+		"./ne": 149,
+		"./ne.js": 149,
+		"./nl": 150,
+		"./nl.js": 150,
+		"./nn": 151,
+		"./nn.js": 151,
+		"./pl": 152,
+		"./pl.js": 152,
+		"./pt": 154,
+		"./pt-br": 153,
+		"./pt-br.js": 153,
+		"./pt.js": 154,
+		"./ro": 155,
+		"./ro.js": 155,
+		"./ru": 156,
+		"./ru.js": 156,
+		"./sk": 157,
+		"./sk.js": 157,
+		"./sl": 158,
+		"./sl.js": 158,
+		"./sq": 159,
+		"./sq.js": 159,
+		"./sr": 161,
+		"./sr-cyrl": 160,
+		"./sr-cyrl.js": 160,
+		"./sr.js": 161,
+		"./sv": 162,
+		"./sv.js": 162,
+		"./ta": 163,
+		"./ta.js": 163,
+		"./th": 164,
+		"./th.js": 164,
+		"./tl-ph": 165,
+		"./tl-ph.js": 165,
+		"./tr": 166,
+		"./tr.js": 166,
+		"./tzm": 168,
+		"./tzm-latn": 167,
+		"./tzm-latn.js": 167,
+		"./tzm.js": 168,
+		"./uk": 169,
+		"./uk.js": 169,
+		"./uz": 170,
+		"./uz.js": 170,
+		"./vi": 171,
+		"./vi.js": 171,
+		"./zh-cn": 172,
+		"./zh-cn.js": 172,
+		"./zh-tw": 173,
+		"./zh-tw.js": 173
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 68;
+
+
+/***/ },
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function(exports){
@@ -28794,489 +29316,6 @@
 
 
 /***/ },
-/* 68 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var map = {
-		"./af": 96,
-		"./af.js": 96,
-		"./ar": 99,
-		"./ar-ma": 97,
-		"./ar-ma.js": 97,
-		"./ar-sa": 98,
-		"./ar-sa.js": 98,
-		"./ar.js": 99,
-		"./az": 100,
-		"./az.js": 100,
-		"./be": 101,
-		"./be.js": 101,
-		"./bg": 102,
-		"./bg.js": 102,
-		"./bn": 103,
-		"./bn.js": 103,
-		"./bo": 104,
-		"./bo.js": 104,
-		"./br": 105,
-		"./br.js": 105,
-		"./bs": 106,
-		"./bs.js": 106,
-		"./ca": 107,
-		"./ca.js": 107,
-		"./cs": 108,
-		"./cs.js": 108,
-		"./cv": 109,
-		"./cv.js": 109,
-		"./cy": 110,
-		"./cy.js": 110,
-		"./da": 111,
-		"./da.js": 111,
-		"./de": 113,
-		"./de-at": 112,
-		"./de-at.js": 112,
-		"./de.js": 113,
-		"./el": 114,
-		"./el.js": 114,
-		"./en-au": 115,
-		"./en-au.js": 115,
-		"./en-ca": 116,
-		"./en-ca.js": 116,
-		"./en-gb": 117,
-		"./en-gb.js": 117,
-		"./eo": 118,
-		"./eo.js": 118,
-		"./es": 119,
-		"./es.js": 119,
-		"./et": 120,
-		"./et.js": 120,
-		"./eu": 121,
-		"./eu.js": 121,
-		"./fa": 122,
-		"./fa.js": 122,
-		"./fi": 123,
-		"./fi.js": 123,
-		"./fo": 124,
-		"./fo.js": 124,
-		"./fr": 126,
-		"./fr-ca": 125,
-		"./fr-ca.js": 125,
-		"./fr.js": 126,
-		"./gl": 127,
-		"./gl.js": 127,
-		"./he": 128,
-		"./he.js": 128,
-		"./hi": 129,
-		"./hi.js": 129,
-		"./hr": 130,
-		"./hr.js": 130,
-		"./hu": 131,
-		"./hu.js": 131,
-		"./hy-am": 132,
-		"./hy-am.js": 132,
-		"./id": 133,
-		"./id.js": 133,
-		"./is": 134,
-		"./is.js": 134,
-		"./it": 135,
-		"./it.js": 135,
-		"./ja": 136,
-		"./ja.js": 136,
-		"./ka": 137,
-		"./ka.js": 137,
-		"./km": 138,
-		"./km.js": 138,
-		"./ko": 139,
-		"./ko.js": 139,
-		"./lb": 140,
-		"./lb.js": 140,
-		"./lt": 141,
-		"./lt.js": 141,
-		"./lv": 142,
-		"./lv.js": 142,
-		"./mk": 143,
-		"./mk.js": 143,
-		"./ml": 144,
-		"./ml.js": 144,
-		"./mr": 145,
-		"./mr.js": 145,
-		"./ms-my": 146,
-		"./ms-my.js": 146,
-		"./my": 147,
-		"./my.js": 147,
-		"./nb": 148,
-		"./nb.js": 148,
-		"./ne": 149,
-		"./ne.js": 149,
-		"./nl": 150,
-		"./nl.js": 150,
-		"./nn": 151,
-		"./nn.js": 151,
-		"./pl": 152,
-		"./pl.js": 152,
-		"./pt": 154,
-		"./pt-br": 153,
-		"./pt-br.js": 153,
-		"./pt.js": 154,
-		"./ro": 155,
-		"./ro.js": 155,
-		"./ru": 156,
-		"./ru.js": 156,
-		"./sk": 157,
-		"./sk.js": 157,
-		"./sl": 158,
-		"./sl.js": 158,
-		"./sq": 159,
-		"./sq.js": 159,
-		"./sr": 161,
-		"./sr-cyrl": 160,
-		"./sr-cyrl.js": 160,
-		"./sr.js": 161,
-		"./sv": 162,
-		"./sv.js": 162,
-		"./ta": 163,
-		"./ta.js": 163,
-		"./th": 164,
-		"./th.js": 164,
-		"./tl-ph": 165,
-		"./tl-ph.js": 165,
-		"./tr": 166,
-		"./tr.js": 166,
-		"./tzm": 168,
-		"./tzm-latn": 167,
-		"./tzm-latn.js": 167,
-		"./tzm.js": 168,
-		"./uk": 169,
-		"./uk.js": 169,
-		"./uz": 170,
-		"./uz.js": 170,
-		"./vi": 171,
-		"./vi.js": 171,
-		"./zh-cn": 172,
-		"./zh-cn.js": 172,
-		"./zh-tw": 173,
-		"./zh-tw.js": 173
-	};
-	function webpackContext(req) {
-		return __webpack_require__(webpackContextResolve(req));
-	};
-	function webpackContextResolve(req) {
-		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
-	};
-	webpackContext.keys = function webpackContextKeys() {
-		return Object.keys(map);
-	};
-	webpackContext.resolve = webpackContextResolve;
-	module.exports = webpackContext;
-	webpackContext.id = 68;
-
-
-/***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// Copyright Joyent, Inc. and other Node contributors.
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a
-	// copy of this software and associated documentation files (the
-	// "Software"), to deal in the Software without restriction, including
-	// without limitation the rights to use, copy, modify, merge, publish,
-	// distribute, sublicense, and/or sell copies of the Software, and to permit
-	// persons to whom the Software is furnished to do so, subject to the
-	// following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included
-	// in all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-	function EventEmitter() {
-	  this._events = this._events || {};
-	  this._maxListeners = this._maxListeners || undefined;
-	}
-	module.exports = EventEmitter;
-
-	// Backwards-compat with node 0.10.x
-	EventEmitter.EventEmitter = EventEmitter;
-
-	EventEmitter.prototype._events = undefined;
-	EventEmitter.prototype._maxListeners = undefined;
-
-	// By default EventEmitters will print a warning if more than 10 listeners are
-	// added to it. This is a useful default which helps finding memory leaks.
-	EventEmitter.defaultMaxListeners = 10;
-
-	// Obviously not all Emitters should be limited to 10. This function allows
-	// that to be increased. Set to zero for unlimited.
-	EventEmitter.prototype.setMaxListeners = function(n) {
-	  if (!isNumber(n) || n < 0 || isNaN(n))
-	    throw TypeError('n must be a positive number');
-	  this._maxListeners = n;
-	  return this;
-	};
-
-	EventEmitter.prototype.emit = function(type) {
-	  var er, handler, len, args, i, listeners;
-
-	  if (!this._events)
-	    this._events = {};
-
-	  // If there is no 'error' event listener then throw.
-	  if (type === 'error') {
-	    if (!this._events.error ||
-	        (isObject(this._events.error) && !this._events.error.length)) {
-	      er = arguments[1];
-	      if (er instanceof Error) {
-	        throw er; // Unhandled 'error' event
-	      }
-	      throw TypeError('Uncaught, unspecified "error" event.');
-	    }
-	  }
-
-	  handler = this._events[type];
-
-	  if (isUndefined(handler))
-	    return false;
-
-	  if (isFunction(handler)) {
-	    switch (arguments.length) {
-	      // fast cases
-	      case 1:
-	        handler.call(this);
-	        break;
-	      case 2:
-	        handler.call(this, arguments[1]);
-	        break;
-	      case 3:
-	        handler.call(this, arguments[1], arguments[2]);
-	        break;
-	      // slower
-	      default:
-	        len = arguments.length;
-	        args = new Array(len - 1);
-	        for (i = 1; i < len; i++)
-	          args[i - 1] = arguments[i];
-	        handler.apply(this, args);
-	    }
-	  } else if (isObject(handler)) {
-	    len = arguments.length;
-	    args = new Array(len - 1);
-	    for (i = 1; i < len; i++)
-	      args[i - 1] = arguments[i];
-
-	    listeners = handler.slice();
-	    len = listeners.length;
-	    for (i = 0; i < len; i++)
-	      listeners[i].apply(this, args);
-	  }
-
-	  return true;
-	};
-
-	EventEmitter.prototype.addListener = function(type, listener) {
-	  var m;
-
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  if (!this._events)
-	    this._events = {};
-
-	  // To avoid recursion in the case that type === "newListener"! Before
-	  // adding it to the listeners, first emit "newListener".
-	  if (this._events.newListener)
-	    this.emit('newListener', type,
-	              isFunction(listener.listener) ?
-	              listener.listener : listener);
-
-	  if (!this._events[type])
-	    // Optimize the case of one listener. Don't need the extra array object.
-	    this._events[type] = listener;
-	  else if (isObject(this._events[type]))
-	    // If we've already got an array, just append.
-	    this._events[type].push(listener);
-	  else
-	    // Adding the second element, need to change to array.
-	    this._events[type] = [this._events[type], listener];
-
-	  // Check for listener leak
-	  if (isObject(this._events[type]) && !this._events[type].warned) {
-	    var m;
-	    if (!isUndefined(this._maxListeners)) {
-	      m = this._maxListeners;
-	    } else {
-	      m = EventEmitter.defaultMaxListeners;
-	    }
-
-	    if (m && m > 0 && this._events[type].length > m) {
-	      this._events[type].warned = true;
-	      console.error('(node) warning: possible EventEmitter memory ' +
-	                    'leak detected. %d listeners added. ' +
-	                    'Use emitter.setMaxListeners() to increase limit.',
-	                    this._events[type].length);
-	      if (typeof console.trace === 'function') {
-	        // not supported in IE 10
-	        console.trace();
-	      }
-	    }
-	  }
-
-	  return this;
-	};
-
-	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-	EventEmitter.prototype.once = function(type, listener) {
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  var fired = false;
-
-	  function g() {
-	    this.removeListener(type, g);
-
-	    if (!fired) {
-	      fired = true;
-	      listener.apply(this, arguments);
-	    }
-	  }
-
-	  g.listener = listener;
-	  this.on(type, g);
-
-	  return this;
-	};
-
-	// emits a 'removeListener' event iff the listener was removed
-	EventEmitter.prototype.removeListener = function(type, listener) {
-	  var list, position, length, i;
-
-	  if (!isFunction(listener))
-	    throw TypeError('listener must be a function');
-
-	  if (!this._events || !this._events[type])
-	    return this;
-
-	  list = this._events[type];
-	  length = list.length;
-	  position = -1;
-
-	  if (list === listener ||
-	      (isFunction(list.listener) && list.listener === listener)) {
-	    delete this._events[type];
-	    if (this._events.removeListener)
-	      this.emit('removeListener', type, listener);
-
-	  } else if (isObject(list)) {
-	    for (i = length; i-- > 0;) {
-	      if (list[i] === listener ||
-	          (list[i].listener && list[i].listener === listener)) {
-	        position = i;
-	        break;
-	      }
-	    }
-
-	    if (position < 0)
-	      return this;
-
-	    if (list.length === 1) {
-	      list.length = 0;
-	      delete this._events[type];
-	    } else {
-	      list.splice(position, 1);
-	    }
-
-	    if (this._events.removeListener)
-	      this.emit('removeListener', type, listener);
-	  }
-
-	  return this;
-	};
-
-	EventEmitter.prototype.removeAllListeners = function(type) {
-	  var key, listeners;
-
-	  if (!this._events)
-	    return this;
-
-	  // not listening for removeListener, no need to emit
-	  if (!this._events.removeListener) {
-	    if (arguments.length === 0)
-	      this._events = {};
-	    else if (this._events[type])
-	      delete this._events[type];
-	    return this;
-	  }
-
-	  // emit removeListener for all listeners on all events
-	  if (arguments.length === 0) {
-	    for (key in this._events) {
-	      if (key === 'removeListener') continue;
-	      this.removeAllListeners(key);
-	    }
-	    this.removeAllListeners('removeListener');
-	    this._events = {};
-	    return this;
-	  }
-
-	  listeners = this._events[type];
-
-	  if (isFunction(listeners)) {
-	    this.removeListener(type, listeners);
-	  } else {
-	    // LIFO order
-	    while (listeners.length)
-	      this.removeListener(type, listeners[listeners.length - 1]);
-	  }
-	  delete this._events[type];
-
-	  return this;
-	};
-
-	EventEmitter.prototype.listeners = function(type) {
-	  var ret;
-	  if (!this._events || !this._events[type])
-	    ret = [];
-	  else if (isFunction(this._events[type]))
-	    ret = [this._events[type]];
-	  else
-	    ret = this._events[type].slice();
-	  return ret;
-	};
-
-	EventEmitter.listenerCount = function(emitter, type) {
-	  var ret;
-	  if (!emitter._events || !emitter._events[type])
-	    ret = 0;
-	  else if (isFunction(emitter._events[type]))
-	    ret = 1;
-	  else
-	    ret = emitter._events[type].length;
-	  return ret;
-	};
-
-	function isFunction(arg) {
-	  return typeof arg === 'function';
-	}
-
-	function isNumber(arg) {
-	  return typeof arg === 'number';
-	}
-
-	function isObject(arg) {
-	  return typeof arg === 'object' && arg !== null;
-	}
-
-	function isUndefined(arg) {
-	  return arg === void 0;
-	}
-
-
-/***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -29356,16 +29395,16 @@
 	  settings: __webpack_require__(180),
 
 	  validation: {
-	    validate: __webpack_require__(24)
+	    validate: __webpack_require__(33)
 	  },
 
 	  data: {
-	    BasalUtil: __webpack_require__(25),
-	    BolusUtil: __webpack_require__(26),
-	    BGUtil: __webpack_require__(27),
-	    SettingsUtil: __webpack_require__(28),
+	    BasalUtil: __webpack_require__(34),
+	    BolusUtil: __webpack_require__(35),
+	    BGUtil: __webpack_require__(36),
+	    SettingsUtil: __webpack_require__(37),
 	    util: {
-	      datetime: __webpack_require__(29),
+	      datetime: __webpack_require__(38),
 	      format: __webpack_require__(44)
 	    }
 	  },
@@ -29392,11 +29431,11 @@
 	        dailyx: __webpack_require__(212)
 	      },
 	      tooltips: {
-	        shapes: __webpack_require__(94),
+	        shapes: __webpack_require__(73),
 	        Tooltips: __webpack_require__(189)
 	      },
-	      bgboundary: __webpack_require__(66),
-	      commonbolus: __webpack_require__(65),
+	      bgboundary: __webpack_require__(65),
+	      commonbolus: __webpack_require__(66),
 	      drawbolus: __webpack_require__(190),
 	      fill: __webpack_require__(191),
 	      legend: __webpack_require__(192),
@@ -29429,55 +29468,222 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	function makeValidator() {
-	  if (arguments.length === 1) {
-	    var element = arguments[0];
-	    switch (typeof(element)) {
-	      case 'function':
-	        return element;
-	      case 'object':
-	        if (Array.isArray(element)) {
-	          var fns = new Array(element.length);
-	          for (var i = 0; i < element.length; ++i) {
-	            fns[i] = makeValidator(element[i]);
-	          }
+	var _ = __webpack_require__(16);
 
-	          return function(e) {
-	            for (var i = 0; i < fns.length; ++i) {
-	              fns[i](e);
-	            }
-	          };
-	        } else {
-	          return makeValidator(Object.keys(element).map(function(key){
-	            var fn = makeValidator(element[key]);
+	// when adding a shape from an image supplied by designer
+	// viewBox attribute should be copied exactly from svg image
+	var shapeutil = __webpack_require__(195);
 
-	            return function(e) {
-	              try {
-	                fn(e[key]);
-	              } catch (e) {
-	                e.message = '.' + key + e.message;
-	                throw e;
-	              }
-	            };
-	          }));
+	var shapes = {
+	  cbg: {
+	    fixed: true,
+	    els: [
+	      {
+	        el: 'path',
+	        attrs: {
+	          d: 'M4.529,4.199C2.75,5.978,1.725,8.215,1.43,10.529l-0.396,12.61l12.611-0.395c2.314-0.297,4.553-1.32,6.332-3.098c4.264-4.266,4.264-11.182-0.002-15.449C15.711-0.066,8.793-0.066,4.529,4.199z',
+	          fill: '#FFFFFF'
 	        }
-	        break;
-	      default:
-	        if (Array.isArray(element)) {
-	        } else {
-	          console.log('makeValidator given', element);
-	          throw new Error('makeValidator must be given an Object, function, or array');
+	      },
+	      {
+	        el: 'path',
+	        attrs: {
+	          d: 'M12.252,1c2.794,0,5.589,1.066,7.722,3.198c4.266,4.267,4.266,11.183,0.002,15.449c-1.779,1.777-4.018,2.801-6.332,3.098L1.033,23.139l0.396-12.61c0.295-2.314,1.32-4.552,3.099-6.33C6.662,2.066,9.457,1,12.252,1M12.252,0C9.067,0,6.073,1.24,3.822,3.492c-1.876,1.875-3.046,4.265-3.384,6.911L0.432,10.45L0.43,10.498l-0.396,12.61L0,24.172l1.064-0.034l12.611-0.395l0.049-0.001l0.047-0.006c2.646-0.34,5.037-1.51,6.912-3.383c4.648-4.649,4.646-12.214-0.002-16.863C18.43,1.24,15.438,0,12.252,0L12.252,0z',
+	          'class': 'tooltip-outline'
 	        }
+	      }
+	    ],
+	    id: 'cbgTooltip',
+	    mainClass: 'svg-tooltip-cbg',
+	    viewBox: '0 0 24.169 24.172',
+	    orientations: {
+	      normal: function(group) {
+	        group.classed('svg-tooltip-right-and-up', true);
+	        return shapeutil.translationFromViewBox(group, {vertical: 'up'});
+	      },
+	      leftAndDown: function(group) {
+	        group.classed('svg-tooltip-left-and-down', true);
+	        shapeutil.translationFromViewBox(group, {vertical: 'down'})
+	          .call(shapeutil.pathMirrorY)
+	          .call(shapeutil.pathMirrorX);
+	      },
+	      leftAndUp: function(group) {
+	        group.classed('svg-tooltip-left-and-up', true);
+	        shapeutil.translationFromViewBox(group, {vertical: 'up'})
+	          .call(shapeutil.pathMirrorY);
+	      },
+	      rightAndDown: function(group) {
+	        group.classed('svg-tooltip-right-and-down', true);
+	        shapeutil.translationFromViewBox(group, {vertical: 'down'})
+	          .call(shapeutil.pathMirrorX);
+	      }
+	    },
+	    addText: function(selection, opts) {
+	      var used = selection.select('use');
+	      var boundingBox = used[0][0].getBoundingClientRect();
+	      var usedTransform = used.attr('transform').split(' ');
+	      selection.append('text')
+	        .attr({
+	          x: boundingBox.width/2 - (_.contains(usedTransform, 'scale(-1,1)') ? boundingBox.width : 0),
+	          y: -boundingBox.height/2 + (_.contains(usedTransform, 'scale(1,-1)') ? boundingBox.height : 0),
+	          'class': 'd3-tooltip-text'
+	        })
+	        .text(opts.datum.value);
 	    }
-	  } else {
-	    return makeValidator(Array.prototype.slice.call(arguments, 0));
+	  },
+	  basal: {
+	    fixed: false,
+	    els: [
+	      {
+	        el: 'polygon',
+	        attrs: {
+	          pointsFn: function(opts) {
+	            var pointHalfHeight = 10;
+	            var pointWidth = 15;
+	            return shapeutil.pointString(0,0) +
+	              shapeutil.pointString(opts.w, 0) +
+	              shapeutil.pointString(opts.w, opts.h/2 - pointHalfHeight) +
+	              shapeutil.pointString(opts.w + pointWidth, opts.h/2) +
+	              shapeutil.pointString(opts.w, opts.h/2 + pointHalfHeight) +
+	              shapeutil.pointString(opts.w, opts.h) +
+	              shapeutil.pointString(0, opts.h) +
+	              shapeutil.pointString(0, opts.h/2 + pointHalfHeight) +
+	              shapeutil.pointString(-pointWidth, opts.h/2) +
+	              shapeutil.pointString(0, opts.h/2 - pointHalfHeight) +
+	              shapeutil.pointString(0,0);
+	          }
+	        }
+	      }
+	    ],
+	    mainClass: 'svg-tooltip-basal',
+	    extensions: {
+	      left: 15,
+	      right: 15
+	    }
+	  },
+	  smbg: {
+	    fixed: false,
+	    els: [
+	      {
+	        el: 'polygon',
+	        attrs: {
+	          pointsFn: function(opts) {
+	            var offset = 4;
+	            var y = 12;
+	            var x = 8;
+	            return shapeutil.pointString(offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -offset) +
+	              shapeutil.pointString(offset+x, -offset) +
+	              shapeutil.pointString(0, 0) +
+	              shapeutil.pointString(offset, -y - offset) +
+	              shapeutil.pointString(offset, -opts.h - offset).trim();
+	          }
+	        }
+	      }
+	    ],
+	    mainClass: 'svg-tooltip-smbg',
+	    orientations: {
+	      normal: function(pointStr) {
+	        return pointStr;
+	      },
+	      leftAndDown: function(str) {
+	        return shapeutil.mirrorImageX(shapeutil.mirrorImageY(str));
+	      },
+	      leftAndUp: function(str) {
+	        return shapeutil.mirrorImageY(str);
+	      },
+	      rightAndDown: function(str) {
+	        return shapeutil.mirrorImageX(str);
+	      }
+	    },
+	    offset: function(selection, opts) {
+	      if (!arguments.length) return 4;
+	      selection.attr({
+	        x: opts.x,
+	        y: opts.y
+	      });
+	    }
+	  },
+	  generic: {
+	    fixed: false,
+	    els: [
+	      {
+	        el: 'polygon',
+	        attrs: {
+	          pointsFn: function(opts) {
+	            var offset = 8;
+	            var y = 16;
+	            var x = 12;
+	            return shapeutil.pointString(offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -offset) +
+	              shapeutil.pointString(offset+x, -offset) +
+	              shapeutil.pointString(0, 0) +
+	              shapeutil.pointString(offset, -y - offset) +
+	              shapeutil.pointString(offset, -opts.h - offset).trim();
+	          }
+	        }
+	      },
+	      {
+	        el: 'polygon',
+	        attrs: {
+	          pointsFn: function(opts) {
+	            var offset = 8;
+	            var y = 16;
+	            var x = 12;
+	            return shapeutil.pointString(offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
+	              shapeutil.pointString(opts.w + offset, -offset) +
+	              shapeutil.pointString(offset+x, -offset) +
+	              shapeutil.pointString(0, 0) +
+	              shapeutil.pointString(offset, -y - offset) +
+	              shapeutil.pointString(offset, -opts.h - offset).trim();
+	          },
+	          'class': 'no-stroke'
+	        }
+	      }
+	    ],
+	    mainClass: 'svg-tooltip-generic',
+	    orientations: {
+	      normal: function(pointStr) {
+	        return pointStr;
+	      },
+	      leftAndDown: function(str) {
+	        return shapeutil.mirrorImageX(shapeutil.mirrorImageY(str));
+	      },
+	      leftAndUp: function(str) {
+	        return shapeutil.mirrorImageY(str);
+	      },
+	      rightAndDown: function(str) {
+	        return shapeutil.mirrorImageX(str);
+	      }
+	    },
+	    offset: function(selection, opts) {
+	      if (!arguments.length) return 8;
+	      selection.attr({
+	        x: opts.x,
+	        y: opts.y
+	      });
+	    }
 	  }
-	}
+	};
 
-	exports.makeValidator = makeValidator;
+	module.exports = shapes;
 
 /***/ },
 /* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function isBuffer(arg) {
+	  return arg && typeof arg === 'object'
+	    && typeof arg.copy === 'function'
+	    && typeof arg.fill === 'function'
+	    && typeof arg.readUInt8 === 'function';
+	}
+
+/***/ },
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -29677,7 +29883,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -29908,7 +30114,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -30068,7 +30274,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -30091,7 +30297,7 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 	var ReactOwner = __webpack_require__(221);
 	var ReactUpdates = __webpack_require__(222);
 
@@ -30521,7 +30727,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -30544,15 +30750,15 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(77);
-	var ReactContext = __webpack_require__(79);
-	var ReactCurrentOwner = __webpack_require__(80);
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactComponent = __webpack_require__(78);
+	var ReactContext = __webpack_require__(80);
+	var ReactCurrentOwner = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 	var ReactDescriptorValidator = __webpack_require__(225);
 	var ReactEmptyComponent = __webpack_require__(226);
 	var ReactErrorUtils = __webpack_require__(227);
 	var ReactOwner = __webpack_require__(221);
-	var ReactPerf = __webpack_require__(88);
+	var ReactPerf = __webpack_require__(89);
 	var ReactPropTransferer = __webpack_require__(228);
 	var ReactPropTypeLocations = __webpack_require__(229);
 	var ReactPropTypeLocationNames = __webpack_require__(230);
@@ -31953,7 +32159,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -32026,7 +32232,7 @@
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -32071,7 +32277,7 @@
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -32094,8 +32300,8 @@
 
 	"use strict";
 
-	var ReactContext = __webpack_require__(79);
-	var ReactCurrentOwner = __webpack_require__(80);
+	var ReactContext = __webpack_require__(80);
+	var ReactCurrentOwner = __webpack_require__(81);
 
 	var merge = __webpack_require__(224);
 	var warning = __webpack_require__(216);
@@ -32329,7 +32535,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -32353,9 +32559,9 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 	var ReactDescriptorValidator = __webpack_require__(225);
-	var ReactDOMComponent = __webpack_require__(83);
+	var ReactDOMComponent = __webpack_require__(84);
 
 	var mergeInto = __webpack_require__(236);
 	var mapObject = __webpack_require__(234);
@@ -32545,7 +32751,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -32571,13 +32777,13 @@
 
 	var CSSPropertyOperations = __webpack_require__(237);
 	var DOMProperty = __webpack_require__(213);
-	var DOMPropertyOperations = __webpack_require__(74);
+	var DOMPropertyOperations = __webpack_require__(75);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactComponent = __webpack_require__(77);
+	var ReactComponent = __webpack_require__(78);
 	var ReactBrowserEventEmitter = __webpack_require__(239);
-	var ReactMount = __webpack_require__(86);
-	var ReactMultiChild = __webpack_require__(87);
-	var ReactPerf = __webpack_require__(88);
+	var ReactMount = __webpack_require__(87);
+	var ReactMultiChild = __webpack_require__(88);
+	var ReactPerf = __webpack_require__(89);
 
 	var escapeTextForBrowser = __webpack_require__(214);
 	var invariant = __webpack_require__(218);
@@ -32970,7 +33176,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -32999,14 +33205,14 @@
 	var CompositionEventPlugin = __webpack_require__(244);
 	var DefaultEventPluginOrder = __webpack_require__(245);
 	var EnterLeaveEventPlugin = __webpack_require__(246);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 	var HTMLDOMPropertyConfig = __webpack_require__(247);
 	var MobileSafariClickEventPlugin = __webpack_require__(248);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
 	var ReactComponentBrowserEnvironment =
 	  __webpack_require__(249);
 	var ReactDefaultBatchingStrategy = __webpack_require__(250);
-	var ReactDOM = __webpack_require__(82);
+	var ReactDOM = __webpack_require__(83);
 	var ReactDOMButton = __webpack_require__(251);
 	var ReactDOMForm = __webpack_require__(252);
 	var ReactDOMImg = __webpack_require__(253);
@@ -33016,8 +33222,8 @@
 	var ReactDOMTextarea = __webpack_require__(257);
 	var ReactEventListener = __webpack_require__(258);
 	var ReactInjection = __webpack_require__(259);
-	var ReactInstanceHandles = __webpack_require__(85);
-	var ReactMount = __webpack_require__(86);
+	var ReactInstanceHandles = __webpack_require__(86);
+	var ReactMount = __webpack_require__(87);
 	var SelectEventPlugin = __webpack_require__(260);
 	var ServerReactRootIndex = __webpack_require__(261);
 	var SimpleEventPlugin = __webpack_require__(262);
@@ -33105,7 +33311,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -33450,7 +33656,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -33475,10 +33681,10 @@
 
 	var DOMProperty = __webpack_require__(213);
 	var ReactBrowserEventEmitter = __webpack_require__(239);
-	var ReactCurrentOwner = __webpack_require__(80);
-	var ReactDescriptor = __webpack_require__(81);
-	var ReactInstanceHandles = __webpack_require__(85);
-	var ReactPerf = __webpack_require__(88);
+	var ReactCurrentOwner = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
+	var ReactInstanceHandles = __webpack_require__(86);
+	var ReactPerf = __webpack_require__(89);
 
 	var containsNode = __webpack_require__(267);
 	var getReactRootElementInContainer = __webpack_require__(268);
@@ -34138,7 +34344,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -34162,7 +34368,7 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(77);
+	var ReactComponent = __webpack_require__(78);
 	var ReactMultiChildUpdateTypes = __webpack_require__(269);
 
 	var flattenChildren = __webpack_require__(270);
@@ -34574,7 +34780,7 @@
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -34666,7 +34872,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -34689,7 +34895,7 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 	var ReactPropTypeLocationNames = __webpack_require__(230);
 
 	var emptyFunction = __webpack_require__(271);
@@ -35015,7 +35221,7 @@
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -35038,8 +35244,8 @@
 	 */
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
-	var ReactInstanceHandles = __webpack_require__(85);
+	var ReactDescriptor = __webpack_require__(82);
+	var ReactInstanceHandles = __webpack_require__(86);
 	var ReactMarkupChecksum = __webpack_require__(272);
 	var ReactServerRenderingTransaction =
 	  __webpack_require__(273);
@@ -35111,7 +35317,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -35135,10 +35341,10 @@
 
 	"use strict";
 
-	var DOMPropertyOperations = __webpack_require__(74);
+	var DOMPropertyOperations = __webpack_require__(75);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactComponent = __webpack_require__(77);
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactComponent = __webpack_require__(78);
+	var ReactDescriptor = __webpack_require__(82);
 
 	var escapeTextForBrowser = __webpack_require__(214);
 	var mixInto = __webpack_require__(232);
@@ -35224,7 +35430,7 @@
 
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -35246,7 +35452,7 @@
 	 */
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 
 	var invariant = __webpack_require__(218);
 
@@ -35274,7 +35480,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -35330,7 +35536,7 @@
 
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -35350,219 +35556,52 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(16);
+	function makeValidator() {
+	  if (arguments.length === 1) {
+	    var element = arguments[0];
+	    switch (typeof(element)) {
+	      case 'function':
+	        return element;
+	      case 'object':
+	        if (Array.isArray(element)) {
+	          var fns = new Array(element.length);
+	          for (var i = 0; i < element.length; ++i) {
+	            fns[i] = makeValidator(element[i]);
+	          }
 
-	// when adding a shape from an image supplied by designer
-	// viewBox attribute should be copied exactly from svg image
-	var shapeutil = __webpack_require__(195);
+	          return function(e) {
+	            for (var i = 0; i < fns.length; ++i) {
+	              fns[i](e);
+	            }
+	          };
+	        } else {
+	          return makeValidator(Object.keys(element).map(function(key){
+	            var fn = makeValidator(element[key]);
 
-	var shapes = {
-	  cbg: {
-	    fixed: true,
-	    els: [
-	      {
-	        el: 'path',
-	        attrs: {
-	          d: 'M4.529,4.199C2.75,5.978,1.725,8.215,1.43,10.529l-0.396,12.61l12.611-0.395c2.314-0.297,4.553-1.32,6.332-3.098c4.264-4.266,4.264-11.182-0.002-15.449C15.711-0.066,8.793-0.066,4.529,4.199z',
-	          fill: '#FFFFFF'
+	            return function(e) {
+	              try {
+	                fn(e[key]);
+	              } catch (e) {
+	                e.message = '.' + key + e.message;
+	                throw e;
+	              }
+	            };
+	          }));
 	        }
-	      },
-	      {
-	        el: 'path',
-	        attrs: {
-	          d: 'M12.252,1c2.794,0,5.589,1.066,7.722,3.198c4.266,4.267,4.266,11.183,0.002,15.449c-1.779,1.777-4.018,2.801-6.332,3.098L1.033,23.139l0.396-12.61c0.295-2.314,1.32-4.552,3.099-6.33C6.662,2.066,9.457,1,12.252,1M12.252,0C9.067,0,6.073,1.24,3.822,3.492c-1.876,1.875-3.046,4.265-3.384,6.911L0.432,10.45L0.43,10.498l-0.396,12.61L0,24.172l1.064-0.034l12.611-0.395l0.049-0.001l0.047-0.006c2.646-0.34,5.037-1.51,6.912-3.383c4.648-4.649,4.646-12.214-0.002-16.863C18.43,1.24,15.438,0,12.252,0L12.252,0z',
-	          'class': 'tooltip-outline'
+	        break;
+	      default:
+	        if (Array.isArray(element)) {
+	        } else {
+	          console.log('makeValidator given', element);
+	          throw new Error('makeValidator must be given an Object, function, or array');
 	        }
-	      }
-	    ],
-	    id: 'cbgTooltip',
-	    mainClass: 'svg-tooltip-cbg',
-	    viewBox: '0 0 24.169 24.172',
-	    orientations: {
-	      normal: function(group) {
-	        group.classed('svg-tooltip-right-and-up', true);
-	        return shapeutil.translationFromViewBox(group, {vertical: 'up'});
-	      },
-	      leftAndDown: function(group) {
-	        group.classed('svg-tooltip-left-and-down', true);
-	        shapeutil.translationFromViewBox(group, {vertical: 'down'})
-	          .call(shapeutil.pathMirrorY)
-	          .call(shapeutil.pathMirrorX);
-	      },
-	      leftAndUp: function(group) {
-	        group.classed('svg-tooltip-left-and-up', true);
-	        shapeutil.translationFromViewBox(group, {vertical: 'up'})
-	          .call(shapeutil.pathMirrorY);
-	      },
-	      rightAndDown: function(group) {
-	        group.classed('svg-tooltip-right-and-down', true);
-	        shapeutil.translationFromViewBox(group, {vertical: 'down'})
-	          .call(shapeutil.pathMirrorX);
-	      }
-	    },
-	    addText: function(selection, opts) {
-	      var used = selection.select('use');
-	      var boundingBox = used[0][0].getBoundingClientRect();
-	      var usedTransform = used.attr('transform').split(' ');
-	      selection.append('text')
-	        .attr({
-	          x: boundingBox.width/2 - (_.contains(usedTransform, 'scale(-1,1)') ? boundingBox.width : 0),
-	          y: -boundingBox.height/2 + (_.contains(usedTransform, 'scale(1,-1)') ? boundingBox.height : 0),
-	          'class': 'd3-tooltip-text'
-	        })
-	        .text(opts.datum.value);
 	    }
-	  },
-	  basal: {
-	    fixed: false,
-	    els: [
-	      {
-	        el: 'polygon',
-	        attrs: {
-	          pointsFn: function(opts) {
-	            var pointHalfHeight = 10;
-	            var pointWidth = 15;
-	            return shapeutil.pointString(0,0) +
-	              shapeutil.pointString(opts.w, 0) +
-	              shapeutil.pointString(opts.w, opts.h/2 - pointHalfHeight) +
-	              shapeutil.pointString(opts.w + pointWidth, opts.h/2) +
-	              shapeutil.pointString(opts.w, opts.h/2 + pointHalfHeight) +
-	              shapeutil.pointString(opts.w, opts.h) +
-	              shapeutil.pointString(0, opts.h) +
-	              shapeutil.pointString(0, opts.h/2 + pointHalfHeight) +
-	              shapeutil.pointString(-pointWidth, opts.h/2) +
-	              shapeutil.pointString(0, opts.h/2 - pointHalfHeight) +
-	              shapeutil.pointString(0,0);
-	          }
-	        }
-	      }
-	    ],
-	    mainClass: 'svg-tooltip-basal',
-	    extensions: {
-	      left: 15,
-	      right: 15
-	    }
-	  },
-	  smbg: {
-	    fixed: false,
-	    els: [
-	      {
-	        el: 'polygon',
-	        attrs: {
-	          pointsFn: function(opts) {
-	            var offset = 4;
-	            var y = 12;
-	            var x = 8;
-	            return shapeutil.pointString(offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -offset) +
-	              shapeutil.pointString(offset+x, -offset) +
-	              shapeutil.pointString(0, 0) +
-	              shapeutil.pointString(offset, -y - offset) +
-	              shapeutil.pointString(offset, -opts.h - offset).trim();
-	          }
-	        }
-	      }
-	    ],
-	    mainClass: 'svg-tooltip-smbg',
-	    orientations: {
-	      normal: function(pointStr) {
-	        return pointStr;
-	      },
-	      leftAndDown: function(str) {
-	        return shapeutil.mirrorImageX(shapeutil.mirrorImageY(str));
-	      },
-	      leftAndUp: function(str) {
-	        return shapeutil.mirrorImageY(str);
-	      },
-	      rightAndDown: function(str) {
-	        return shapeutil.mirrorImageX(str);
-	      }
-	    },
-	    offset: function(selection, opts) {
-	      if (!arguments.length) return 4;
-	      selection.attr({
-	        x: opts.x,
-	        y: opts.y
-	      });
-	    }
-	  },
-	  generic: {
-	    fixed: false,
-	    els: [
-	      {
-	        el: 'polygon',
-	        attrs: {
-	          pointsFn: function(opts) {
-	            var offset = 8;
-	            var y = 16;
-	            var x = 12;
-	            return shapeutil.pointString(offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -offset) +
-	              shapeutil.pointString(offset+x, -offset) +
-	              shapeutil.pointString(0, 0) +
-	              shapeutil.pointString(offset, -y - offset) +
-	              shapeutil.pointString(offset, -opts.h - offset).trim();
-	          }
-	        }
-	      },
-	      {
-	        el: 'polygon',
-	        attrs: {
-	          pointsFn: function(opts) {
-	            var offset = 8;
-	            var y = 16;
-	            var x = 12;
-	            return shapeutil.pointString(offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -opts.h - offset) +
-	              shapeutil.pointString(opts.w + offset, -offset) +
-	              shapeutil.pointString(offset+x, -offset) +
-	              shapeutil.pointString(0, 0) +
-	              shapeutil.pointString(offset, -y - offset) +
-	              shapeutil.pointString(offset, -opts.h - offset).trim();
-	          },
-	          'class': 'no-stroke'
-	        }
-	      }
-	    ],
-	    mainClass: 'svg-tooltip-generic',
-	    orientations: {
-	      normal: function(pointStr) {
-	        return pointStr;
-	      },
-	      leftAndDown: function(str) {
-	        return shapeutil.mirrorImageX(shapeutil.mirrorImageY(str));
-	      },
-	      leftAndUp: function(str) {
-	        return shapeutil.mirrorImageY(str);
-	      },
-	      rightAndDown: function(str) {
-	        return shapeutil.mirrorImageX(str);
-	      }
-	    },
-	    offset: function(selection, opts) {
-	      if (!arguments.length) return 8;
-	      selection.attr({
-	        x: opts.x,
-	        y: opts.y
-	      });
-	    }
+	  } else {
+	    return makeValidator(Array.prototype.slice.call(arguments, 0));
 	  }
-	};
-
-	module.exports = shapes;
-
-/***/ },
-/* 95 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function isBuffer(arg) {
-	  return arg && typeof arg === 'object'
-	    && typeof arg.copy === 'function'
-	    && typeof arg.fill === 'function'
-	    && typeof arg.readUInt8 === 'function';
 	}
+
+	exports.makeValidator = makeValidator;
 
 /***/ },
 /* 96 */
@@ -42835,6 +42874,35 @@
 /* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
+	if (typeof Object.create === 'function') {
+	  // implementation from standard node.js 'util' module
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    ctor.prototype = Object.create(superCtor.prototype, {
+	      constructor: {
+	        value: ctor,
+	        enumerable: false,
+	        writable: true,
+	        configurable: true
+	      }
+	    });
+	  };
+	} else {
+	  // old school shim for old browsers
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    var TempCtor = function () {}
+	    TempCtor.prototype = superCtor.prototype
+	    ctor.prototype = new TempCtor()
+	    ctor.prototype.constructor = ctor
+	  }
+	}
+
+
+/***/ },
+/* 176 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var Duration = (function () {
 
 	    var millisecond = 1,
@@ -43013,35 +43081,6 @@
 
 	if (true) {
 	   module.exports = Duration;
-	}
-
-
-/***/ },
-/* 176 */
-/***/ function(module, exports, __webpack_require__) {
-
-	if (typeof Object.create === 'function') {
-	  // implementation from standard node.js 'util' module
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    ctor.prototype = Object.create(superCtor.prototype, {
-	      constructor: {
-	        value: ctor,
-	        enumerable: false,
-	        writable: true,
-	        configurable: true
-	      }
-	    });
-	  };
-	} else {
-	  // old school shim for old browsers
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    var TempCtor = function () {}
-	    TempCtor.prototype = superCtor.prototype
-	    ctor.prototype = new TempCtor()
-	    ctor.prototype.constructor = ctor
-	  }
 	}
 
 
@@ -43390,7 +43429,7 @@
 	var Pool = __webpack_require__(177);
 	var annotation = __webpack_require__(210);
 	var Tooltips = __webpack_require__(189);
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 
 	var log = __webpack_require__(14)('One Day');
 
@@ -45083,7 +45122,7 @@
 	var d3 = __webpack_require__(9);
 	var _ = __webpack_require__(16);
 
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 	var format = __webpack_require__(44);
 	var log = __webpack_require__(14)('Basal');
 
@@ -45613,7 +45652,7 @@
 
 	var log = __webpack_require__(14)('Bolus');
 
-	var commonbolus = __webpack_require__(65);
+	var commonbolus = __webpack_require__(66);
 	var drawbolus = __webpack_require__(190);
 	var format = __webpack_require__(44);
 
@@ -45726,7 +45765,7 @@
 	var _ = __webpack_require__(16);
 
 	var log = __webpack_require__(14)('CBG');
-	var bgBoundaryClass = __webpack_require__(66);
+	var bgBoundaryClass = __webpack_require__(65);
 	var format = __webpack_require__(44);
 
 	module.exports = function(pool, opts) {
@@ -46044,9 +46083,9 @@
 	var _ = __webpack_require__(16);
 
 	var log = __webpack_require__(14)('Two-Week SMBG');
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 	var format = __webpack_require__(44);
-	var bgBoundaryClass = __webpack_require__(66);
+	var bgBoundaryClass = __webpack_require__(65);
 
 	function SMBGTime (opts) {
 	  var MS_IN_HOUR = 3600000;
@@ -46328,7 +46367,7 @@
 	var log = __webpack_require__(14)('SMBG');
 	var format = __webpack_require__(44);
 	var scales = __webpack_require__(193)();
-	var bgBoundaryClass = __webpack_require__(66);
+	var bgBoundaryClass = __webpack_require__(65);
 
 	module.exports = function(pool, opts) {
 
@@ -46509,7 +46548,7 @@
 
 	var log = __webpack_require__(14)('Wizard');
 
-	var commonbolus = __webpack_require__(65);
+	var commonbolus = __webpack_require__(66);
 	var drawbolus = __webpack_require__(190);
 
 	module.exports = function(pool, opts) {
@@ -46648,7 +46687,7 @@
 	var _ = __webpack_require__(16);
 	var d3 = __webpack_require__(9);
 
-	var shapes = __webpack_require__(94);
+	var shapes = __webpack_require__(73);
 	var shapeutil = __webpack_require__(195);
 
 	function Tooltips(container, tooltipsGroup) {
@@ -46995,8 +47034,8 @@
 	var d3 = __webpack_require__(9);
 	var _ = __webpack_require__(16);
 
-	var commonbolus = __webpack_require__(65);
-	var dt = __webpack_require__(29);
+	var commonbolus = __webpack_require__(66);
+	var dt = __webpack_require__(38);
 	var format = __webpack_require__(44);
 
 	module.exports = function(pool, opts) {
@@ -47974,7 +48013,7 @@
 	var d3 = __webpack_require__(9);
 	var _ = __webpack_require__(16);
 
-	var commonbolus = __webpack_require__(65);
+	var commonbolus = __webpack_require__(66);
 
 	var scales = function(opts) {
 	  opts = opts || {};
@@ -48447,10 +48486,10 @@
 
 	var log = __webpack_require__(14)('Stats');
 	var scales = __webpack_require__(193)();
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 	var format = __webpack_require__(44);
 	var Puddle = __webpack_require__(208);
-	var bgBoundaryClass = __webpack_require__(66);
+	var bgBoundaryClass = __webpack_require__(65);
 
 	module.exports = function(pool, opts) {
 
@@ -49010,7 +49049,7 @@
 	var shapeutil = __webpack_require__(195);
 	var shapes = __webpack_require__(274);
 	var defs = __webpack_require__(211);
-	var dt = __webpack_require__(29);
+	var dt = __webpack_require__(38);
 
 	var log = __webpack_require__(14)('Annotations');
 
@@ -50278,8 +50317,8 @@
 
 	"use strict";
 
-	var ReactInstanceHandles = __webpack_require__(85);
-	var ReactTextComponent = __webpack_require__(91);
+	var ReactInstanceHandles = __webpack_require__(86);
+	var ReactTextComponent = __webpack_require__(92);
 
 	var invariant = __webpack_require__(218);
 
@@ -50646,8 +50685,8 @@
 
 	var CallbackQueue = __webpack_require__(276);
 	var PooledClass = __webpack_require__(219);
-	var ReactCurrentOwner = __webpack_require__(80);
-	var ReactPerf = __webpack_require__(88);
+	var ReactCurrentOwner = __webpack_require__(81);
+	var ReactPerf = __webpack_require__(89);
 	var Transaction = __webpack_require__(277);
 
 	var invariant = __webpack_require__(218);
@@ -51031,9 +51070,9 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(81);
+	var ReactDescriptor = __webpack_require__(82);
 	var ReactPropTypeLocations = __webpack_require__(229);
-	var ReactCurrentOwner = __webpack_require__(80);
+	var ReactCurrentOwner = __webpack_require__(81);
 
 	var monitorCodeUse = __webpack_require__(233);
 
@@ -51945,7 +51984,7 @@
 
 	"use strict";
 
-	var mergeHelpers = __webpack_require__(282);
+	var mergeHelpers = __webpack_require__(279);
 
 	var checkMergeObjectArg = mergeHelpers.checkMergeObjectArg;
 	var checkMergeIntoObjectArg = mergeHelpers.checkMergeIntoObjectArg;
@@ -51997,10 +52036,10 @@
 
 	"use strict";
 
-	var CSSProperty = __webpack_require__(279);
+	var CSSProperty = __webpack_require__(280);
 
-	var dangerousStyleValue = __webpack_require__(280);
-	var hyphenateStyleName = __webpack_require__(281);
+	var dangerousStyleValue = __webpack_require__(281);
+	var hyphenateStyleName = __webpack_require__(282);
 	var memoizeStringOnly = __webpack_require__(215);
 
 	var processStyleName = memoizeStringOnly(function(styleName) {
@@ -52100,7 +52139,7 @@
 	"use strict";
 
 	var ReactEmptyComponent = __webpack_require__(226);
-	var ReactMount = __webpack_require__(86);
+	var ReactMount = __webpack_require__(87);
 
 	var invariant = __webpack_require__(218);
 
@@ -52568,7 +52607,7 @@
 
 	var EventConstants = __webpack_require__(217);
 	var EventPropagators = __webpack_require__(288);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 	var SyntheticInputEvent = __webpack_require__(289);
 
 	var keyOf = __webpack_require__(240);
@@ -52796,7 +52835,7 @@
 	var EventConstants = __webpack_require__(217);
 	var EventPluginHub = __webpack_require__(283);
 	var EventPropagators = __webpack_require__(288);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 	var ReactUpdates = __webpack_require__(222);
 	var SyntheticEvent = __webpack_require__(290);
 
@@ -53225,7 +53264,7 @@
 
 	var EventConstants = __webpack_require__(217);
 	var EventPropagators = __webpack_require__(288);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 	var ReactInputSelection = __webpack_require__(292);
 	var SyntheticCompositionEvent = __webpack_require__(293);
 
@@ -53548,7 +53587,7 @@
 	var EventPropagators = __webpack_require__(288);
 	var SyntheticMouseEvent = __webpack_require__(295);
 
-	var ReactMount = __webpack_require__(86);
+	var ReactMount = __webpack_require__(87);
 	var keyOf = __webpack_require__(240);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
@@ -53697,7 +53736,7 @@
 	"use strict";
 
 	var DOMProperty = __webpack_require__(213);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
@@ -53959,8 +53998,8 @@
 
 	var ReactDOMIDOperations = __webpack_require__(296);
 	var ReactMarkupChecksum = __webpack_require__(272);
-	var ReactMount = __webpack_require__(86);
-	var ReactPerf = __webpack_require__(88);
+	var ReactMount = __webpack_require__(87);
+	var ReactPerf = __webpack_require__(89);
 	var ReactReconcileTransaction = __webpack_require__(297);
 
 	var getReactRootElementInContainer = __webpack_require__(268);
@@ -54170,8 +54209,8 @@
 
 	var AutoFocusMixin = __webpack_require__(299);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	var keyMirror = __webpack_require__(223);
 
@@ -54246,8 +54285,8 @@
 	var EventConstants = __webpack_require__(217);
 	var LocalEventTrapMixin = __webpack_require__(300);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	// Store a reference to the <form> `ReactDOMComponent`.
 	var form = ReactDOM.form;
@@ -54306,8 +54345,8 @@
 	var EventConstants = __webpack_require__(217);
 	var LocalEventTrapMixin = __webpack_require__(300);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	// Store a reference to the <img> `ReactDOMComponent`.
 	var img = ReactDOM.img;
@@ -54362,12 +54401,12 @@
 	"use strict";
 
 	var AutoFocusMixin = __webpack_require__(299);
-	var DOMPropertyOperations = __webpack_require__(74);
+	var DOMPropertyOperations = __webpack_require__(75);
 	var LinkedValueUtils = __webpack_require__(301);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
-	var ReactMount = __webpack_require__(86);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
+	var ReactMount = __webpack_require__(87);
 
 	var invariant = __webpack_require__(218);
 	var merge = __webpack_require__(224);
@@ -54551,8 +54590,8 @@
 	"use strict";
 
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	var warning = __webpack_require__(216);
 
@@ -54615,8 +54654,8 @@
 	var AutoFocusMixin = __webpack_require__(299);
 	var LinkedValueUtils = __webpack_require__(301);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	var merge = __webpack_require__(224);
 
@@ -54800,11 +54839,11 @@
 	"use strict";
 
 	var AutoFocusMixin = __webpack_require__(299);
-	var DOMPropertyOperations = __webpack_require__(74);
+	var DOMPropertyOperations = __webpack_require__(75);
 	var LinkedValueUtils = __webpack_require__(301);
 	var ReactBrowserComponentMixin = __webpack_require__(238);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 
 	var invariant = __webpack_require__(218);
 	var merge = __webpack_require__(224);
@@ -54950,10 +54989,10 @@
 	"use strict";
 
 	var EventListener = __webpack_require__(302);
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 	var PooledClass = __webpack_require__(219);
-	var ReactInstanceHandles = __webpack_require__(85);
-	var ReactMount = __webpack_require__(86);
+	var ReactInstanceHandles = __webpack_require__(86);
+	var ReactMount = __webpack_require__(87);
 	var ReactUpdates = __webpack_require__(222);
 
 	var getEventTarget = __webpack_require__(303);
@@ -55145,12 +55184,12 @@
 
 	var DOMProperty = __webpack_require__(213);
 	var EventPluginHub = __webpack_require__(283);
-	var ReactComponent = __webpack_require__(77);
-	var ReactCompositeComponent = __webpack_require__(78);
-	var ReactDOM = __webpack_require__(82);
+	var ReactComponent = __webpack_require__(78);
+	var ReactCompositeComponent = __webpack_require__(79);
+	var ReactDOM = __webpack_require__(83);
 	var ReactEmptyComponent = __webpack_require__(226);
 	var ReactBrowserEventEmitter = __webpack_require__(239);
-	var ReactPerf = __webpack_require__(88);
+	var ReactPerf = __webpack_require__(89);
 	var ReactRootIndex = __webpack_require__(266);
 	var ReactUpdates = __webpack_require__(222);
 
@@ -55443,7 +55482,7 @@
 	"use strict";
 
 	var EventConstants = __webpack_require__(217);
-	var EventPluginUtils = __webpack_require__(75);
+	var EventPluginUtils = __webpack_require__(76);
 	var EventPropagators = __webpack_require__(288);
 	var SyntheticClipboardEvent = __webpack_require__(307);
 	var SyntheticEvent = __webpack_require__(290);
@@ -55973,7 +56012,7 @@
 	"use strict";
 
 	// Defeat circular references by requiring this directly.
-	var ReactCompositeComponent = __webpack_require__(78);
+	var ReactCompositeComponent = __webpack_require__(79);
 
 	var invariant = __webpack_require__(218);
 
@@ -56044,8 +56083,8 @@
 
 	var DOMProperty = __webpack_require__(213);
 	var ReactDefaultPerfAnalysis = __webpack_require__(314);
-	var ReactMount = __webpack_require__(86);
-	var ReactPerf = __webpack_require__(88);
+	var ReactMount = __webpack_require__(87);
+	var ReactPerf = __webpack_require__(89);
 
 	var performanceNow = __webpack_require__(315);
 
@@ -57260,254 +57299,6 @@
 /* 279 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule CSSProperty
-	 */
-
-	"use strict";
-
-	/**
-	 * CSS properties which accept numbers but are not in units of "px".
-	 */
-	var isUnitlessNumber = {
-	  columnCount: true,
-	  fillOpacity: true,
-	  flex: true,
-	  flexGrow: true,
-	  flexShrink: true,
-	  fontWeight: true,
-	  lineClamp: true,
-	  lineHeight: true,
-	  opacity: true,
-	  order: true,
-	  orphans: true,
-	  widows: true,
-	  zIndex: true,
-	  zoom: true
-	};
-
-	/**
-	 * @param {string} prefix vendor-specific prefix, eg: Webkit
-	 * @param {string} key style name, eg: transitionDuration
-	 * @return {string} style name prefixed with `prefix`, properly camelCased, eg:
-	 * WebkitTransitionDuration
-	 */
-	function prefixKey(prefix, key) {
-	  return prefix + key.charAt(0).toUpperCase() + key.substring(1);
-	}
-
-	/**
-	 * Support style names that may come passed in prefixed by adding permutations
-	 * of vendor prefixes.
-	 */
-	var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
-
-	// Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
-	// infinite loop, because it iterates over the newly added props too.
-	Object.keys(isUnitlessNumber).forEach(function(prop) {
-	  prefixes.forEach(function(prefix) {
-	    isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
-	  });
-	});
-
-	/**
-	 * Most style properties can be unset by doing .style[prop] = '' but IE8
-	 * doesn't like doing that with shorthand properties so for the properties that
-	 * IE8 breaks on, which are listed here, we instead unset each of the
-	 * individual properties. See http://bugs.jquery.com/ticket/12385.
-	 * The 4-value 'clock' properties like margin, padding, border-width seem to
-	 * behave without any problems. Curiously, list-style works too without any
-	 * special prodding.
-	 */
-	var shorthandPropertyExpansions = {
-	  background: {
-	    backgroundImage: true,
-	    backgroundPosition: true,
-	    backgroundRepeat: true,
-	    backgroundColor: true
-	  },
-	  border: {
-	    borderWidth: true,
-	    borderStyle: true,
-	    borderColor: true
-	  },
-	  borderBottom: {
-	    borderBottomWidth: true,
-	    borderBottomStyle: true,
-	    borderBottomColor: true
-	  },
-	  borderLeft: {
-	    borderLeftWidth: true,
-	    borderLeftStyle: true,
-	    borderLeftColor: true
-	  },
-	  borderRight: {
-	    borderRightWidth: true,
-	    borderRightStyle: true,
-	    borderRightColor: true
-	  },
-	  borderTop: {
-	    borderTopWidth: true,
-	    borderTopStyle: true,
-	    borderTopColor: true
-	  },
-	  font: {
-	    fontStyle: true,
-	    fontVariant: true,
-	    fontWeight: true,
-	    fontSize: true,
-	    lineHeight: true,
-	    fontFamily: true
-	  }
-	};
-
-	var CSSProperty = {
-	  isUnitlessNumber: isUnitlessNumber,
-	  shorthandPropertyExpansions: shorthandPropertyExpansions
-	};
-
-	module.exports = CSSProperty;
-
-
-/***/ },
-/* 280 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule dangerousStyleValue
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var CSSProperty = __webpack_require__(279);
-
-	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
-
-	/**
-	 * Convert a value into the proper css writable value. The style name `name`
-	 * should be logical (no hyphens), as specified
-	 * in `CSSProperty.isUnitlessNumber`.
-	 *
-	 * @param {string} name CSS property name such as `topMargin`.
-	 * @param {*} value CSS property value such as `10px`.
-	 * @return {string} Normalized style value with dimensions applied.
-	 */
-	function dangerousStyleValue(name, value) {
-	  // Note that we've removed escapeTextForBrowser() calls here since the
-	  // whole string will be escaped when the attribute is injected into
-	  // the markup. If you provide unsafe user data here they can inject
-	  // arbitrary CSS which may be problematic (I couldn't repro this):
-	  // https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
-	  // http://www.thespanner.co.uk/2007/11/26/ultimate-xss-css-injection/
-	  // This is not an XSS hole but instead a potential CSS injection issue
-	  // which has lead to a greater discussion about how we're going to
-	  // trust URLs moving forward. See #2115901
-
-	  var isEmpty = value == null || typeof value === 'boolean' || value === '';
-	  if (isEmpty) {
-	    return '';
-	  }
-
-	  var isNonNumeric = isNaN(value);
-	  if (isNonNumeric || value === 0 ||
-	      isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
-	    return '' + value; // cast to string
-	  }
-
-	  if (typeof value === 'string') {
-	    value = value.trim();
-	  }
-	  return value + 'px';
-	}
-
-	module.exports = dangerousStyleValue;
-
-
-/***/ },
-/* 281 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule hyphenateStyleName
-	 * @typechecks
-	 */
-
-	"use strict";
-
-	var hyphenate = __webpack_require__(321);
-
-	var msPattern = /^ms-/;
-
-	/**
-	 * Hyphenates a camelcased CSS property name, for example:
-	 *
-	 *   > hyphenate('backgroundColor')
-	 *   < "background-color"
-	 *   > hyphenate('MozTransition')
-	 *   < "-moz-transition"
-	 *   > hyphenate('msTransition')
-	 *   < "-ms-transition"
-	 *
-	 * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
-	 * is converted to `-ms-`.
-	 *
-	 * @param {string} string
-	 * @return {string}
-	 */
-	function hyphenateStyleName(string) {
-	  return hyphenate(string).replace(msPattern, '-ms-');
-	}
-
-	module.exports = hyphenateStyleName;
-
-
-/***/ },
-/* 282 */
-/***/ function(module, exports, __webpack_require__) {
-
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-2014 Facebook, Inc.
 	 *
@@ -57659,6 +57450,254 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(174)))
 
 /***/ },
+/* 280 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule CSSProperty
+	 */
+
+	"use strict";
+
+	/**
+	 * CSS properties which accept numbers but are not in units of "px".
+	 */
+	var isUnitlessNumber = {
+	  columnCount: true,
+	  fillOpacity: true,
+	  flex: true,
+	  flexGrow: true,
+	  flexShrink: true,
+	  fontWeight: true,
+	  lineClamp: true,
+	  lineHeight: true,
+	  opacity: true,
+	  order: true,
+	  orphans: true,
+	  widows: true,
+	  zIndex: true,
+	  zoom: true
+	};
+
+	/**
+	 * @param {string} prefix vendor-specific prefix, eg: Webkit
+	 * @param {string} key style name, eg: transitionDuration
+	 * @return {string} style name prefixed with `prefix`, properly camelCased, eg:
+	 * WebkitTransitionDuration
+	 */
+	function prefixKey(prefix, key) {
+	  return prefix + key.charAt(0).toUpperCase() + key.substring(1);
+	}
+
+	/**
+	 * Support style names that may come passed in prefixed by adding permutations
+	 * of vendor prefixes.
+	 */
+	var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
+
+	// Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
+	// infinite loop, because it iterates over the newly added props too.
+	Object.keys(isUnitlessNumber).forEach(function(prop) {
+	  prefixes.forEach(function(prefix) {
+	    isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
+	  });
+	});
+
+	/**
+	 * Most style properties can be unset by doing .style[prop] = '' but IE8
+	 * doesn't like doing that with shorthand properties so for the properties that
+	 * IE8 breaks on, which are listed here, we instead unset each of the
+	 * individual properties. See http://bugs.jquery.com/ticket/12385.
+	 * The 4-value 'clock' properties like margin, padding, border-width seem to
+	 * behave without any problems. Curiously, list-style works too without any
+	 * special prodding.
+	 */
+	var shorthandPropertyExpansions = {
+	  background: {
+	    backgroundImage: true,
+	    backgroundPosition: true,
+	    backgroundRepeat: true,
+	    backgroundColor: true
+	  },
+	  border: {
+	    borderWidth: true,
+	    borderStyle: true,
+	    borderColor: true
+	  },
+	  borderBottom: {
+	    borderBottomWidth: true,
+	    borderBottomStyle: true,
+	    borderBottomColor: true
+	  },
+	  borderLeft: {
+	    borderLeftWidth: true,
+	    borderLeftStyle: true,
+	    borderLeftColor: true
+	  },
+	  borderRight: {
+	    borderRightWidth: true,
+	    borderRightStyle: true,
+	    borderRightColor: true
+	  },
+	  borderTop: {
+	    borderTopWidth: true,
+	    borderTopStyle: true,
+	    borderTopColor: true
+	  },
+	  font: {
+	    fontStyle: true,
+	    fontVariant: true,
+	    fontWeight: true,
+	    fontSize: true,
+	    lineHeight: true,
+	    fontFamily: true
+	  }
+	};
+
+	var CSSProperty = {
+	  isUnitlessNumber: isUnitlessNumber,
+	  shorthandPropertyExpansions: shorthandPropertyExpansions
+	};
+
+	module.exports = CSSProperty;
+
+
+/***/ },
+/* 281 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule dangerousStyleValue
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var CSSProperty = __webpack_require__(280);
+
+	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
+
+	/**
+	 * Convert a value into the proper css writable value. The style name `name`
+	 * should be logical (no hyphens), as specified
+	 * in `CSSProperty.isUnitlessNumber`.
+	 *
+	 * @param {string} name CSS property name such as `topMargin`.
+	 * @param {*} value CSS property value such as `10px`.
+	 * @return {string} Normalized style value with dimensions applied.
+	 */
+	function dangerousStyleValue(name, value) {
+	  // Note that we've removed escapeTextForBrowser() calls here since the
+	  // whole string will be escaped when the attribute is injected into
+	  // the markup. If you provide unsafe user data here they can inject
+	  // arbitrary CSS which may be problematic (I couldn't repro this):
+	  // https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
+	  // http://www.thespanner.co.uk/2007/11/26/ultimate-xss-css-injection/
+	  // This is not an XSS hole but instead a potential CSS injection issue
+	  // which has lead to a greater discussion about how we're going to
+	  // trust URLs moving forward. See #2115901
+
+	  var isEmpty = value == null || typeof value === 'boolean' || value === '';
+	  if (isEmpty) {
+	    return '';
+	  }
+
+	  var isNonNumeric = isNaN(value);
+	  if (isNonNumeric || value === 0 ||
+	      isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
+	    return '' + value; // cast to string
+	  }
+
+	  if (typeof value === 'string') {
+	    value = value.trim();
+	  }
+	  return value + 'px';
+	}
+
+	module.exports = dangerousStyleValue;
+
+
+/***/ },
+/* 282 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule hyphenateStyleName
+	 * @typechecks
+	 */
+
+	"use strict";
+
+	var hyphenate = __webpack_require__(321);
+
+	var msPattern = /^ms-/;
+
+	/**
+	 * Hyphenates a camelcased CSS property name, for example:
+	 *
+	 *   > hyphenate('backgroundColor')
+	 *   < "background-color"
+	 *   > hyphenate('MozTransition')
+	 *   < "-moz-transition"
+	 *   > hyphenate('msTransition')
+	 *   < "-ms-transition"
+	 *
+	 * As Modernizr suggests (http://modernizr.com/docs/#prefixed), an `ms` prefix
+	 * is converted to `-ms-`.
+	 *
+	 * @param {string} string
+	 * @return {string}
+	 */
+	function hyphenateStyleName(string) {
+	  return hyphenate(string).replace(msPattern, '-ms-');
+	}
+
+	module.exports = hyphenateStyleName;
+
+
+/***/ },
 /* 283 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -57683,7 +57722,7 @@
 	"use strict";
 
 	var EventPluginRegistry = __webpack_require__(284);
-	var EventPluginUtils = __webpack_require__(75);
+	var EventPluginUtils = __webpack_require__(76);
 
 	var accumulate = __webpack_require__(322);
 	var forEachAccumulated = __webpack_require__(323);
@@ -58373,7 +58412,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var useHasFeature;
 	if (ExecutionEnvironment.canUseDOM) {
@@ -59086,7 +59125,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var contentKey = null;
 
@@ -59233,9 +59272,9 @@
 
 	var CSSPropertyOperations = __webpack_require__(237);
 	var DOMChildrenOperations = __webpack_require__(327);
-	var DOMPropertyOperations = __webpack_require__(74);
-	var ReactMount = __webpack_require__(86);
-	var ReactPerf = __webpack_require__(88);
+	var DOMPropertyOperations = __webpack_require__(75);
+	var ReactMount = __webpack_require__(87);
+	var ReactPerf = __webpack_require__(89);
 
 	var invariant = __webpack_require__(218);
 	var setInnerHTML = __webpack_require__(298);
@@ -59612,7 +59651,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	/**
 	 * Set the innerHTML property of a node, ensuring that whitespace is preserved
@@ -59801,7 +59840,7 @@
 
 	"use strict";
 
-	var ReactPropTypes = __webpack_require__(89);
+	var ReactPropTypes = __webpack_require__(90);
 
 	var invariant = __webpack_require__(218);
 
@@ -61297,7 +61336,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var getNodeForCharacterOffset = __webpack_require__(331);
 	var getTextContentAccessor = __webpack_require__(294);
@@ -61922,7 +61961,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var performance;
 
@@ -62088,7 +62127,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var createNodesFromMarkup = __webpack_require__(333);
 	var emptyFunction = __webpack_require__(271);
@@ -62280,7 +62319,7 @@
 
 	/*jslint evil: true, sub: true */
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var createArrayFrom = __webpack_require__(335);
 	var getMarkupWrap = __webpack_require__(334);
@@ -62377,7 +62416,7 @@
 	 * @providesModule getMarkupWrap
 	 */
 
-	var ExecutionEnvironment = __webpack_require__(93);
+	var ExecutionEnvironment = __webpack_require__(94);
 
 	var invariant = __webpack_require__(218);
 

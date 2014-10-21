@@ -1,5 +1,5 @@
 ---
 layout: example
-title: means barchart
+title: smbg means - bars
 bundle: SMBGMeanBars.js
 ---
