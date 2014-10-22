@@ -1,65 +1,72 @@
 [
   {
-    "desc": "Modal day with bar graph of smbg means for the brush area",
+    "title": "smbg means - bars",
     "href": "example/SMBGMeanBars.html",
-    "bundle": "SMBGMeanBars.js",
     "branch": "SMBGMeanBars",
-    "title": "smbg means - bars"
+    "bundle": "SMBGMeanBars.js",
+    "desc": "Modal day with bar graph of smbg means for the brush area"
   },
   {
-    "title": "smbg means - colormap",
+    "desc": "Modal day with color map of smbg means for the brush area",
     "href": "example/SMBGMeanColormap.html",
-    "branch": "SMBGMeanColormap",
     "bundle": "SMBGMeanColormap.js",
-    "desc": "Modal day with color map of smbg means for the brush area"
+    "branch": "SMBGMeanColormap",
+    "title": "smbg means - colormap"
   },
   {
-    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area",
+    "title": "smbg - low-mean-high boxes",
     "href": "example/SMBGBox.html",
-    "bundle": "SMBGBox.js",
     "branch": "SMBGBox",
-    "title": "smbg - low-mean-high boxes"
+    "bundle": "SMBGBox.js",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area"
   },
   {
-    "title": "smbg - low-mean-high boxes, 180 days data",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area, 180 days data total",
     "href": "example/SMBGBox2.html",
-    "branch": "SMBGBox2",
     "bundle": "SMBGBox2.js",
-    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area, 180 days data total"
+    "branch": "SMBGBox2",
+    "title": "smbg - low-mean-high boxes, 180 days data"
   },
   {
-    "title": "without stats widget",
+    "desc": "Modal day without stats widget",
     "href": "example/no-stats.html",
-    "branch": "no-stats",
     "bundle": "no-stats.js",
-    "desc": "Modal day without stats widget"
+    "branch": "no-stats",
+    "title": "without stats widget"
   },
   {
-    "desc": "Modal day with dashed lines connecting smbgs instead of solid",
+    "title": "dashed lines",
     "href": "example/dashed-lines.html",
-    "bundle": "dashed-lines.js",
     "branch": "dashed-lines",
-    "title": "dashed lines"
+    "bundle": "dashed-lines.js",
+    "desc": "Modal day with dashed lines connecting smbgs instead of solid"
   },
   {
-    "title": "smaller 2-o elements",
+    "desc": "Modal day with scaled down stats widget and brush",
     "href": "example/minify.html",
-    "branch": "minify",
     "bundle": "minify.js",
-    "desc": "Modal day with scaled down stats widget and brush"
+    "branch": "minify",
+    "title": "smaller 2-o elements"
   },
   {
+    "title": "2-o elements monochrome",
     "href": "example/monochrome-stats-and-brush.html",
-    "desc": "Modal day with stats widget and brush monochrome instead of color",
-    "bundle": "monochrome-stats-and-brush.js",
     "branch": "monochrome-stats-and-brush",
-    "title": "2-o elements monochrome"
+    "bundle": "monochrome-stats-and-brush.js",
+    "desc": "Modal day with stats widget and brush monochrome instead of color"
   },
   {
-    "desc": "New explainer tooltips for stats widget describing how each statistic is calculated",
+    "href": "example/parallel-coords.html",
+    "desc": "Modal day with a toggle to group/ungroup data according to 3 hr bins of time",
+    "bundle": "parallel-coords.js",
+    "branch": "parallel-coords",
+    "title": "group toggle"
+  },
+  {
+    "title": "stats explainers",
     "href": "example/stats-explainer-tooltips.html",
-    "bundle": "stats-explainer-tooltips.js",
     "branch": "stats-explainer-tooltips",
-    "title": "stats explainers"
+    "bundle": "stats-explainer-tooltips.js",
+    "desc": "New explainer tooltips for stats widget describing how each statistic is calculated"
   }
 ]
