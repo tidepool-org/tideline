@@ -1,16 +1,16 @@
 /** @jsx React.DOM */
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -38,7 +38,8 @@ var Daily = React.createClass({
     onSwitchToSettings: React.PropTypes.func.isRequired,
     onSwitchToWeekly: React.PropTypes.func.isRequired,
     updateChartPrefs: React.PropTypes.func.isRequired,
-    updateDatetimeLocation: React.PropTypes.func.isRequired
+    updateDatetimeLocation: React.PropTypes.func.isRequired,
+    messageImageTags: React.PropTypes.array
   },
   getInitialState: function() {
     return {
@@ -73,6 +74,7 @@ var Daily = React.createClass({
             hiddenPools={this.props.chartPrefs.hiddenPools}
             initialDatetimeLocation={this.props.initialDatetimeLocation}
             patientData={this.props.patientData}
+            messageImageTags={this.props.messageImageTags}
             // handlers
             onDatetimeLocationChange={this.handleDatetimeLocationChange}
             onHideBasalSettings={this.handleHideBasalSettings}
@@ -154,7 +156,7 @@ var Daily = React.createClass({
 });
 
 var DailyChart = React.createClass({
-  chartOpts: ['bgClasses', 'bgUnits', 'hiddenPools'],
+  chartOpts: ['bgClasses', 'bgUnits', 'hiddenPools', 'messageImageTags'],
   log: bows('Daily Chart'),
   propTypes: {
     bgClasses: React.PropTypes.object.isRequired,
@@ -162,6 +164,7 @@ var DailyChart = React.createClass({
     hiddenPools: React.PropTypes.object.isRequired,
     initialDatetimeLocation: React.PropTypes.string,
     patientData: React.PropTypes.object.isRequired,
+    messageImageTags: React.PropTypes.array,
     // handlers
     onDatetimeLocationChange: React.PropTypes.func.isRequired,
     onHideBasalSettings: React.PropTypes.func.isRequired,
@@ -183,6 +186,7 @@ var DailyChart = React.createClass({
   },
   mountChart: function() {
     this.log('Mounting...');
+    console.log('mountChart', _.pick(this.props, this.chartOpts))
     this.chart = chartDailyFactory(this.getDOMNode(), _.pick(this.props, this.chartOpts))
       .setupPools();
     this.bindEvents();
