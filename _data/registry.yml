@@ -1,86 +1,100 @@
 [
   {
+    "title": "CGM modal day",
+    "href": "example/jebeck-modal-cbg.html",
+    "branch": "jebeck-modal-cbg",
+    "bundle": "jebeck-modal-cbg.js",
+    "desc": "Current modal day just dropping in cbg data instead of smbg; only 30 days, but real data"
+  },
+  {
+    "desc": "Modal day with range & mean overlays defaulted to on; also example with 30 days demo data instead of 180",
+    "href": "example/jebeck-modal-30-days-brush-ticks.html",
+    "bundle": "jebeck-modal-30-days-brush-ticks.js",
+    "branch": "jebeck-modal-30-days-brush-ticks",
+    "title": "default range & average overlays to on"
+  },
+  {
+    "title": "two tone modal day",
+    "href": "example/jebeck-two-tone.html",
+    "branch": "jebeck-two-tone",
+    "bundle": "jebeck-two-tone.js",
+    "desc": "Modal day with only two colors for days of week: weekday vs. weekend; only 30 days demo data"
+  },
+  {
+    "title": "links plus scrollbar",
     "href": "example/jebeck-modal-prototype-round-two.html",
-    "desc": "Shortcut links plus scrollbar as a replacement for the brush navigation",
-    "bundle": "jebeck-modal-prototype-round-two.js",
     "branch": "jebeck-modal-prototype-round-two",
-    "title": "links plus scrollbar"
+    "bundle": "jebeck-modal-prototype-round-two.js",
+    "desc": "Modal day with shortcut links plus scrollbar as a replacement for the brush navigation"
   },
   {
-    "title": "smbg means - bars",
+    "desc": "Modal day with bar graph of smbg means for the brush area",
     "href": "example/SMBGMeanBars.html",
-    "branch": "SMBGMeanBars",
     "bundle": "SMBGMeanBars.js",
-    "desc": "Modal day with bar graph of smbg means for the brush area"
+    "branch": "SMBGMeanBars",
+    "title": "smbg means - bars"
   },
   {
-    "desc": "Modal day with color map of smbg means for the brush area",
+    "title": "smbg means - colormap",
     "href": "example/SMBGMeanColormap.html",
-    "bundle": "SMBGMeanColormap.js",
     "branch": "SMBGMeanColormap",
-    "title": "smbg means - colormap"
+    "bundle": "SMBGMeanColormap.js",
+    "desc": "Modal day with color map of smbg means for the brush area"
   },
   {
-    "title": "smbg - low-mean-high boxes",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area",
     "href": "example/SMBGBox.html",
-    "branch": "SMBGBox",
     "bundle": "SMBGBox.js",
-    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area"
+    "branch": "SMBGBox",
+    "title": "smbg - low-mean-high boxes"
   },
   {
-    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area, 180 days data total",
+    "title": "smbg - low-mean-high boxes, 180 days data",
     "href": "example/SMBGBox2.html",
-    "bundle": "SMBGBox2.js",
     "branch": "SMBGBox2",
-    "title": "smbg - low-mean-high boxes, 180 days data"
+    "bundle": "SMBGBox2.js",
+    "desc": "Modal day with pseudo-boxplot of smbg low, mean, high for the brush area, 180 days data total"
   },
   {
-    "desc": "Modal day without stats widget",
+    "title": "without stats widget",
     "href": "example/no-stats.html",
-    "bundle": "no-stats.js",
     "branch": "no-stats",
-    "title": "without stats widget"
+    "bundle": "no-stats.js",
+    "desc": "Modal day without stats widget"
   },
   {
-    "title": "dashed lines",
+    "desc": "Modal day with dashed lines connecting smbgs instead of solid",
     "href": "example/dashed-lines.html",
-    "branch": "dashed-lines",
     "bundle": "dashed-lines.js",
-    "desc": "Modal day with dashed lines connecting smbgs instead of solid"
+    "branch": "dashed-lines",
+    "title": "dashed lines"
   },
   {
-    "desc": "Modal day with scaled down stats widget and brush",
+    "title": "smaller 2-o elements",
     "href": "example/minify.html",
-    "bundle": "minify.js",
     "branch": "minify",
-    "title": "smaller 2-o elements"
+    "bundle": "minify.js",
+    "desc": "Modal day with scaled down stats widget and brush"
   },
   {
-    "title": "2-o elements monochrome",
+    "desc": "Modal day with stats widget and brush monochrome instead of color",
     "href": "example/monochrome-stats-and-brush.html",
-    "branch": "monochrome-stats-and-brush",
     "bundle": "monochrome-stats-and-brush.js",
-    "desc": "Modal day with stats widget and brush monochrome instead of color"
+    "branch": "monochrome-stats-and-brush",
+    "title": "2-o elements monochrome"
   },
   {
-    "desc": "Modal day with a toggle to group/ungroup data according to 3 hr bins of time",
+    "title": "group toggle",
     "href": "example/parallel-coords.html",
-    "bundle": "parallel-coords.js",
     "branch": "parallel-coords",
-    "title": "group toggle"
+    "bundle": "parallel-coords.js",
+    "desc": "Modal day with a toggle to group/ungroup data according to 3 hr bins of time"
   },
   {
-    "title": "range & mean box overlay",
+    "desc": "Modal day with a toggle-able overlay showing pseudo-boxplot (range and mean) for each 3 hr bin",
     "href": "example/range-mean-box-overlay.html",
-    "branch": "range-mean-box-overlay",
     "bundle": "range-mean-box-overlay.js",
-    "desc": "Modal day with a toggle-able overlay showing pseudo-boxplot (range and mean) for each 3 hr bin"
-  },
-  {
-    "title": "stats explainers",
-    "href": "example/stats-explainer-tooltips.html",
-    "branch": "stats-explainer-tooltips",
-    "bundle": "stats-explainer-tooltips.js",
-    "desc": "New explainer tooltips for stats widget describing how each statistic is calculated"
+    "branch": "range-mean-box-overlay",
+    "title": "range & mean box overlay"
   }
 ]

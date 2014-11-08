@@ -61,7 +61,7 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
 	var React = __webpack_require__(9);
 	var d3 = __webpack_require__(10);
@@ -74,8 +74,10 @@
 	var nurseshark = __webpack_require__(6);
 	var TidelineData = __webpack_require__(5);
 
-	__webpack_require__(12);
-	__webpack_require__(14);
+	var dt = __webpack_require__(7);
+
+	__webpack_require__(16);
+	__webpack_require__(18);
 
 	var example = {
 	  log: bows('Example')
@@ -95,8 +97,14 @@
 	  getInitialState: function() {
 	    return {
 	      chartPrefs: {
-	        hiddenPools: {
-	          basalSettings: true
+	        timePrefs: {
+	          timezoneAware: false,
+	          // timezoneAware: true,
+	          // timezoneName: 'Pacific/Auckland'
+	          // timezoneName: 'Europe/Paris'
+	          // timezoneName: 'US/Eastern'
+	          timezoneName: 'US/Pacific'
+	          // timezoneName: 'US/Hawaii'
 	        }
 	      },
 	      datetimeLocation: null,
@@ -178,17 +186,15 @@
 	    if (err) {
 	      throw new Error('Could not fetch data file at ' + dataUrl);
 	    }
-	    // run nurseshark on data that isn't generated demo data
-	    // i.e., real data exported from current blip
-	    if (dataUrl !== 'data/device-data.json') {
-	      console.time('Nurseshark');
-	      data = nurseshark.processData(data).processedData;
-	      console.timeEnd('Nurseshark');
-	    }
+	    console.time('Nurseshark Total');
+	    data = nurseshark.processData(data, this.state.chartPrefs.timePrefs).processedData;
+	    console.timeEnd('Nurseshark Total');
 	    this.updateData(data);
 	  },
 	  updateData: function(data) {
-	    var tidelineData = new TidelineData(data);
+	    console.time('TidelineData Total');
+	    var tidelineData = new TidelineData(data, {timePrefs: this.state.chartPrefs.timePrefs});
+	    console.timeEnd('TidelineData Total');
 	    window.tidelineData = tidelineData;
 	    this.setState({
 	      chartData: tidelineData,
@@ -212,9 +218,13 @@
 	    });
 	  },
 	  handleSwitchToWeekly: function(datetime) {
+	    datetime = datetime || this.state.datetimeLocation;
+	    if (this.state.chartPrefs.timePrefs.timezoneAware) {
+	      datetime = dt.applyOffset(datetime, -dt.getOffset(datetime, this.state.chartPrefs.timePrefs.timezoneName));
+	    }
 	    this.setState({
 	      chartType: 'weekly',
-	      initialDatetimeLocation: datetime || this.state.datetimeLocation
+	      initialDatetimeLocation: datetime
 	    });
 	  },
 	  updateChartPrefs: function(newChartPrefs) {
@@ -242,7 +252,7 @@
 	  document.body
 	);
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 1 */
@@ -316,16 +326,16 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
-	var moment = __webpack_require__(29);
+	var moment = __webpack_require__(27);
 	var React = __webpack_require__(9);
 
 	// tideline dependencies & plugins
-	var chartDailyFactory = __webpack_require__(19).oneday;
+	var chartDailyFactory = __webpack_require__(22).oneday;
 
-	var Header = __webpack_require__(17);
-	var Footer = __webpack_require__(18);
+	var Header = __webpack_require__(20);
+	var Footer = __webpack_require__(21);
 
 	var Daily = React.createClass({displayName: 'Daily',
 	  chartType: 'daily',
@@ -371,12 +381,11 @@
 	          DailyChart(
 	            {bgClasses:this.props.bgPrefs.bgClasses,
 	            bgUnits:this.props.bgPrefs.bgUnits,
-	            hiddenPools:this.props.chartPrefs.hiddenPools,
 	            initialDatetimeLocation:this.props.initialDatetimeLocation,
 	            patientData:this.props.patientData,
+	            timePrefs:this.props.chartPrefs.timePrefs,
 	            // handlers
 	            onDatetimeLocationChange:this.handleDatetimeLocationChange,
-	            onHideBasalSettings:this.handleHideBasalSettings,
 	            onMostRecent:this.handleMostRecent,
 	            onShowBasalSettings:this.handleShowBasalSettings,
 	            onTransition:this.handleInTransition,
@@ -390,6 +399,9 @@
 	    /* jshint ignore:end */
 	  },
 	  getTitle: function(datetime) {
+	    if (this.props.chartPrefs.timePrefs.timezoneAware) {
+	      return moment(datetime).tz(this.props.chartPrefs.timePrefs.timezoneName).format('dddd, MMMM Do');
+	    }
 	    return moment(datetime).utc().format('dddd, MMMM Do');
 	  },
 	  // handlers
@@ -439,35 +451,21 @@
 	  },
 	  handlePanForward: function() {
 	    this.refs.chart.panForward();
-	  },
-	  handleShowBasalSettings: function() {
-	    this.props.updateChartPrefs({
-	      hiddenPools: {
-	        basalSettings: false
-	      }
-	    });
-	    this.setState({
-	      hiddenPools: {
-	        basalSettings: false
-	      }
-	    }, this.refs.chart.rerenderChart);
 	  }
 	});
 
 	var DailyChart = React.createClass({displayName: 'DailyChart',
-	  chartOpts: ['bgClasses', 'bgUnits', 'hiddenPools'],
+	  chartOpts: ['bgClasses', 'bgUnits', 'timePrefs'],
 	  log: bows('Daily Chart'),
 	  propTypes: {
 	    bgClasses: React.PropTypes.object.isRequired,
 	    bgUnits: React.PropTypes.string.isRequired,
-	    hiddenPools: React.PropTypes.object.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    patientData: React.PropTypes.object.isRequired,
+	    timePrefs: React.PropTypes.object.isRequired,
 	    // handlers
 	    onDatetimeLocationChange: React.PropTypes.func.isRequired,
-	    onHideBasalSettings: React.PropTypes.func.isRequired,
 	    onMostRecent: React.PropTypes.func.isRequired,
-	    onShowBasalSettings: React.PropTypes.func.isRequired,
 	    onTransition: React.PropTypes.func.isRequired
 	  },
 	  getInitialState: function() {
@@ -494,10 +492,8 @@
 	  },
 	  bindEvents: function() {
 	    this.chart.emitter.on('navigated', this.handleDatetimeLocationChange);
-	    this.chart.emitter.on('hideBasalSettings', this.props.onHideBasalSettings);
 	    this.chart.emitter.on('inTransition', this.props.onTransition);
 	    this.chart.emitter.on('mostRecent', this.props.onMostRecent);
-	    this.chart.emitter.on('showBasalSettings', this.props.onShowBasalSettings);
 	  },
 	  initializeChart: function(datetime) {
 	    this.log('Initializing...');
@@ -573,16 +569,16 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
-	var moment = __webpack_require__(29);
+	var moment = __webpack_require__(27);
 	var React = __webpack_require__(9);
 
 	// tideline dependencies & plugins
-	var chartWeeklyFactory = __webpack_require__(19).twoweek;
+	var chartWeeklyFactory = __webpack_require__(22).twoweek;
 
-	var Header = __webpack_require__(17);
-	var Footer = __webpack_require__(18);
+	var Header = __webpack_require__(20);
+	var Footer = __webpack_require__(21);
 
 	var tideline = {
 	  log: bows('Two Weeks')
@@ -635,6 +631,7 @@
 	            bgUnits:this.props.bgPrefs.bgUnits,
 	            initialDatetimeLocation:this.props.initialDatetimeLocation,
 	            patientData:this.props.patientData,
+	            timePrefs:this.props.chartPrefs.timePrefs,
 	            // handlers
 	            onDatetimeLocationChange:this.handleDatetimeLocationChange,
 	            onMostRecent:this.handleMostRecent,
@@ -664,7 +661,7 @@
 	    this.refs.chart.goToMostRecent();
 	  },
 	  handleClickOneDay: function() {
-	    var datetime = this.refs.chart.getCurrentDay();
+	    var datetime = this.refs.chart.getCurrentDay(this.props.chartPrefs.timePrefs);
 	    this.props.onSwitchToDaily(datetime);
 	  },
 	  handleClickTwoWeeks: function() {
@@ -675,7 +672,7 @@
 	    this.setState({
 	      title: this.getTitle(datetimeLocationEndpoints)
 	    });
-	    this.props.updateDatetimeLocation(this.refs.chart.getCurrentDay());
+	    this.props.updateDatetimeLocation(this.refs.chart.getCurrentDay(this.props.chartPrefs.timePrefs));
 	  },
 	  handleInTransition: function(inTransition) {
 	    this.setState({
@@ -708,13 +705,14 @@
 	});
 
 	var WeeklyChart = React.createClass({displayName: 'WeeklyChart',
-	  chartOpts: ['bgClasses', 'bgUnits'],
+	  chartOpts: ['bgClasses', 'bgUnits', 'timePrefs'],
 	  log: bows('Weekly Chart'),
 	  propTypes: {
 	    bgClasses: React.PropTypes.object.isRequired,
 	    bgUnits: React.PropTypes.string.isRequired,
 	    initialDatetimeLocation: React.PropTypes.string,
 	    patientData: React.PropTypes.object.isRequired,
+	    timePrefs: React.PropTypes.object.isRequired,
 	    // handlers
 	    onDatetimeLocationChange: React.PropTypes.func.isRequired,
 	    onMostRecent: React.PropTypes.func.isRequired,
@@ -731,7 +729,7 @@
 	  },
 	  mountChart: function(node, chartOpts) {
 	    this.log('Mounting...');
-	    this.chart = chartWeeklyFactory(node,  _.pick(this.props, this.chartOpts));
+	    this.chart = chartWeeklyFactory(node, _.pick(this.props, this.chartOpts));
 	    this.bindEvents();
 	  },
 	  unmountChart: function() {
@@ -768,8 +766,8 @@
 	  handleDatetimeLocationChange: function(datetimeLocationEndpoints) {
 	    this.props.onDatetimeLocationChange(datetimeLocationEndpoints);
 	  },
-	  getCurrentDay: function() {
-	    return this.chart.getCurrentDay().toISOString();
+	  getCurrentDay: function(timePrefs) {
+	    return this.chart.getCurrentDay(timePrefs).toISOString();
 	  },
 	  goToMostRecent: function() {
 	    this.chart.clear();
@@ -814,15 +812,15 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
 	var React = __webpack_require__(9);
 
 	// tideline dependencies & plugins
-	var chartSettingsFactory = __webpack_require__(19).settings;
+	var chartSettingsFactory = __webpack_require__(22).settings;
 
-	var Header = __webpack_require__(17);
-	var Footer = __webpack_require__(18);
+	var Header = __webpack_require__(20);
+	var Footer = __webpack_require__(21);
 
 	var tideline = {
 	  log: bows('Settings')
@@ -954,19 +952,36 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	/* global __DEV__ */
+
+	var _ = __webpack_require__(12);
+	var crossfilter = __webpack_require__(25);
 	var d3 = __webpack_require__(10);
 
-	var validate = __webpack_require__(20);
+	var validate = __webpack_require__(23);
 
-	var TidelineCrossFilter = __webpack_require__(25);
-	var BasalUtil = __webpack_require__(21);
-	var BolusUtil = __webpack_require__(22);
-	var BGUtil = __webpack_require__(23);
-	var SettingsUtil = __webpack_require__(24);
-	var dt = __webpack_require__(26);
+	var BasalUtil = __webpack_require__(13);
+	var BolusUtil = __webpack_require__(14);
+	var BGUtil = __webpack_require__(15);
+	var dt = __webpack_require__(7);
 
-	var log = __webpack_require__(8)('TidelineData');
+	var log;
+	if (typeof window !== 'undefined') {
+	  log = __webpack_require__(8)('TidelineData');
+	}
+	else {
+	  log = function() { return; };
+	}
+
+	var startTimer, endTimer;
+	if (typeof window !== 'undefined' && (false) === true) {
+	  startTimer = function(name) { console.time(name); };
+	  endTimer = function(name) { console.timeEnd(name); };
+	}
+	else {
+	  startTimer = function() { return; };
+	  endTimer = function() { return; };
+	}
 
 	function TidelineData(data, opts) {
 
@@ -1006,19 +1021,27 @@
 	      'settings',
 	      'smbg',
 	      'wizard'
-	    ]
+	    ],
+	    timePrefs: {
+	      timezoneAware: false,
+	      timezoneName: 'US/Pacific'
+	    }
 	  };
 
 	  _.defaults(opts, defaults);
 	  var that = this;
 
+	  var MS_IN_MIN = 60000, MS_IN_DAY = 864e5;
+
 	  function checkRequired() {
+	    startTimer('checkRequired');
 	    _.each(REQUIRED_TYPES, function(type) {
 	      if (!that.grouped[type]) {
-	        log('No', type, 'data! Replaced with empty array.');
+	        // log('No', type, 'data! Replaced with empty array.');
 	        that.grouped[type] = [];
 	      }
 	    });
+	    endTimer('checkRequired');
 
 	    return that;
 	  }
@@ -1031,26 +1054,54 @@
 	  }
 
 	  function updateCrossFilters(data) {
-	    that.filterData = new TidelineCrossFilter(data);
-	    that.dataByDate = that.createCrossFilter('date');
+	    startTimer('crossfilter');
+	    that.filterData = crossfilter(data);
+	    endTimer('crossfilter');
+	    that.dataByDay = that.createCrossFilter('date');
+	    that.dataByDate = that.createCrossFilter('datetime');
 	    that.dataById = that.createCrossFilter('id');
 	    that.dataByType = that.createCrossFilter('datatype');
 	  }
 
 	  this.createCrossFilter = function(dim) {
-	    return this.filterData.addDimension(dim);
+	    var newDim;
+	    switch(dim) {
+	      case 'date':
+	        startTimer(dim + ' dimension');
+	        newDim = this.filterData.dimension(function(d) { return d.normalTime.slice(0,10); });
+	        endTimer(dim + ' dimenstion');
+	        break;
+	      case 'datetime':
+	        startTimer(dim + ' dimenstion');
+	        newDim = this.filterData.dimension(function(d) { return d.normalTime; });
+	        endTimer(dim + ' dimenstion');
+	        break;
+	      case 'datatype':
+	        startTimer(dim + ' dimenstion');
+	        newDim = this.filterData.dimension(function(d) { return d.type; });
+	        endTimer(dim + ' dimenstion');
+	        break;
+	      case 'id':
+	        startTimer(dim + ' dimenstion');
+	        newDim = this.filterData.dimension(function(d) { return d.id; });
+	        endTimer(dim + ' dimenstion');
+	        break;
+	    }
+	    return newDim;
 	  };
 
 	  this.addDatum = function(datum) {
+	    this.watson(datum);
 	    this.grouped[datum.type] = addAndResort(datum, this.grouped[datum.type]);
 	    this.data = addAndResort(datum, this.data);
 	    updateCrossFilters(this.data);
+	    this.generateFillData().adjustFillsForTwoWeekView();
 	    return this;
 	  };
 
 	  this.editDatum = function(datum, timeKey) {
-	    this.dataById.filter(datum.id);
-	    var newDatum = this.filterData.getOne(this.dataById);
+	    this.watson(datum);
+	    var newDatum = this.dataById.filter(datum.id).top(Infinity);
 	    // because some timestamps are deviceTime, some are utcTime
 	    newDatum[timeKey] = datum[timeKey];
 	    // everything has normalTime
@@ -1061,27 +1112,61 @@
 	    // clear filters
 	    this.dataById.filter(null);
 	    this.dataByDate.filter(null);
+	    this.generateFillData().adjustFillsForTwoWeekView();
 	    return this;
 	  };
 
+	  function fixGapsAndOverlaps(fillData) {
+	    var lastFill = null;
+	    for (var i = 0; i < fillData.length; ++i) {
+	      var fill = fillData[i];
+	      if (lastFill && fill.normalTime !== lastFill.normalEnd) {
+	        // catch Fall Back gap
+	        if (fill.normalTime > lastFill.normalEnd) {
+	          lastFill.normalEnd = fill.normalTime;
+	        }
+	        else if (fill.normalTime < lastFill.normalEnd) {
+	          lastFill.normalEnd = fill.normalTime;
+	        }
+	      }
+	      lastFill = fill;
+	    }
+	  }
+
 	  function fillDataFromInterval(first, last) {
-	    var data = [];
-	    var points = d3.time.hour.utc.range(first, last, opts.fillOpts.duration);
+	    startTimer('fillDataFromInterval');
+	    var fillData = [], points = d3.time.hour.utc.range(first, last);
 	    for (var i = 0; i < points.length; ++i) {
-	      if (i !== points.length - 1) {
-	        data.push({
-	          fillColor: opts.fillOpts.classes[points[i].getUTCHours()],
+	      var point = points[i], offset = null;
+	      var hoursClassifier, localTime;
+	      if (opts.timePrefs.timezoneAware) {
+	        offset = -dt.getOffset(point, opts.timePrefs.timezoneName);
+	        localTime = dt.applyOffset(point, offset);
+	        hoursClassifier = new Date(localTime).getUTCHours();
+	      }
+	      else {
+	        hoursClassifier = point.getUTCHours();
+	      }
+	      if (opts.fillOpts.classes[hoursClassifier] != null) {
+	        fillData.push({
+	          fillColor: opts.fillOpts.classes[hoursClassifier],
+	          fillDate: localTime ? localTime.slice(0,10) : points[i].toISOString().slice(0,10),
 	          id: 'fill_' + points[i].toISOString().replace(/[^\w\s]|_/g, ''),
-	          normalEnd: points[i + 1].toISOString(),
-	          normalTime: points[i].toISOString(),
-	          type: 'fill'
+	          normalEnd: d3.time.hour.utc.offset(point, 3).toISOString(),
+	          normalTime: point.toISOString(),
+	          type: 'fill',
+	          displayOffset: offset,
+	          twoWeekX: hoursClassifier * MS_IN_DAY/24
 	        });
 	      }
 	    }
-	    return data;
+	    fixGapsAndOverlaps(fillData);
+	    endTimer('fillDataFromInterval');
+	    return fillData;
 	  }
 
 	  function getTwoWeekFillEndpoints() {
+	    startTimer('getTwoWeekFillEndpoints');
 	    var data;
 	    if (that.grouped.smbg && that.grouped.smbg.length !== 0) {
 	      data = that.grouped.smbg;
@@ -1093,19 +1178,64 @@
 	    if (dt.getNumDays(first, last) < 14) {
 	      first = dt.addDays(last, -13);
 	    }
-	    return [dt.getMidnight(first), dt.getMidnight(last, true)];
+	    var endpoints;
+	    if (opts.timePrefs.timezoneAware) {
+	      var firstOffset = dt.getOffset(first, opts.timePrefs.timezoneName);
+	      var firstDate = first.slice(0,10), firstDateAdjusted = dt.applyOffset(first, -firstOffset).slice(0,10);
+	      first = dt.applyOffset(dt.getMidnight(dt.applyOffset(first, firstOffset)), firstOffset-1440);
+	      if (firstDateAdjusted >= firstDate) {
+	        first = dt.addDays(first, 1);
+	        // TODO: possibly remove this
+	        // it is intended to catch timezones on the other side of the dateline
+	        // I think that makes sense to fix the issue found here
+	        // (not generating fill for the last day of data when choosing e.g., New 
+	        // but I haven't fully convinced myself...
+	        if (Math.abs(firstOffset) >= 720) {
+	          first = dt.addDays(first, 1);
+	        }
+	      }
+	      var lastOffset = dt.getOffset(last, opts.timePrefs.timezoneName);
+	      var lastDate = dt.applyOffset(last, data[data.length - 1].timezoneOffset).slice(0,10), lastDateAdjusted = dt.applyOffset(last, -lastOffset).slice(0,10);
+	      if (lastDateAdjusted > lastDate) {
+	        last = dt.applyOffset(dt.getMidnight(dt.applyOffset(last, lastOffset), true), lastOffset);
+	        last = dt.addDays(last, 1);
+	      }
+	      else {
+	        if (lastDateAdjusted < last.slice(0,10)) {
+	          last = dt.applyOffset(dt.getMidnight(dt.applyOffset(last, lastOffset)), lastOffset);  
+	        }
+	        else {
+	          last = dt.applyOffset(dt.getMidnight(dt.applyOffset(last, lastOffset), true), lastOffset);
+	        }
+	      }
+	      endpoints = [first, last];
+	    }
+	    else {
+	      endpoints = [dt.getMidnight(first), dt.getMidnight(last, true)];
+	    }
+	    endTimer('getTwoWeekFillEndpoints');
+	    return endpoints;
 	  }
 
 	  this.generateFillData = function() {
+	    data = this.data;
+	    startTimer('generateFillData');
 	    var lastDatum = data[data.length - 1];
 	    // the fill should extend past the *end* of a segment (i.e. of basal data)
 	    // if that's the last datum in the data
 	    var lastTimestamp = lastDatum.normalEnd || lastDatum.normalTime;
 	    var first = new Date(data[0].normalTime), last = new Date(lastTimestamp);
-	    // make sure we encapsulate the domain completely by padding the start and end with twice the duration
-	    first.setUTCHours(first.getUTCHours() - first.getUTCHours() % opts.fillOpts.duration - (opts.fillOpts.duration * 2));
-	    last.setUTCHours(last.getUTCHours() + last.getUTCHours() % opts.fillOpts.duration + (opts.fillOpts.duration * 2));
+	    // make sure we encapsulate the domain completely
+	    if (last - first < MS_IN_DAY) {
+	      first = d3.time.hour.utc.offset(first, -12);
+	      last = d3.time.hour.utc.offset(last, 12);
+	    }
+	    else {
+	      first = d3.time.hour.utc.offset(first, -6);
+	      last = d3.time.hour.utc.offset(last, 6);
+	    }
 	    this.grouped.fill = fillDataFromInterval(first, last);
+	    endTimer('generateFillData');
 	    return this;
 	  };
 
@@ -1113,55 +1243,19 @@
 	  // for each day from the first through last days where smbg exists at all
 	  // and for at least 14 days
 	  this.adjustFillsForTwoWeekView = function() {
+	    startTimer('adjustFillsForTwoWeekView');
 	    var fillData = this.grouped.fill;
 	    var endpoints = getTwoWeekFillEndpoints();
-	    var startOfTwoWeekFill = endpoints[0], endOfTwoWeekFill = endpoints[1];
-	    var startOfFill = fillData[0].normalEnd, endOfFill = fillData[fillData.length - 1].normalEnd;
 	    this.twoWeekData = this.grouped.smbg || [];
-	    var twoWeekFills = [];
-	    for (var i = 0; i < this.grouped.fill.length; ++i) {
-	      var d = this.grouped.fill[i];
-	      if (d.normalTime >= startOfFill || d.normalTime <= endOfFill) {
-	        twoWeekFills.push(d);
-	      }
-	    }
-
-	    // first, fill in two week fills where potentially missing at the end of data domain
-	    if (endOfTwoWeekFill > endOfFill) {
-	      var end = new Date(endOfTwoWeekFill);
-	      // intervals are exclusive of endpoint, so
-	      // to get last segment, need to extend endpoint out +1
-	      end.setUTCHours(end.getUTCHours() + 3);
-	      twoWeekFills = twoWeekFills.concat(
-	        fillDataFromInterval(new Date(endOfFill),end)
-	      );
-	    }
-	    else {
-	      // filter out any fills from two week fills that go beyond extent of smbg data
-	      twoWeekFills = _.reject(twoWeekFills, function(d) {
-	        return d.normalTime >= endOfTwoWeekFill;
-	      });
-	    }
-
-	    // similarly, fill in two week fills where potentially missing at the beginning of data domain
-	    if (startOfTwoWeekFill < startOfFill) {
-	      twoWeekFills = twoWeekFills.concat(
-	        fillDataFromInterval(new Date(startOfTwoWeekFill), new Date(startOfFill))
-	      );
-	    }
-	    else {
-	      // filter out any fills from two week fills that go beyond extent of smbg data
-	      twoWeekFills = _.reject(twoWeekFills, function(d) {
-	        return d.normalTime < startOfTwoWeekFill;
-	      });
-	    }
-
+	    var twoWeekFills = fillDataFromInterval(new Date(endpoints[0]), new Date(endpoints[1]));
 	    this.twoWeekData = _.sortBy(this.twoWeekData.concat(twoWeekFills), function(d) {
 	      return d.normalTime;
 	    });
+	    endTimer('adjustFillsForTwoWeekView');
 	  };
 
 	  this.setBGPrefs = function() {
+	    startTimer('setBGPrefs');
 	    this.bgClasses = opts.bgClasses;
 	    var bgData;
 	    if (!(this.grouped.smbg || this.grouped.cbg)) {
@@ -1194,35 +1288,103 @@
 	        opts.bgClasses[key].boundary = opts.bgClasses[key].boundary/GLUCOSE_MM;
 	      } 
 	    }
+	    endTimer('setBGPrefs');
 	  };
+
+	  function makeWatsonFn() {
+	    var MS_IN_MIN = 60000, watson;
+	    if (opts.timePrefs.timezoneAware) {
+	      watson = function(d) {
+	        if (d.type !== 'fill') {
+	          d.normalTime = d.time;
+	          d.displayOffset = -dt.getOffset(d.time, opts.timePrefs.timezoneName);
+	          if (d.type === 'basal') {
+	            d.normalEnd = dt.addDuration(d.time, d.duration);
+	          }
+	        }
+	      };
+	    }
+	    else {
+	      watson = function(d) {
+	        if (d.type !== 'fill') {
+	          if (d.timezoneOffset != null) {
+	            d.normalTime = dt.addDuration(d.time, d.timezoneOffset * MS_IN_MIN);
+	            d.displayOffset = 0;
+	          }
+	          else if (d.type === 'message') {
+	            var datumDt = new Date(d.time);
+	            var offsetMinutes = datumDt.getTimezoneOffset();
+	            datumDt.setUTCMinutes(datumDt.getUTCMinutes() - offsetMinutes);
+	            d.normalTime = datumDt.toISOString();
+	            d.displayOffset = 0;
+	          }
+	          if (d.deviceTime && d.normalTime.slice(0, -5) !== d.deviceTime) {
+	            log('WARNING: Combining `time` and `timezoneOffset` does not yield `deviceTime`.', d);
+	          }
+	          if (d.type === 'basal') {
+	            d.normalEnd = dt.addDuration(d.normalTime, d.duration);
+	          }
+	        }
+	      };
+	    }
+	    function applyWatson(d) {
+	      watson(d);
+	      if (d.suppressed) {
+	        applyWatson(d.suppressed);
+	      }
+	    }
+	    return applyWatson;
+	  }
+
+	  this.applyNewTimePrefs = function(timePrefs) {
+	    opts.timePrefs = _.defaults(timePrefs, opts.timePrefs);
+	    this.createNormalTime().generateFillData().adjustFillsForTwoWeekView();
+	  };
+
+	  this.createNormalTime = function(data) {
+	    data = data || this.data;
+	    this.watson = makeWatsonFn();
+	    for (var i = 0; i < data.length; ++i) {
+	      var d = data[i];
+	      this.watson(d);
+	    }
+
+	    return this;
+	  };
+
+	  startTimer('Watson');
+	  // first thing to do is Watson the data
+	  // because validation requires Watson'd data
+	  this.createNormalTime(data);
+	  endTimer('Watson');
 
 	  log('Items to validate:', data.length);
 
 	  var res;
-	  if (typeof window !== 'undefined') {
-	    console.time('Validation');
-	    res = validate.validateAll(data);
-	    console.timeEnd('Validation');
-	  }
-	  else {
-	    res = validate.validateAll(data);
-	  }
+	  startTimer('Validation');
+	  res = validate.validateAll(data);
+	  endTimer('Validation');
 
 	  log('Valid items:', res.valid.length);
 	  log('Invalid items:', res.invalid.length);
 
 	  data = res.valid;
 
+	  startTimer('group');
 	  this.grouped = _.groupBy(data, function(d) { return d.type; });
+	  endTimer('group');
 
+	  startTimer('diabetesData');
 	  this.diabetesData = _.sortBy(_.flatten([].concat(_.map(opts.diabetesDataTypes, function(type) {
 	    return this.grouped[type] || [];
 	  }, this))), function(d) {
 	    return d.normalTime;
 	  });
+	  endTimer('diabetesData');
 
 	  this.setBGPrefs();
 
+	  startTimer('setUtilities');
 	  this.basalUtil = new BasalUtil(this.grouped.basal);
 	  this.bolusUtil = new BolusUtil(this.grouped.bolus);
 	  this.cbgUtil = new BGUtil(this.grouped.cbg, {
@@ -1237,23 +1399,14 @@
 	  });
 	  
 	  if (data.length > 0 && !_.isEmpty(this.diabetesData)) {
-	    this.settingsUtil = new SettingsUtil(this.grouped.settings || [], [this.diabetesData[0].normalTime, this.diabetesData[this.diabetesData.length - 1].normalTime]);
-	    this.settingsUtil.getAllSchedules(this.settingsUtil.endpoints[0], this.settingsUtil.endpoints[1]);
-	    var segmentsBySchedule = this.settingsUtil.annotateBasalSettings(this.basalUtil.actual);
-	    this.grouped['basal-settings-segment'] = [];
-	    for (var key in segmentsBySchedule) {
-	      this.grouped['basal-settings-segment'] = this.grouped['basal-settings-segment'].concat(segmentsBySchedule[key]);
-	    }
-	    this.data = _.sortBy(data.concat(this.grouped['basal-settings-segment']), function(d) {
-	      return d.normalTime;
-	    });
-
+	    this.data = data;
 	    this.generateFillData().adjustFillsForTwoWeekView();
 	    this.data = _.sortBy(this.data.concat(this.grouped.fill), function(d) { return d.normalTime; });
 	  }
 	  else {
 	    this.data = [];
 	  }
+	  endTimer('setUtilities');
 	  
 	  updateCrossFilters(this.data);
 
@@ -1284,14 +1437,13 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
-	var crossfilter = __webpack_require__(27);
-	var util = __webpack_require__(28);
+	/* global __DEV__ */
 
-	// TODO: eventually this will be a Sundial dependency
-	// not a tideline-internal dependency
-	// which is inappropriate for a "plugin" like this
-	var dt = __webpack_require__(26);
+	var _ = __webpack_require__(12);
+	var crossfilter = __webpack_require__(25);
+	var util = __webpack_require__(26);
+
+	var dt = __webpack_require__(7);
 
 	function translateBg(value) {
 	  var GLUCOSE_MM = 18.01559;
@@ -1332,14 +1484,6 @@
 	  return standard.concat(schedules);
 	}
 
-	// TODO: remove after we've got tideline using timezone-aware timestamps
-	function watson(d) {
-	  d.normalTime = d.deviceTime + '.000Z';
-	  if (d.type === 'basal') {
-	    d.normalEnd = dt.addDuration(d.normalTime, d.duration);
-	  }
-	}
-
 	function cloneDeep(d) {
 	  var newObj = {}, keys = Object.keys(d);
 	  var numKeys = keys.length;
@@ -1356,7 +1500,7 @@
 	}
 
 	function timeIt(fn, name) {
-	  if (typeof window !== 'undefined') {
+	  if (typeof window !== 'undefined' && (false) === true) {
 	    console.time(name);
 	    fn();
 	    console.timeEnd(name);
@@ -1404,14 +1548,17 @@
 	      }
 	    }
 	  },
-	  joinWizardsAndBoluses: function(wizards, bolusesToJoin) {
+	  joinWizardsAndBoluses: function(wizards, allBoluses) {
 	    var numWizards = wizards.length;
 	    for (var i = 0; i < numWizards; ++i) {
 	      var wizard = wizards[i];
-	      if (wizard.joinKey != null) {
-	        if (typeof bolusesToJoin[wizard.joinKey] === 'object') {
-	          wizard.bolus = bolusesToJoin[wizard.joinKey];
-	        }
+	      var bolusId = wizard.bolus;
+	      // TODO: remove once we've phased out in-d-gestion CareLink parsing
+	      if (bolusId ==  null) {
+	        bolusId = wizard.joinKey;
+	      }
+	      if (bolusId != null) {
+	        wizard.bolus = allBoluses[bolusId];
 	      }
 	    }
 	  },
@@ -1423,20 +1570,15 @@
 	      type: 'message',
 	      id: d.id
 	    };
-	    // TODO: remove after we've got tideline using timezone-aware timestamps
-	    var dt = new Date(tidelineMessage.time);
-	    var offsetMinutes = dt.getTimezoneOffset();
-	    dt.setUTCMinutes(dt.getUTCMinutes() - offsetMinutes);
-	    tidelineMessage.normalTime = dt.toISOString();
 	    return tidelineMessage;
 	  },
-	  processData: function(data) {
+	  processData: function(data, timePrefs) {
 	    if (!(data && data.length >= 0 && Array.isArray(data))) {
 	      throw new Error('An array is required.');
 	    }
 	    var processedData = [], erroredData = [];
 	    var collections = {
-	      bolusesToJoin: {}
+	      allBoluses: {}
 	    };
 	    var typeGroups = {}, overlappingUploads = {};
 
@@ -1481,9 +1623,9 @@
 	      }
 	    }
 
-	    timeIt(removeOverlapping, 'removeOverlapping');
+	    timeIt(removeOverlapping, 'Remove Overlapping');
 
-	    var handlers = getHandlers();
+	    var handlers = getHandlers(timePrefs);
 
 	    function addNoHandlerMessage(d) {
 	      d = cloneDeep(d);
@@ -1544,7 +1686,7 @@
 	      // and someone had made a note with year 2 that caused problems for tideline
 	      // chose year 2008 because tidline's datetime has a validation step that rejects POSIX timestamps
 	      // that evaluate to year < 2008
-	      if (d.normalTime && new Date(d.normalTime).getUTCFullYear() < 2008) {
+	      if (new Date(d.time).getUTCFullYear() < 2008) {
 	        d.errorMessage = 'Invalid datetime (before 2008).';
 	      }
 	      if (d.errorMessage != null) {
@@ -1570,8 +1712,8 @@
 	    }, 'Process');
 
 	    timeIt(function() {
-	      nurseshark.joinWizardsAndBoluses(typeGroups.wizard || [], collections.bolusesToJoin);
-	    }, 'joinWizardsAndBoluses');
+	      nurseshark.joinWizardsAndBoluses(typeGroups.wizard || [], collections.allBoluses);
+	    }, 'Join Wizards and Boluses');
 
 	    if (typeGroups.deviceMeta && typeGroups.deviceMeta.length > 0) {
 	      timeIt(function() {
@@ -1586,15 +1728,15 @@
 	          }
 	          return false;
 	        }));
-	      }, 'annotateBasals');
+	      }, 'Annotate Basals');
 	    }
 
 	    timeIt(function() {
 	      processedData.sort(function(a, b) {
-	        if (a.normalTime < b.normalTime) {
+	        if (a.time < b.time) {
 	          return -1;
 	        }
-	        if (a.normalTime > b.normalTime) {
+	        if (a.time > b.time) {
 	          return 1;
 	        }
 	        return 0;
@@ -1630,17 +1772,15 @@
 	      if (!d.rate && d.deliveryType === 'suspend') {
 	        d.rate = 0.0;
 	      }
-	      watson(d);
 	      if (d.suppressed) {
 	        this.suppressed(d);
 	      }
 	      // some Carelink temps and suspends are precisely one second short
 	      // so we extend them to avoid discontinuity
-	      if (d.source === 'carelink' && d.normalTime !== lastBasal.normalEnd) {
+	      if (d.source === 'carelink' && d.time !== lastEnd) {
 	        // check that the difference is indeed no more than one second (= 1000 milliseconds)
-	        if (dt.difference(d.normalTime, lastBasal.normalEnd) <= 1000) {
-	          lastBasal.normalEnd = d.normalTime;
-	          lastBasal.duration = dt.difference(lastBasal.normalEnd, lastBasal.normalTime);
+	        if (dt.difference(d.time, lastEnd) <= 1000) {
+	          lastBasal.duration = dt.difference(d.time, lastBasal.time);
 	        }
 	      }
 	      lastBasal = d;
@@ -1648,10 +1788,11 @@
 	    },
 	    bolus: function(d, collections) {
 	      d = cloneDeep(d);
+	      // TODO: remove once we've phased out in-d-gestion CareLink parsing
 	      if (d.joinKey != null) {
-	        collections.bolusesToJoin[d.joinKey] = d;
+	        collections.allBoluses[d.joinKey] = d;
 	      }
-	      watson(d);
+	      collections.allBoluses[d.id] = d;
 	      return d;
 	    },
 	    cbg: function(d) {
@@ -1659,7 +1800,6 @@
 	      if (d.units === 'mg/dL') {
 	        d.value = translateBg(d.value);
 	      }
-	      watson(d);
 	      return d;
 	    },
 	    deviceMeta: function(d) {
@@ -1668,7 +1808,6 @@
 	        var err = new Error('Bad pump status deviceMeta.');
 	        d.errorMessage = err.message;
 	      }
-	      watson(d);
 	      return d;
 	    },
 	    message: function(d) {
@@ -1679,7 +1818,6 @@
 	      if (d.units === 'mg/dL') {
 	        d.value = translateBg(d.value);
 	      }
-	      watson(d);
 	      return d;
 	    },
 	    settings: function(d) {
@@ -1704,7 +1842,6 @@
 	        }
 	      }
 	      d.basalSchedules = basalSchedulesToArray(d.basalSchedules);
-	      watson(d);
 	      return d;
 	    },
 	    suppressed: function(d) {
@@ -1715,10 +1852,8 @@
 	        }
 	      }
 	      // a suppressed should share these attributes with its parent
-	      d.suppressed.deviceTime = d.deviceTime;
 	      d.suppressed.duration = d.duration;
 	      d.suppressed.time = d.time;
-	      watson(d.suppressed);
 	      if (d.suppressed.suppressed) {
 	        this.suppressed(d.suppressed);
 	      }
@@ -1740,7 +1875,6 @@
 	          d.insulinSensitivity = translateBg(d.insulinSensitivity);
 	        }
 	      }
-	      watson(d);
 	      return d;
 	    }
 	  };
@@ -1752,70 +1886,238 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	// shim for using process in browser
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
 
-	var process = module.exports = {};
+	var _ = __webpack_require__(12);
+	var moment = __webpack_require__(29);
 
-	process.nextTick = (function () {
-	    var canSetImmediate = typeof window !== 'undefined'
-	    && window.setImmediate;
-	    var canPost = typeof window !== 'undefined'
-	    && window.postMessage && window.addEventListener
-	    ;
+	var datetime = {
 
-	    if (canSetImmediate) {
-	        return function (f) { return window.setImmediate(f) };
+	  APPEND: 'T00:00:00.000Z',
+
+	  MS_IN_24: 86400000,
+
+	  addDays: function(s, n) {
+	    var d = moment(s);
+	    d.add(n, 'days');
+	    return d.toISOString();
+	  },
+
+	  addDuration: function(datetime, duration) {
+	    datetime = new Date(datetime);
+
+	    return new Date(datetime.valueOf() + duration).toISOString();
+	  },
+
+	  adjustToInnerEndpoints: function(s, e, endpoints) {
+	    if (!endpoints) {
+	      return null;
 	    }
-
-	    if (canPost) {
-	        var queue = [];
-	        window.addEventListener('message', function (ev) {
-	            var source = ev.source;
-	            if ((source === window || source === null) && ev.data === 'process-tick') {
-	                ev.stopPropagation();
-	                if (queue.length > 0) {
-	                    var fn = queue.shift();
-	                    fn();
-	                }
-	            }
-	        }, true);
-
-	        return function nextTick(fn) {
-	            queue.push(fn);
-	            window.postMessage('process-tick', '*');
-	        };
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    var thisTypeStart = new Date(endpoints[0]).valueOf(), thisTypeEnd = new Date(endpoints[1]).valueOf();
+	    if (start < thisTypeStart) {
+	      return [thisTypeStart, end];
 	    }
+	    else if (end > thisTypeEnd) {
+	      return [start, thisTypeEnd];
+	    }
+	    else {
+	      return [start, end];
+	    }
+	  },
 
-	    return function nextTick(fn) {
-	        setTimeout(fn, 0);
-	    };
-	})();
+	  applyOffset: function(d, offset) {
+	    var date = new Date(d);
+	    date.setUTCMinutes(date.getUTCMinutes() + offset);
+	    return new Date(date).toISOString();
+	  },
 
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
+	  checkIfDateInRange: function(s, endpoints) {
+	    var d = new Date(s);
+	    var start = new Date(endpoints[0]);
+	    var end = new Date(endpoints[1]);
+	    if ((d.valueOf() >= start.valueOf()) && (d.valueOf() <= end.valueOf())) {
+	      return true;
+	    }
+	    else {
+	      return false;
+	    }
+	  },
 
-	function noop() {}
+	  checkIfUTCDate: function(s) {
+	    var d = new Date(s);
+	    if (typeof s === 'number') {
+	      if (d.getUTCFullYear() < 2008) {
+	        return false;
+	      }
+	      else {
+	        return true;
+	      }
+	    }
+	    else if (s.slice(s.length - 1, s.length) !== 'Z') {
+	      return false;
+	    }
+	    else {
+	      if (s === d.toISOString()) {
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	  },
 
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
+	  composeMsAndDateString: function(ms, d) {
+	    return new Date(ms + new Date(this.toISODateString(d) + this.APPEND).valueOf()).toISOString();
+	  },
 
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	}
+	  difference: function(d2, d1) {
+	    return new Date(d2) - new Date(d1);
+	  },
 
-	// TODO(shtylman)
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
+	  getDuration: function(d1, d2) {
+	    return new Date(d2).valueOf() - new Date(d1).valueOf();
+	  },
+
+	  getMidnight: function(d, next) {
+	    if (next) {
+	      return this.getMidnight(this.addDays(d, 1));
+	    }
+	    else {
+	      return this.toISODateString(d) + this.APPEND;
+	    }
+	  },
+
+	  getMsFromMidnight: function(d) {
+	    var midnight = new Date(this.getMidnight(d)).valueOf();
+	    return new Date(d).valueOf() - midnight;
+	  },
+
+	  getOffset: function(d, timezoneName) {
+	    return moment.tz.zone(timezoneName).offset(Date.parse(d));
+	  },
+
+	  getNumDays: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    return Math.ceil((end - start)/this.MS_IN_24);
+	  },
+
+	  isLessThanTwentyFourHours: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    if (end - start < this.MS_IN_24) {
+	      return true;
+	    }
+	    else { return false; }
+	  },
+
+	  isNearRightEdge: function(d, edge) {
+	    // check if d.normalTime is within six hours before edge
+	    var t = new Date(d.normalTime);
+	    if (edge.valueOf() - t.valueOf() < this.MS_IN_24/4) {
+	      return true;
+	    }
+	    return false;
+	  },
+
+	  isSegmentAcrossMidnight: function(s, e) {
+	    var start = new Date(s), end = new Date(e);
+	    var startDate = this.toISODateString(s), endDate = this.toISODateString(e);
+	    if (startDate === endDate) {
+	      return false;
+	    }
+	    else {
+	      if (end.getUTCDate() === start.getUTCDate() + 1) {
+	        if (this.getMidnight(e) === e) {
+	          return false;
+	        }
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	  },
+
+	  isTwentyFourHours: function(s, e) {
+	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    if (end - start === this.MS_IN_24) {
+	      return true;
+	    }
+	    else { return false; }
+	  },
+
+	  roundToNearestMinutes: function(d, resolution) {
+	    var date = new Date(d);
+	    var min = date.getUTCMinutes();
+	    var values = _.range(0, 60, resolution);
+	    for (var i = 0; i < values.length; ++i) {
+	      if (min - values[i] < resolution/2) {
+	        date.setUTCMinutes(values[i]);
+	        return date.toISOString();
+	      }
+	      else if (i === values.length - 1) {
+	        date.setUTCMinutes(0);
+	        date.setUTCHours(date.getUTCHours() + 1);
+	        return date.toISOString();
+	      }
+	    }
+	  },
+
+	  toISODateString: function(d) {
+	    var date = new Date(d);
+	    return date.toISOString().slice(0,10);
+	  },
+
+	  smbgEdge: function(d, offset) {
+	    var date = offset ? new Date(this.applyOffset(d, offset)) : new Date(d);
+	    if (date.getUTCHours() <= 2) {
+	      return 'left';
+	    }
+	    else if (date.getUTCHours() >= 21) {
+	      return 'right';
+	    }
+	    else {
+	      return null;
+	    }
+	  },
+
+	  verifyEndpoints: function(s, e, endpoints) {
+	    if (!endpoints) {
+	      return null;
+	    }
+	    if (this.checkIfUTCDate(s) && this.checkIfUTCDate(e)) {
+	      endpoints = this.adjustToInnerEndpoints(s, e, endpoints);
+	      s = endpoints[0];
+	      e = endpoints[1];
+	      if (this.checkIfDateInRange(s, endpoints) && this.checkIfDateInRange(e, endpoints)) {
+	        return true;
+	      }
+	      else {
+	        return false;
+	      }
+	    }
+	    else {
+	      return false;
+	    }
+	  }
 	};
 
+	module.exports = datetime;
 
 /***/ },
 /* 8 */
@@ -1903,7 +2205,7 @@
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(36);
+	module.exports = __webpack_require__(31);
 
 
 /***/ },
@@ -11170,6 +11472,75 @@
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
+	// shim for using process in browser
+
+	var process = module.exports = {};
+
+	process.nextTick = (function () {
+	    var canSetImmediate = typeof window !== 'undefined'
+	    && window.setImmediate;
+	    var canPost = typeof window !== 'undefined'
+	    && window.postMessage && window.addEventListener
+	    ;
+
+	    if (canSetImmediate) {
+	        return function (f) { return window.setImmediate(f) };
+	    }
+
+	    if (canPost) {
+	        var queue = [];
+	        window.addEventListener('message', function (ev) {
+	            var source = ev.source;
+	            if ((source === window || source === null) && ev.data === 'process-tick') {
+	                ev.stopPropagation();
+	                if (queue.length > 0) {
+	                    var fn = queue.shift();
+	                    fn();
+	                }
+	            }
+	        }, true);
+
+	        return function nextTick(fn) {
+	            queue.push(fn);
+	            window.postMessage('process-tick', '*');
+	        };
+	    }
+
+	    return function nextTick(fn) {
+	        setTimeout(fn, 0);
+	    };
+	})();
+
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	}
+
+	// TODO(shtylman)
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
 	 * @license
 	 * Lo-Dash 2.4.1 (Custom Build) <http://lodash.com/>
@@ -18328,366 +18699,12 @@
 	  }
 	}.call(this));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(52)(module), (function() { return this; }())))
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-	var dispose = __webpack_require__(16)
-		// The css code:
-		(__webpack_require__(13))
-	if(false) {
-		module.hot.accept();
-		module.hot.dispose(dispose);
-	}
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(50)(module), (function() { return this; }())))
 
 /***/ },
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports =
-		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\ng.svg-tooltip-cbg {\n  opacity: 0.7;\n}\ng.svg-tooltip-cbg.d3-bg-low path.tooltip-outline {\n  fill: #ff8b7c;\n}\ng.svg-tooltip-cbg.d3-bg-target path.tooltip-outline {\n  fill: #76d3a6;\n}\ng.svg-tooltip-cbg.d3-bg-high path.tooltip-outline {\n  fill: #bb9ae7;\n}\ng.svg-tooltip-basal polygon {\n  fill: white;\n  opacity: 0.8;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\ng.svg-tooltip-basal.d3-basal-undelivered polygon {\n  stroke-dasharray: 1.5,3;\n  stroke-linecap: round;\n}\ng.svg-tooltip-smbg polygon {\n  fill: white;\n  opacity: 0.7;\n  stroke-width: 1.5;\n}\ng.svg-tooltip-smbg.d3-bg-low {\n  stroke: #ff8b7c;\n}\ng.svg-tooltip-smbg.d3-bg-target {\n  stroke: #76d3a6;\n}\ng.svg-tooltip-smbg.d3-bg-high {\n  stroke: #bb9ae7;\n}\ng.svg-tooltip-generic polygon {\n  fill: none;\n  stroke-width: 3;\n}\ng.svg-tooltip-generic polygon.no-stroke {\n  fill: #f8f9fa;\n  stroke-width: 0;\n}\ng.svg-tooltip-generic.d3-bolus {\n  stroke: #79d0f2;\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.bigText span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n  font-size: 16px;\n}\n.mainText {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n}\n.plainText {\n  font-weight: normal;\n}\n.secondaryText {\n  font-size: 12px;\n  font-weight: normal;\n}\n.interruptedText {\n  color: #e21a00;\n  text-transform: uppercase;\n}\n.tooltip-div {\n  margin: 0;\n  padding: 3px 0 0 0;\n}\n.tooltip-div p {\n  margin-top: -3px;\n  margin-bottom: 0px;\n  padding: 0px 7.5px 2px 7.5px;\n  text-align: center;\n}\n.tooltip-div p span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n}\n.tooltip-div p span.secondary {\n  font-size: 12px;\n  font-weight: normal;\n}\n.tooltip-div p span.secondary .fromto {\n  font-size: 12px;\n  font-weight: normal;\n  color: #a6a6a6;\n}\n.tooltip-div p span .plain {\n  font-weight: normal;\n}\n.tooltip-div p.value span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n  font-size: 16px;\n}\n.bwiz {\n  padding: 1px;\n  margin: 0px auto;\n}\n.bolus-wizard {\n  color: #727375;\n  font-size: 14px;\n}\n.bolus-wizard .title {\n  padding: 1px;\n  margin: 0px auto;\n  -webkit-box-align: baseline;\n  -webkit-align-items: baseline;\n  -ms-flex-align: baseline;\n  align-items: baseline;\n  background-color: #eaeaee;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n}\n.bolus-wizard .title.wider {\n  margin: 0;\n  min-width: 160px;\n}\n.bolus-wizard .title p {\n  -webkit-box-flex: 1;\n  -webkit-flex-grow: 1;\n  -ms-flex-positive: 1;\n  flex-grow: 1;\n  margin: 0;\n}\n.bolus-wizard .title p.left {\n  padding-left: 4px;\n}\n.bolus-wizard .title p.right {\n  text-align: right;\n  padding-right: 4px;\n}\n.bolus-wizard .title p.interrupted {\n  color: #e21a00;\n  text-transform: uppercase;\n}\n.bolus-wizard .title p.plain {\n  font-weight: normal;\n}\n.bolus-wizard .title p.timestamp {\n  font-size: 12px;\n  font-weight: normal;\n  color: #404041;\n}\n.bolus-wizard table {\n  margin: 0 auto;\n  min-width: 100px;\n}\n.bolus-wizard table td.right {\n  text-align: right;\n}\n.bolus-wizard table td.label {\n  padding: 1px;\n  margin: 0px auto;\n  padding-right: 10px;\n}\n.bolus-wizard table td.del {\n  padding: 1px;\n  margin: 0px auto;\n  font-weight: bold;\n}\n.bolus-wizard table td.big {\n  padding: 1px;\n  margin: 0px auto;\n  font-weight: bold;\n  font-size: 16px;\n  text-align: right;\n}\n.bolus-wizard table td.main {\n  padding: 0;\n  margin: 0;\n  font-weight: bold;\n  text-align: right;\n}\n.bolus-wizard table td.secondary {\n  font-size: 12px;\n  text-align: right;\n}\n.bolus-wizard table td.dual {\n  text-align: right;\n  font-size: 12px;\n}\n.bolus-wizard table td.dual:first-letter {\n  text-transform: capitalize;\n}\nspan.interrupted {\n  color: #e21a00;\n  text-transform: uppercase;\n}\nsvg {\n  display: block;\n  margin: 0 auto;\n}\nsvg.hidden {\n  display: none;\n}\n.d3-axis {\n  shape-rendering: crispEdges;\n}\n.d3-axis path {\n  stroke: white;\n}\n.d3-axis line {\n  stroke: #b9c8d0;\n}\n.d3-axis text {\n  font-size: 14px;\n  fill: #727375;\n}\n.d3-axis text.d3-day-label {\n  dominant-baseline: hanging;\n  fill: #cccccc;\n}\n.d3-axis.d3-y text {\n  fill: #727375;\n  text-transform: lowercase;\n}\n.d3-axis.d3-day-axis text {\n  font-size: 13px;\n}\n.d3-axis.d3-day-axis text.d3-weekend {\n  fill: #bac9d1;\n}\n.d3-axis.d3-day-axis line {\n  fill: #bac9d1;\n}\n.scroll line {\n  stroke: #f2f4f6;\n  stroke-linecap: round;\n}\n.scrollThumb {\n  fill: #989897;\n}\n#scrollNavInvisibleRect {\n  pointer-events: none;\n}\n.d3-pool-label tspan {\n  font-size: 14px;\n  fill: #727375;\n}\n.d3-pool-label tspan.main {\n  font-weight: 600;\n  text-transform: uppercase;\n}\n.d3-pool-label tspan.light {\n  font-weight: 300;\n}\n.d3-pool-legend {\n  font-size: 14px;\n  text-anchor: end;\n  fill: #cccccc;\n}\n.d3-pool-weekend {\n  opacity: 0.7;\n}\n.d3-rect-fill.d3-fill-darker {\n  fill: #dce4e7;\n}\n.d3-rect-fill.d3-fill-darkest {\n  fill: #d3dbdd;\n}\n.d3-rect-fill.d3-fill-dark {\n  fill: #e3eaed;\n}\n.d3-rect-fill.d3-fill-light {\n  fill: #f2f4f6;\n}\n.d3-rect-fill.d3-fill-lighter {\n  fill: #e9eff1;\n}\n.d3-rect-fill.d3-fill-lightest {\n  fill: #f8f9fa;\n}\n.d3-line-guide {\n  stroke: white;\n  stroke-width: 2px;\n}\n.d3-line-guide.d3-line-bg-threshold {\n  stroke-dasharray: 3,5;\n}\n.d3-rect-message {\n  fill: white;\n  opacity: 0.5;\n}\n.d3-rect-message.hidden {\n  display: none;\n}\n.d3-rect-carbs {\n  fill: #ffd382;\n}\n.d3-rect-carbs-legend {\n  fill: #ffd382;\n  stroke: #ffd382;\n  stroke-width: 1.5;\n}\n.d3-circle-carbs {\n  fill: #ffd382;\n}\n.d3-carbs-text {\n  fill: #727375;\n  font-size: 12px;\n  dominant-baseline: central;\n  text-anchor: middle;\n}\n.d3-bolus.d3-rect-bolus {\n  fill: #79d0f2;\n}\n.d3-bolus.d3-rect-bolus-legend {\n  fill: #79d0f2;\n  stroke: #79d0f2;\n  stroke-width: 1.5;\n}\n.d3-bolus.d3-path-bolus {\n  stroke: #79d0f2;\n  fill: none;\n}\n.d3-bolus.d3-path-extended {\n  stroke: #79d0f2;\n}\n.d3-bolus.d3-path-extended.d3-unknown-delivery-split {\n  stroke-dasharray: 3,5;\n}\n.d3-bolus.d3-path-extended-triangle {\n  stroke: #79d0f2;\n  fill: #79d0f2;\n}\n.d3-bolus.d3-path-extended-triangle-suspended {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-suspended {\n  stroke: #ff8b7c;\n  fill: #ff8b7c;\n}\n.d3-bolus.d3-rect-suspended-bolus {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-extended-suspended {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-suspended-triangle {\n  stroke: #ff8b7c;\n  fill: none;\n}\n.d3-bolus.d3-rect-recommended {\n  fill: #bcecfa;\n}\n.d3-bolus.d3-rect-recommended-legend {\n  fill: #bcecfa;\n  stroke: #bcecfa;\n  stroke-width: 1.5;\n}\n.d3-bolus.d3-rect-suspended {\n  fill: #ff8b7c;\n}\n.d3-bolus.d3-rect-override {\n  fill: #107ea8;\n}\n.d3-bolus.d3-polygon-override {\n  fill: #107ea8;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-low {\n  fill: #ff8b7c;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-target {\n  fill: #76d3a6;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-high {\n  fill: #bb9ae7;\n}\n.d3-circle-smbg {\n  stroke-width: 2;\n}\n.d3-circle-smbg.d3-bg-low {\n  fill: #ff8b7c;\n  stroke: #ff8b7c;\n}\n.d3-circle-smbg.d3-bg-target {\n  fill: #76d3a6;\n  stroke: #76d3a6;\n}\n.d3-circle-smbg.d3-bg-high {\n  fill: #bb9ae7;\n  stroke: #bb9ae7;\n}\n.d3-circle-smbg.d3-circle-open {\n  fill: rgba(255, 255, 255, 0) !important;\n}\n.d3-smbg-numbers.d3-rect-smbg {\n  pointer-events: none;\n  fill: #f8f9fa;\n  opacity: 0.5;\n}\n.d3-smbg-numbers.d3-text-smbg {\n  pointer-events: none;\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: middle;\n  dominant-baseline: central;\n}\n.d3-basal.d3-rect-basal {\n  fill: #15a0d7;\n}\n.d3-basal.d3-rect-basal.d3-legend {\n  fill-opacity: 0.3;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\n.d3-basal.d3-basal-invisible {\n  fill: #15a0d7;\n  opacity: 0.0;\n}\n.d3-basal.d3-path-basal {\n  fill: none;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\n.d3-basal.d3-path-basal.d3-path-basal-undelivered {\n  stroke-dasharray: 1.5,3;\n  stroke-linecap: round;\n}\n.d3-basal.d3-rect-basal-undelivered {\n  fill: none;\n  stroke: #15a0d7;\n  stroke-dasharray: 1.5, 3;\n  stroke-width: 1.5;\n}\ndiv.d3-tabular-ui {\n  background-color: none;\n}\ndiv.d3-tabular-ui p,\ndiv.d3-tabular-ui i {\n  color: #cccccc;\n  cursor: pointer;\n  font-size: 14px;\n}\ntext.d3-tabular-ui {\n  fill: #cccccc;\n  cursor: pointer;\n  font-size: 14px;\n}\n.d3-cell-rect {\n  stroke-width: 0.5px;\n  stroke: #e6e6e5;\n}\n.d3-cell-rect.d3-unmatched {\n  fill: #f7f7f8;\n}\n.d3-cell-rect.d3-matched {\n  fill: #0b9eb3;\n  opacity: 0.3;\n}\n.d3-cell-label {\n  dominant-baseline: central;\n  font-size: 12px;\n  pointer-events: none;\n  text-anchor: middle;\n}\n.d3-cell-label.d3-unmatched {\n  fill: #727375;\n}\n.d3-cell-label.d3-matched {\n  fill: #727375;\n  font-weight: bold;\n}\n.d3-row-label {\n  dominant-baseline: central;\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: end;\n}\n.d3-circle-data-annotation {\n  fill: #989897;\n  opacity: 0.5;\n}\n.d3-text-data-annotation {\n  font-size: 12px;\n  font-weight: bold;\n  fill: white;\n  text-anchor: middle;\n  dominant-baseline: central;\n  pointer-events: none;\n}\n.d3-tooltip-data-annotation {\n  pointer-events: none;\n}\n.d3-tooltip-data-annotation body {\n  margin: 0px;\n  background-color: rgba(255, 255, 255, 0);\n}\n.d3-div-data-annotation {\n  margin: 0px;\n  padding: 10px;\n  color: #727375;\n}\n.d3-div-data-annotation p {\n  margin: 5px 0px;\n  font-size: 12px;\n}\n.d3-div-data-annotation p.d3-data-annotation-lead {\n  font-style: italic;\n}\n.d3-polygon-data-annotation {\n  fill: #e9eff1;\n  opacity: 0.9;\n  pointer-events: none;\n}\n.d3-tooltip {\n  pointer-events: none;\n}\n.d3-tooltip text.d3-tooltip-text {\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: middle;\n  dominant-baseline: central;\n}\n.d3-tooltip text.d3-tooltip-text.d3-bolus {\n  font-size: 14px;\n  font-weight: bold;\n}\n.d3-tooltip text.d3-tooltip-text.d3-tooltip-timestamp {\n  text-transform: lowercase;\n}\n.d3-tooltip text.d3-tooltip-text tspan {\n  font-weight: normal;\n  dominant-baseline: central;\n}\n.d3-tooltip text.d3-tooltip-text tspan.d3-bolus {\n  font-size: 12px;\n}\n.d3-tooltip .d3-tooltip-rect {\n  fill: #f8f9fa;\n  opacity: 0.5;\n}\n.d3-stats text {\n  text-anchor: start;\n}\n.d3-stats text.d3-stats-head {\n  dominant-baseline: hanging;\n  font-size: 14px;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n  fill: #4e4e4f;\n}\n.d3-stats text.d3-stats-lead {\n  font-size: 12px;\n  fill: #676767;\n}\n.d3-stats text tspan {\n  dominant-baseline: central;\n  font-weight: bold;\n  font-size: 24px;\n}\n.d3-stats text tspan.d3-stats-high {\n  fill: #bb9ae7;\n}\n.d3-stats text tspan.d3-stats-target {\n  fill: #76d3a6;\n}\n.d3-stats text tspan.d3-stats-low {\n  fill: #ff8b7c;\n}\n.d3-stats text tspan.d3-stats-percentage {\n  fill: #76d3a6;\n}\n.d3-stats text tspan.d3-stats-basal {\n  fill: #15a0d7;\n}\n.d3-stats text tspan.d3-stats-bolus {\n  fill: #79d0f2;\n}\n.d3-stats rect.d3-stats-hover-capture {\n  visibility: hidden;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-basal {\n  fill: #15a0d7;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bolus {\n  fill: #79d0f2;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-low {\n  fill: #ff8b7c;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-target {\n  fill: #76d3a6;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-high {\n  fill: #bb9ae7;\n}\n.d3-stats .d3-stats-rect.rect-left {\n  fill: #e3eaed;\n}\n.d3-stats .d3-stats-rect.rect-right {\n  fill: #d3dbdd;\n}\n.d3-stats .d3-stats-circle.hidden {\n  display: none;\n}\n.d3-stats.d3-insufficient-data circle {\n  fill: white;\n  stroke-width: 3;\n  stroke-dasharray: 8,5;\n  stroke: #cccccc;\n}\n.d3-stats.d3-insufficient-data text,\n.d3-stats.d3-insufficient-data tspan {\n  fill: #cccccc !important;\n}\n.d3-settings {\n  font-size: 14px;\n  color: #727375;\n}\n.d3-settings *,\n.d3-settings *:before,\n.d3-settings *:after {\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n.d3-settings table {\n  border-collapse: collapse;\n  border-spacing: 0;\n  max-width: 100%;\n  background-color: transparent;\n}\n.d3-settings th {\n  text-align: left;\n  font-weight: normal;\n}\n.d3-settings-section,\n.d3-settings-col {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n.d3-settings-section-basal {\n  width: 22.22222222%;\n}\n.d3-settings-section-wizard {\n  width: 77.77777778%;\n}\n#carbRatioSettings,\n#insulinSensitivitySettings {\n  width: 28.57142857%;\n}\n#bgTargetSettings {\n  width: 42.85714286%;\n}\n.d3-settings-section-label {\n  padding-left: 5px;\n  padding-right: 5px;\n  padding-top: 10px;\n  text-transform: uppercase;\n  color: #727375;\n}\n.d3-settings-col {\n  padding: 5px 5px;\n}\n.d3-settings-col table {\n  background: #f7f7f8;\n  width: 100%;\n  padding-bottom: 10px;\n  border-collapse: collapse;\n}\n.d3-settings-col-label {\n  padding: 5px 5px;\n  font-weight: bold;\n  color: #fff;\n  background: #ccc;\n}\n.d3-settings-basal-schedule .d3-settings-col-label {\n  cursor: pointer;\n  text-transform: capitalize;\n  background: #9dd8e1;\n}\n.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-active + table {\n  display: table;\n}\n.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {\n  display: none;\n}\n#carbRatioSettings .d3-settings-col-label {\n  background: #0b9eb3;\n}\n#insulinSensitivitySettings .d3-settings-col-label {\n  background: #27707d;\n}\n#bgTargetSettings .d3-settings-col-label {\n  background: #5cb947;\n}\n.d3-settings-table-head {\n  padding: 10px 10px 5px 5px;\n  text-align: center;\n  font-weight: normal;\n  text-align: right;\n  color: #727375;\n}\n.d3-settings-start-time {\n  text-transform: lowercase;\n}\n.d3-settings-table-row-data td {\n  padding-right: 10px;\n  padding-left: 0;\n  padding-top: 2px;\n  padding-bottom: 2px;\n  text-align: right;\n  color: #1b6c9e;\n}\n.d3-settings-table-footer {\n  height: 10px;\n}\n.d3-settings-col-label,\n.d3-settings-table-head,\n.d3-settings-table-row-data td {\n  font-size: 14px;\n}\n.d3-settings-col-label > i {\n  float: left;\n  padding-right: 4px;\n  padding-left: 2px;\n}\n.d3-wizard-group,\n.d3-bolus-group {\n  cursor: default;\n}\n@media print {\n  .d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {\n    display: table;\n  }\n  .d3-settings-section,\n  .d3-settings-col {\n    display: inline;\n    width: auto;\n  }\n  .d3-settings-section .d3-settings-col-label,\n  .d3-settings-col .d3-settings-col-label,\n  .d3-settings-section table,\n  .d3-settings-col table {\n    width: auto;\n  }\n}\n";
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// style-loader: Adds some css to the DOM by adding a <style> tag
-	var dispose = __webpack_require__(16)
-		// The css code:
-		(__webpack_require__(15))
-	if(false) {
-		module.hot.accept();
-		module.hot.dispose(dispose);
-	}
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports =
-		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/**\n * Copyright (c) 2014, Tidepool Project\n * \n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n * \n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n * \n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n.grid {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n  margin-left: 0;\n}\n.grid-item {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  padding-left: 0;\n}\n/**\n   * Whole\n   */\n.one-whole {\n  width: 100%;\n}\n/**\n   * Halves\n   */\n.one-half,\n.two-quarters,\n.three-sixths,\n.four-eighths,\n.five-tenths,\n.six-twelfths {\n  width: 50%;\n}\n/**\n   * Thirds\n   */\n.one-third,\n.two-sixths,\n.four-twelfths {\n  width: 33.333%;\n}\n.two-thirds,\n.four-sixths,\n.eight-twelfths {\n  width: 66.666%;\n}\n/**\n   * Quarters\n   */\n.one-quarter,\n.two-eighths,\n.three-twelfths {\n  width: 25%;\n}\n.three-quarters,\n.six-eighths,\n.nine-twelfths {\n  width: 75%;\n}\n/**\n   * Fifths\n   */\n.one-fifth,\n.two-tenths {\n  width: 20%;\n}\n.two-fifths,\n.four-tenths {\n  width: 40%;\n}\n.three-fifths,\n.six-tenths {\n  width: 60%;\n}\n.four-fifths,\n.eight-tenths {\n  width: 80%;\n}\n/**\n   * Sixths\n   */\n.one-sixth,\n.two-twelfths {\n  width: 16.666%;\n}\n.five-sixths,\n.ten-twelfths {\n  width: 83.333%;\n}\n/**\n   * Eighths\n   */\n.one-eighth {\n  width: 12.5%;\n}\n.three-eighths {\n  width: 37.5%;\n}\n.five-eighths {\n  width: 62.5%;\n}\n.seven-eighths {\n  width: 87.5%;\n}\n/**\n   * Tenths\n   */\n.one-tenth {\n  width: 10%;\n}\n.three-tenths {\n  width: 30%;\n}\n.seven-tenths {\n  width: 70%;\n}\n.nine-tenths {\n  width: 90%;\n}\n/**\n   * Twelfths\n   */\n.one-twelfth {\n  width: 8.333%;\n}\n.five-twelfths {\n  width: 41.666%;\n}\n.seven-twelfths {\n  width: 58.333%;\n}\n.eleven-twelfths {\n  width: 91.666%;\n}\n/**\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"Blip Icons\";\n  font-style: normal;\n  font-weight: normal;\n  speak: none;\n  display: inline-block;\n  text-decoration: inherit;\n  width: 1em;\n  margin-right: .2em;\n  text-align: center;\n  /* opacity: .8; */\n  /* For safety - reset parent styles, that can break glyph codes*/\n  font-variant: normal;\n  text-transform: none;\n  /* fix buttons height, for twitter bootstrap */\n  line-height: 1em;\n  /* Animation center compensation - margins should be symmetric */\n  /* remove if not needed */\n  margin-left: .2em;\n  /* you can be more comfortable with increased icons size */\n  font-size: 110%;\n  /* Uncomment for 3D effect */\n  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */\n}\n.icon-upload:before {\n  content: '\\e800';\n}\n/* '' */\n.icon-up:before {\n  content: '\\e801';\n}\n/* '' */\n.icon-unsure-data:before {\n  content: '\\e802';\n}\n/* '' */\n.icon-settings:before {\n  content: '\\e803';\n}\n/* '' */\n.icon-refresh:before {\n  content: '\\e804';\n}\n/* '' */\n.icon-profile:before {\n  content: '\\e805';\n}\n/* '' */\n.icon-next:before {\n  content: '\\e806';\n}\n/* '' */\n.icon-next-up:before {\n  content: '\\e807';\n}\n/* '' */\n.icon-most-recent:before {\n  content: '\\e808';\n}\n/* '' */\n.icon-most-recent-up:before {\n  content: '\\e809';\n}\n/* '' */\n.icon-logout:before {\n  content: '\\e80a';\n}\n/* '' */\n.icon-down:before {\n  content: '\\e80b';\n}\n/* '' */\n.icon-close:before {\n  content: '\\e80c';\n}\n/* '' */\n.icon-careteam:before {\n  content: '\\e80d';\n}\n/* '' */\n.icon-back:before {\n  content: '\\e80e';\n}\n/* '' */\n.icon-back-down:before {\n  content: '\\e80f';\n}\n/* '' */\n.icon-add:before {\n  content: '\\e810';\n}\n/* '' */\n.icon-right:before {\n  content: '\\e811';\n}\n/* '' */\n@media print {\n  .icon-back,\n  .icon-next,\n  .icon-next-up,\n  .icon-back-down {\n    display: none;\n  }\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.spinner {\n  width: 40px;\n  height: 40px;\n  position: relative;\n  margin: 10px auto;\n}\n.double-bounce1,\n.double-bounce2 {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  background-color: #989897;\n  opacity: 0.75;\n  position: absolute;\n  top: 0;\n  left: 0;\n  -webkit-animation: bounce 2s infinite ease-in-out;\n  animation: bounce 2s infinite ease-in-out;\n}\n.double-bounce2 {\n  -webkit-animation-delay: -1s;\n  animation-delay: -1s;\n}\n@-webkit-keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@font-face {\n  font-family: 'Blip Icons';\n  src: url("+__webpack_require__(220)+") format('embedded-opentype'), url("+__webpack_require__(221)+") format('woff'), url("+__webpack_require__(222)+") format('truetype'), url("+__webpack_require__(223)+") format('svg');\n  font-weight: normal;\n  font-style: normal;\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 400;\n  src: local('Open Sans'), local('OpenSans'), url("+__webpack_require__(224)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 700;\n  src: local('Open Sans Bold'), local('OpenSans-Bold'), url("+__webpack_require__(225)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 400;\n  src: local('Open Sans Italic'), local('OpenSans-Italic'), url("+__webpack_require__(226)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 700;\n  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url("+__webpack_require__(227)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 300;\n  src: local('Open Sans Light'), local('OpenSans-Light'), url("+__webpack_require__(228)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 600;\n  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url("+__webpack_require__(229)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 300;\n  src: local('Open Sans Light Italic'), local('OpenSansLight-Italic'), url("+__webpack_require__(230)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 600;\n  src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'), url("+__webpack_require__(231)+") format('woff');\n}\n.vSpace {\n  width: 100vw;\n  height: 10px;\n}\nbody {\n  background-color: #F7F7F8;\n}\n@media (max-width: 1024px) {\n  #tidelineMain {\n    width: 100%;\n    margin: 0 0;\n    padding: 0 10px;\n  }\n  .vSpace {\n    height: 44px;\n  }\n}\n#tidelineMain {\n  font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 16px;\n  width: 1000px;\n  height: 100%;\n  margin: 0 auto;\n}\n#tidelineMain a {\n  color: white;\n  text-decoration: none;\n  line-height: 40px;\n  display: inline-block;\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav {\n  background-color: #989897;\n  width: 980px;\n  height: 40px;\n  margin: 0 auto;\n}\n#tidelineMain .tidelineNav .tidelineNavLabelWrapper {\n  min-width: 220px;\n  display: inline-block;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel {\n  font-family: 'Open Sans';\n  font-size: 16px;\n  font-weight: normal;\n  color: white;\n  padding: 0px 10px;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.active {\n  font-weight: bold;\n  cursor: text;\n}\n#tidelineMain .tidelineNav .tidelineNavRightLabel {\n  text-align: right !important;\n  float: right;\n}\n#tidelineMain .tidelineNav #tidelineLabel {\n  text-align: center;\n  line-height: 40px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a {\n  vertical-align: middle;\n  width: 32px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.active {\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.inactive {\n  cursor: default;\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.hidden {\n  display: none;\n}\n#tidelineOuterContainer {\n  margin: 0px 10px;\n  padding: 5px 10px;\n  height: 590px;\n  background-color: white;\n}\n#tidelineOuterContainer #fetchAndProcess {\n  height: 100%;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  -webkit-box-pack: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n#tidelineOuterContainer #fetchAndProcess p {\n  color: #585857;\n  font-style: italic;\n  text-align: center;\n  width: 100%;\n}\n#tidelineOuterContainer #tidelineContainer {\n  height: 590px;\n  overflow-y: auto;\n}\n";
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-	module.exports = function addStyle(cssCode) {
-		if(false) {
-			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-		}
-		var styleElement = document.createElement("style");
-		styleElement.type = "text/css";
-		var head = document.getElementsByTagName("head")[0];
-		head.appendChild(styleElement);
-		if (styleElement.styleSheet) {
-			styleElement.styleSheet.cssText = cssCode;
-		} else {
-			styleElement.appendChild(document.createTextNode(cssCode));
-		}
-		return function() {
-			head.removeChild(styleElement);
-		};
-	}
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-	var bows = __webpack_require__(8);
-	var React = __webpack_require__(9);
-	var cx = __webpack_require__(37);
-
-	var tideline = {
-	  log: bows('Header')
-	};
-
-	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    inTransition: React.PropTypes.bool.isRequired,
-	    atMostRecent: React.PropTypes.bool.isRequired,
-	    title: React.PropTypes.string.isRequired,
-	    onClickBack: React.PropTypes.func,
-	    onClickMostRecent: React.PropTypes.func.isRequired,
-	    onClickNext: React.PropTypes.func,
-	    onClickOneDay: React.PropTypes.func.isRequired,
-	    onClickTwoWeeks: React.PropTypes.func.isRequired,
-	    onClickSettings: React.PropTypes.func.isRequired
-	  },
-	  render: function() {
-	    var next = this.props.next;
-	    var back = this.props.back;
-	    var mostRecent = this.props.mostRecent;
-
-	    var dayLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'daily'
-	    });
-
-	    var weekLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'active': this.props.chartType === 'weekly'
-	    });
-
-	    var mostRecentLinkClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var backClass = cx({
-	      'active': !this.props.inTransition,
-	      'inactive': this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var nextClass = cx({
-	      'active': !this.props.atMostRecent && !this.props.inTransition,
-	      'inactive': this.props.atMostRecent || this.props.inTransition,
-	      'hidden': this.props.chartType === 'settings'
-	    });
-
-	    var settingsLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true,
-	      'active': this.props.chartType === 'settings'
-	    });
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.div( {className:"grid-item three-eighths"}, 
-	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
-	          ),
-	          React.DOM.div( {className:"grid-item one-half"}, 
-	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
-	          )
-	        ),
-	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
-	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
-	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
-	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
-	          ),
-	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
-	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
-	        ),
-	        React.DOM.div( {className:"grid-item one-quarter"}, 
-	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
-	        )
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineHeader;
-
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/** @jsx React.DOM */
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-	var bows = __webpack_require__(8);
-	var React = __webpack_require__(9);
-	var cx = __webpack_require__(37);
-
-	var tideline = {
-	  log: bows('Footer')
-	};
-
-	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
-	  propTypes: {
-	    chartType: React.PropTypes.string.isRequired,
-	    onClickValues: React.PropTypes.func,
-	    showingValues: React.PropTypes.bool
-	  },
-	  render: function() {
-	    var valuesLinkClass = cx({
-	      'tidelineNavLabel': true,
-	      'tidelineNavRightLabel': true
-	    });
-
-	    function getValuesLinkText(props) {
-	      if (props.chartType === 'weekly') {
-	        if (props.showingValues) {
-	          return 'Hide Values';
-	        }
-	        else {
-	          return 'Show Values';
-	        }
-	      }
-	      else {
-	        return '';
-	      }
-	    }
-
-	    var valuesLinkText = getValuesLinkText(this.props);
-
-	    /* jshint ignore:start */
-	    var showValues = (
-	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
-	      );
-	    /* jshint ignore:end */
-
-	    /* jshint ignore:start */
-	    return (
-	      React.DOM.div( {className:"tidelineNav grid"}, 
-	        React.DOM.div( {className:"grid-item one-half"}
-	        ),
-	        React.DOM.div( {className:"grid-item one-half"}, showValues)
-	      )
-	      );
-	    /* jshint ignore:end */
-	  }
-	});
-
-	module.exports = TidelineFooter;
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	module.exports = {
-	  oneday: __webpack_require__(39),
-	  twoweek: __webpack_require__(40),
-	  settings: __webpack_require__(41)
-	};
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var _ = __webpack_require__(11);
-	var util = __webpack_require__(28);
-
-	var schema = __webpack_require__(49);
-
-	var schemas = {
-	  basal: __webpack_require__(42),
-	  bolus: __webpack_require__(43),
-	  cbg: __webpack_require__(44),
-	  common: __webpack_require__(45),
-	  deviceMeta: schema(),
-	  message: __webpack_require__(46),
-	  settings: __webpack_require__(47),
-	  smbg: __webpack_require__(44),
-	  wizard: __webpack_require__(48)
-	};
-
-	module.exports = {
-	  validateOne: function(datum, result) {
-	    result = result || {valid: [], invalid: []};
-	    var handler = schemas[datum.type];
-	    if (handler == null) {
-	      datum.errorMessage = util.format('No schema defined for data.type[%s]', datum.type);
-	      console.log(new Error(datum.errorMessage), datum);
-	      result.invalid.push(datum);
-	    }
-	    else {
-	      try {
-	        handler(datum);
-	        result.valid.push(datum);
-	      }
-	      catch(e) {
-	        console.log('Oh noes! This is wrong:\n', datum);
-	        console.log(util.format('Error Message: %s%s', datum.type, e.message));
-	        datum.errorMessage = e.message;
-	        result.invalid.push(datum);
-	      }
-	    }
-	  },
-	  validateAll: function(data) {
-	    var result = {valid: [], invalid: []};
-	    for (var i = 0; i < data.length; ++i) {
-	      this.validateOne(data[i], result);
-	    }
-	    return result;
-	  }
-	};
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
 	/*
 	 * == BSD2 LICENSE ==
 	 * Copyright (c) 2014, Tidepool Project
@@ -18705,10 +18722,10 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var format = __webpack_require__(38);
-	var dt = __webpack_require__(26);
+	var format = __webpack_require__(28);
+	var dt = __webpack_require__(7);
 
 	var MS_IN_HOUR = 3600000;
 	var MS_IN_DAY = 86400000;
@@ -18859,7 +18876,7 @@
 
 
 /***/ },
-/* 22 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -18879,22 +18896,22 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
+	var crossfilter = __webpack_require__(25);
 
-	var commonbolus = __webpack_require__(50);
-	var format = __webpack_require__(38);
-	var datetime = __webpack_require__(26);
-	var TidelineCrossFilter = __webpack_require__(25);
+	var commonbolus = __webpack_require__(38);
+	var format = __webpack_require__(28);
+	var datetime = __webpack_require__(7);
 
 	function BolusUtil(data) {
 
 	  this.subtotal = function(s, e) {
 	    var dose = 0.0;
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
 	    dataByDate.filter([start, end]);
-	    var currentData = filterData.getAll(dataByDate);
+	    var currentData = dataByDate.top(Infinity).reverse();
 	    var firstBolus = _.findIndex(currentData, function(bolus) {
-	      var d = new Date(bolus.normalTime).valueOf();
+	      var d = bolus.normalTime;
 	      return (d >= start) && (d <= end);
 	    });
 	    if (firstBolus !== -1) {
@@ -18944,8 +18961,8 @@
 	  };
 
 	  this.data = data || [];
-	  var filterData = new TidelineCrossFilter(this.data);
-	  var dataByDate = filterData.addDimension('date');
+	  var filterData = crossfilter(this.data);
+	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
 	  if (this.data.length > 0) {
 	    this.endpoints = [this.data[0].normalTime, this.data[this.data.length - 1].normalTime];
 	  }
@@ -18955,7 +18972,7 @@
 
 
 /***/ },
-/* 23 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -18975,10 +18992,10 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
+	var crossfilter = __webpack_require__(25);
 
-	var datetime = __webpack_require__(26);
-	var TidelineCrossFilter = __webpack_require__(25);
+	var datetime = __webpack_require__(7);
 
 	function BGUtil(data, opts) {
 
@@ -19027,17 +19044,25 @@
 
 	  this.filtered = function(s, e) {
 	    if (!currentData) {
-	      currentData = filterData.getAll(dataByDate);
+	      currentData = dataByDate.top(Infinity).reverse();
 	    }
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    var start, end;
+	    if (typeof(s) === 'number') {
+	      start = new Date(s).toISOString();
+	      end = new Date(e).toISOString();
+	    }
+	    else {
+	      start = s;
+	      end = e;
+	    }
 	    dataByDate.filter([start, end]);
 	    var filteredObj = {
 	      data: dataByDate.top(Infinity).reverse(),
 	      excluded: []
 	    };
 	    var filtered = filteredObj.data;
-	    if (filtered.length < this.threshold(s, e)) {
-	      filteredObj.excluded.push(new Date(s).toISOString());
+	    if (filtered.length < this.threshold(start, end)) {
+	      filteredObj.excluded.push(s);
 	      filteredObj.data = [];
 	      return filteredObj;
 	    }
@@ -19121,9 +19146,9 @@
 
 	  this.getStats = function(s, e, opts) {
 	    opts = opts || {};
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
+	    var start = new Date(s).toISOString(), end = new Date(e).toISOString();
 	    dataByDate.filter([start, end]);
-	    currentData = filterData.getAll(dataByDate);
+	    currentData = dataByDate.top(Infinity).reverse();
 	    var filtered = this.filter(s, e, opts.exclusionThreshold);
 	    var average = this.average(filtered.data);
 	    average.excluded = filtered.excluded;
@@ -19136,8 +19161,8 @@
 	  };
 
 	  this.data = data || [];
-	  var filterData = new TidelineCrossFilter(this.data);
-	  var dataByDate = filterData.addDimension('date');
+	  var filterData = crossfilter(this.data);
+	  var dataByDate = filterData.dimension(function(d) { return d.normalTime; });
 	  if (this.data.length > 0) {
 	    this.endpoints = [this.data[0].normalTime, this.data[data.length - 1].normalTime];
 	  }
@@ -19147,10 +19172,51 @@
 
 
 /***/ },
-/* 24 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/*
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	var dispose = __webpack_require__(24)
+		// The css code:
+		(__webpack_require__(17))
+	if(false) {
+		module.hot.accept();
+		module.hot.dispose(dispose);
+	}
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports =
+		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\ng.svg-tooltip-cbg {\n  opacity: 0.7;\n}\ng.svg-tooltip-cbg.d3-bg-low path.tooltip-outline {\n  fill: #ff8b7c;\n}\ng.svg-tooltip-cbg.d3-bg-target path.tooltip-outline {\n  fill: #76d3a6;\n}\ng.svg-tooltip-cbg.d3-bg-high path.tooltip-outline {\n  fill: #bb9ae7;\n}\ng.svg-tooltip-basal polygon {\n  fill: white;\n  opacity: 0.8;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\ng.svg-tooltip-basal.d3-basal-undelivered polygon {\n  stroke-dasharray: 1.5,3;\n  stroke-linecap: round;\n}\ng.svg-tooltip-smbg polygon {\n  fill: white;\n  opacity: 0.7;\n  stroke-width: 1.5;\n}\ng.svg-tooltip-smbg.d3-bg-low {\n  stroke: #ff8b7c;\n}\ng.svg-tooltip-smbg.d3-bg-target {\n  stroke: #76d3a6;\n}\ng.svg-tooltip-smbg.d3-bg-high {\n  stroke: #bb9ae7;\n}\ng.svg-tooltip-generic polygon {\n  fill: none;\n  stroke-width: 3;\n}\ng.svg-tooltip-generic polygon.no-stroke {\n  fill: #f8f9fa;\n  stroke-width: 0;\n}\ng.svg-tooltip-generic.d3-bolus {\n  stroke: #79d0f2;\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.bigText span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n  font-size: 16px;\n}\n.mainText {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n}\n.plainText {\n  font-weight: normal;\n}\n.secondaryText {\n  font-size: 12px;\n  font-weight: normal;\n}\n.interruptedText {\n  color: #e21a00;\n  text-transform: uppercase;\n}\n.tooltip-div {\n  margin: 0;\n  padding: 3px 0 0 0;\n}\n.tooltip-div p {\n  margin-top: -3px;\n  margin-bottom: 0px;\n  padding: 0px 7.5px 2px 7.5px;\n  text-align: center;\n}\n.tooltip-div p span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n}\n.tooltip-div p span.secondary {\n  font-size: 12px;\n  font-weight: normal;\n}\n.tooltip-div p span.secondary .fromto {\n  font-size: 12px;\n  font-weight: normal;\n  color: #a6a6a6;\n}\n.tooltip-div p span .plain {\n  font-weight: normal;\n}\n.tooltip-div p.value span {\n  color: #727375;\n  font-size: 14px;\n  font-weight: bold;\n  font-size: 16px;\n}\n.bwiz {\n  padding: 1px;\n  margin: 0px auto;\n}\n.bolus-wizard {\n  color: #727375;\n  font-size: 14px;\n}\n.bolus-wizard .title {\n  padding: 1px;\n  margin: 0px auto;\n  -webkit-box-align: baseline;\n  -webkit-align-items: baseline;\n  -ms-flex-align: baseline;\n  align-items: baseline;\n  background-color: #eaeaee;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n}\n.bolus-wizard .title.wider {\n  margin: 0;\n  min-width: 160px;\n}\n.bolus-wizard .title p {\n  -webkit-box-flex: 1;\n  -webkit-flex-grow: 1;\n  -ms-flex-positive: 1;\n  flex-grow: 1;\n  margin: 0;\n}\n.bolus-wizard .title p.left {\n  padding-left: 4px;\n}\n.bolus-wizard .title p.right {\n  text-align: right;\n  padding-right: 4px;\n}\n.bolus-wizard .title p.interrupted {\n  color: #e21a00;\n  text-transform: uppercase;\n}\n.bolus-wizard .title p.plain {\n  font-weight: normal;\n}\n.bolus-wizard .title p.timestamp {\n  font-size: 12px;\n  font-weight: normal;\n  color: #404041;\n}\n.bolus-wizard table {\n  margin: 0 auto;\n  min-width: 100px;\n}\n.bolus-wizard table td.right {\n  text-align: right;\n}\n.bolus-wizard table td.label {\n  padding: 1px;\n  margin: 0px auto;\n  padding-right: 10px;\n}\n.bolus-wizard table td.del {\n  padding: 1px;\n  margin: 0px auto;\n  font-weight: bold;\n}\n.bolus-wizard table td.big {\n  padding: 1px;\n  margin: 0px auto;\n  font-weight: bold;\n  font-size: 16px;\n  text-align: right;\n}\n.bolus-wizard table td.main {\n  padding: 0;\n  margin: 0;\n  font-weight: bold;\n  text-align: right;\n}\n.bolus-wizard table td.secondary {\n  font-size: 12px;\n  text-align: right;\n}\n.bolus-wizard table td.dual {\n  text-align: right;\n  font-size: 12px;\n}\n.bolus-wizard table td.dual:first-letter {\n  text-transform: capitalize;\n}\nspan.interrupted {\n  color: #e21a00;\n  text-transform: uppercase;\n}\nsvg {\n  display: block;\n  margin: 0 auto;\n}\nsvg.hidden {\n  display: none;\n}\n.d3-axis {\n  shape-rendering: crispEdges;\n}\n.d3-axis path {\n  stroke: white;\n}\n.d3-axis line {\n  stroke: #b9c8d0;\n}\n.d3-axis text {\n  font-size: 14px;\n  fill: #727375;\n}\n.d3-axis text.d3-day-label {\n  dominant-baseline: hanging;\n  fill: #cccccc;\n}\n.d3-axis.d3-y text {\n  fill: #727375;\n  text-transform: lowercase;\n}\n.d3-axis.d3-day-axis text {\n  font-size: 13px;\n}\n.d3-axis.d3-day-axis text.d3-weekend {\n  fill: #bac9d1;\n}\n.d3-axis.d3-day-axis line {\n  fill: #bac9d1;\n}\n.scroll line {\n  stroke: #f2f4f6;\n  stroke-linecap: round;\n}\n.scrollThumb {\n  fill: #989897;\n}\n#scrollNavInvisibleRect {\n  pointer-events: none;\n}\n.d3-pool-label tspan {\n  font-size: 14px;\n  fill: #727375;\n}\n.d3-pool-label tspan.main {\n  font-weight: 600;\n  text-transform: uppercase;\n}\n.d3-pool-label tspan.light {\n  font-weight: 300;\n}\n.d3-pool-legend {\n  font-size: 14px;\n  text-anchor: end;\n  fill: #cccccc;\n}\n.d3-pool-weekend {\n  opacity: 0.7;\n}\n.d3-rect-fill.d3-fill-darker {\n  fill: #dce4e7;\n}\n.d3-rect-fill.d3-fill-darkest {\n  fill: #d3dbdd;\n}\n.d3-rect-fill.d3-fill-dark {\n  fill: #e3eaed;\n}\n.d3-rect-fill.d3-fill-light {\n  fill: #f2f4f6;\n}\n.d3-rect-fill.d3-fill-lighter {\n  fill: #e9eff1;\n}\n.d3-rect-fill.d3-fill-lightest {\n  fill: #f8f9fa;\n}\n.d3-line-guide {\n  stroke: white;\n  stroke-width: 2px;\n}\n.d3-line-guide.d3-line-bg-threshold {\n  stroke-dasharray: 3,5;\n}\n.d3-rect-message {\n  fill: white;\n  opacity: 0.5;\n}\n.d3-rect-message.hidden {\n  display: none;\n}\n.d3-rect-carbs {\n  fill: #ffd382;\n}\n.d3-rect-carbs-legend {\n  fill: #ffd382;\n  stroke: #ffd382;\n  stroke-width: 1.5;\n}\n.d3-circle-carbs {\n  fill: #ffd382;\n}\n.d3-carbs-text {\n  fill: #727375;\n  font-size: 12px;\n  dominant-baseline: central;\n  text-anchor: middle;\n}\n.d3-bolus.d3-rect-bolus {\n  fill: #79d0f2;\n}\n.d3-bolus.d3-rect-bolus-legend {\n  fill: #79d0f2;\n  stroke: #79d0f2;\n  stroke-width: 1.5;\n}\n.d3-bolus.d3-path-bolus {\n  stroke: #79d0f2;\n  fill: none;\n}\n.d3-bolus.d3-path-extended {\n  stroke: #79d0f2;\n}\n.d3-bolus.d3-path-extended.d3-unknown-delivery-split {\n  stroke-dasharray: 3,5;\n}\n.d3-bolus.d3-path-extended-triangle {\n  stroke: #79d0f2;\n  fill: #79d0f2;\n}\n.d3-bolus.d3-path-extended-triangle-suspended {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-suspended {\n  stroke: #ff8b7c;\n  fill: #ff8b7c;\n}\n.d3-bolus.d3-rect-suspended-bolus {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-extended-suspended {\n  stroke: #bcecfa;\n  fill: #bcecfa;\n}\n.d3-bolus.d3-path-suspended-triangle {\n  stroke: #ff8b7c;\n  fill: none;\n}\n.d3-bolus.d3-rect-recommended {\n  fill: #bcecfa;\n}\n.d3-bolus.d3-rect-recommended-legend {\n  fill: #bcecfa;\n  stroke: #bcecfa;\n  stroke-width: 1.5;\n}\n.d3-bolus.d3-rect-suspended {\n  fill: #ff8b7c;\n}\n.d3-bolus.d3-rect-override {\n  fill: #107ea8;\n}\n.d3-bolus.d3-polygon-override {\n  fill: #107ea8;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-low {\n  fill: #ff8b7c;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-target {\n  fill: #76d3a6;\n}\n.d3-cbg.d3-circle-cbg.d3-bg-high {\n  fill: #bb9ae7;\n}\n.d3-circle-smbg {\n  stroke-width: 2;\n}\n.d3-circle-smbg.d3-bg-low {\n  fill: #ff8b7c;\n  stroke: #ff8b7c;\n}\n.d3-circle-smbg.d3-bg-target {\n  fill: #76d3a6;\n  stroke: #76d3a6;\n}\n.d3-circle-smbg.d3-bg-high {\n  fill: #bb9ae7;\n  stroke: #bb9ae7;\n}\n.d3-circle-smbg.d3-circle-open {\n  fill: rgba(255, 255, 255, 0) !important;\n}\n.d3-smbg-numbers.d3-rect-smbg {\n  pointer-events: none;\n  fill: #f8f9fa;\n  opacity: 0.5;\n}\n.d3-smbg-numbers.d3-text-smbg {\n  pointer-events: none;\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: middle;\n  dominant-baseline: central;\n}\n.d3-basal.d3-rect-basal {\n  fill: #15a0d7;\n}\n.d3-basal.d3-rect-basal.d3-legend {\n  fill-opacity: 0.3;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\n.d3-basal.d3-basal-invisible {\n  fill: #15a0d7;\n  opacity: 0.0;\n}\n.d3-basal.d3-path-basal {\n  fill: none;\n  stroke: #15a0d7;\n  stroke-width: 1.5;\n}\n.d3-basal.d3-path-basal.d3-path-basal-undelivered {\n  stroke-dasharray: 1.5,3;\n  stroke-linecap: round;\n}\n.d3-basal.d3-rect-basal-undelivered {\n  fill: none;\n  stroke: #15a0d7;\n  stroke-dasharray: 1.5, 3;\n  stroke-width: 1.5;\n}\ndiv.d3-tabular-ui {\n  background-color: none;\n}\ndiv.d3-tabular-ui p,\ndiv.d3-tabular-ui i {\n  color: #cccccc;\n  cursor: pointer;\n  font-size: 14px;\n}\ntext.d3-tabular-ui {\n  fill: #cccccc;\n  cursor: pointer;\n  font-size: 14px;\n}\n.d3-cell-rect {\n  stroke-width: 0.5px;\n  stroke: #e6e6e5;\n}\n.d3-cell-rect.d3-unmatched {\n  fill: #f7f7f8;\n}\n.d3-cell-rect.d3-matched {\n  fill: #0b9eb3;\n  opacity: 0.3;\n}\n.d3-cell-label {\n  dominant-baseline: central;\n  font-size: 12px;\n  pointer-events: none;\n  text-anchor: middle;\n}\n.d3-cell-label.d3-unmatched {\n  fill: #727375;\n}\n.d3-cell-label.d3-matched {\n  fill: #727375;\n  font-weight: bold;\n}\n.d3-row-label {\n  dominant-baseline: central;\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: end;\n}\n.d3-circle-data-annotation {\n  fill: #989897;\n  opacity: 0.5;\n}\n.d3-text-data-annotation {\n  font-size: 12px;\n  font-weight: bold;\n  fill: white;\n  text-anchor: middle;\n  dominant-baseline: central;\n  pointer-events: none;\n}\n.d3-tooltip-data-annotation {\n  pointer-events: none;\n}\n.d3-tooltip-data-annotation body {\n  margin: 0px;\n  background-color: rgba(255, 255, 255, 0);\n}\n.d3-div-data-annotation {\n  margin: 0px;\n  padding: 10px;\n  color: #727375;\n}\n.d3-div-data-annotation p {\n  margin: 5px 0px;\n  font-size: 12px;\n}\n.d3-div-data-annotation p.d3-data-annotation-lead {\n  font-style: italic;\n}\n.d3-polygon-data-annotation {\n  fill: #e9eff1;\n  opacity: 0.9;\n  pointer-events: none;\n}\n.d3-tooltip {\n  pointer-events: none;\n}\n.d3-tooltip text.d3-tooltip-text {\n  fill: #727375;\n  font-size: 12px;\n  text-anchor: middle;\n  dominant-baseline: central;\n}\n.d3-tooltip text.d3-tooltip-text.d3-bolus {\n  font-size: 14px;\n  font-weight: bold;\n}\n.d3-tooltip text.d3-tooltip-text.d3-tooltip-timestamp {\n  text-transform: lowercase;\n}\n.d3-tooltip text.d3-tooltip-text tspan {\n  font-weight: normal;\n  dominant-baseline: central;\n}\n.d3-tooltip text.d3-tooltip-text tspan.d3-bolus {\n  font-size: 12px;\n}\n.d3-tooltip .d3-tooltip-rect {\n  fill: #f8f9fa;\n  opacity: 0.5;\n}\n.d3-stats text {\n  text-anchor: start;\n}\n.d3-stats text.d3-stats-head {\n  dominant-baseline: hanging;\n  font-size: 14px;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n  fill: #4e4e4f;\n}\n.d3-stats text.d3-stats-lead {\n  font-size: 12px;\n  fill: #676767;\n}\n.d3-stats text tspan {\n  dominant-baseline: central;\n  font-weight: bold;\n  font-size: 24px;\n}\n.d3-stats text tspan.d3-stats-high {\n  fill: #bb9ae7;\n}\n.d3-stats text tspan.d3-stats-target {\n  fill: #76d3a6;\n}\n.d3-stats text tspan.d3-stats-low {\n  fill: #ff8b7c;\n}\n.d3-stats text tspan.d3-stats-percentage {\n  fill: #76d3a6;\n}\n.d3-stats text tspan.d3-stats-basal {\n  fill: #15a0d7;\n}\n.d3-stats text tspan.d3-stats-bolus {\n  fill: #79d0f2;\n}\n.d3-stats rect.d3-stats-hover-capture {\n  visibility: hidden;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-basal {\n  fill: #15a0d7;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bolus {\n  fill: #79d0f2;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-low {\n  fill: #ff8b7c;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-target {\n  fill: #76d3a6;\n}\n.d3-stats .d3-stats-pie path.d3-stats-slice.d3-bg-high {\n  fill: #bb9ae7;\n}\n.d3-stats .d3-stats-rect.rect-left {\n  fill: #e3eaed;\n}\n.d3-stats .d3-stats-rect.rect-right {\n  fill: #d3dbdd;\n}\n.d3-stats .d3-stats-circle.hidden {\n  display: none;\n}\n.d3-stats.d3-insufficient-data circle {\n  fill: white;\n  stroke-width: 3;\n  stroke-dasharray: 8,5;\n  stroke: #cccccc;\n}\n.d3-stats.d3-insufficient-data text,\n.d3-stats.d3-insufficient-data tspan {\n  fill: #cccccc !important;\n}\n.d3-settings {\n  font-size: 14px;\n  color: #727375;\n}\n.d3-settings *,\n.d3-settings *:before,\n.d3-settings *:after {\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n.d3-settings table {\n  border-collapse: collapse;\n  border-spacing: 0;\n  max-width: 100%;\n  background-color: transparent;\n}\n.d3-settings th {\n  text-align: left;\n  font-weight: normal;\n}\n.d3-settings-section,\n.d3-settings-col {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  -moz-box-sizing: border-box;\n  box-sizing: border-box;\n}\n.d3-settings-section-basal {\n  width: 22.22222222%;\n}\n.d3-settings-section-wizard {\n  width: 77.77777778%;\n}\n#carbRatioSettings,\n#insulinSensitivitySettings {\n  width: 28.57142857%;\n}\n#bgTargetSettings {\n  width: 42.85714286%;\n}\n.d3-settings-section-label {\n  padding-left: 5px;\n  padding-right: 5px;\n  padding-top: 10px;\n  text-transform: uppercase;\n  color: #727375;\n}\n.d3-settings-col {\n  padding: 5px 5px;\n}\n.d3-settings-col table {\n  background: #f7f7f8;\n  width: 100%;\n  padding-bottom: 10px;\n  border-collapse: collapse;\n}\n.d3-settings-col-label {\n  padding: 5px 5px;\n  font-weight: bold;\n  color: #fff;\n  background: #ccc;\n}\n.d3-settings-basal-schedule .d3-settings-col-label {\n  cursor: pointer;\n  text-transform: capitalize;\n  background: #9dd8e1;\n}\n.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-active + table {\n  display: table;\n}\n.d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {\n  display: none;\n}\n#carbRatioSettings .d3-settings-col-label {\n  background: #0b9eb3;\n}\n#insulinSensitivitySettings .d3-settings-col-label {\n  background: #27707d;\n}\n#bgTargetSettings .d3-settings-col-label {\n  background: #5cb947;\n}\n.d3-settings-table-head {\n  padding: 10px 10px 5px 5px;\n  text-align: center;\n  font-weight: normal;\n  text-align: right;\n  color: #727375;\n}\n.d3-settings-start-time {\n  text-transform: lowercase;\n}\n.d3-settings-table-row-data td {\n  padding-right: 10px;\n  padding-left: 0;\n  padding-top: 2px;\n  padding-bottom: 2px;\n  text-align: right;\n  color: #1b6c9e;\n}\n.d3-settings-table-footer {\n  height: 10px;\n}\n.d3-settings-col-label,\n.d3-settings-table-head,\n.d3-settings-table-row-data td {\n  font-size: 14px;\n}\n.d3-settings-col-label > i {\n  float: left;\n  padding-right: 4px;\n  padding-left: 2px;\n}\n.d3-wizard-group,\n.d3-bolus-group {\n  cursor: default;\n}\n@media print {\n  .d3-settings-basal-schedule .d3-settings-col-label.d3-settings-col-collapsed + table {\n    display: table;\n  }\n  .d3-settings-section,\n  .d3-settings-col {\n    display: inline;\n    width: auto;\n  }\n  .d3-settings-section .d3-settings-col-label,\n  .d3-settings-col .d3-settings-col-label,\n  .d3-settings-section table,\n  .d3-settings-col table {\n    width: auto;\n  }\n}\n";
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	var dispose = __webpack_require__(24)
+		// The css code:
+		(__webpack_require__(19))
+	if(false) {
+		module.hot.accept();
+		module.hot.dispose(dispose);
+	}
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports =
+		"/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n/**\n * Copyright (c) 2014, Tidepool Project\n * \n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n * \n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n * \n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n.grid {\n  margin: 0;\n  padding: 0;\n  list-style: none;\n  margin-left: 0;\n}\n.grid-item {\n  display: inline-block;\n  width: 100%;\n  vertical-align: top;\n  padding-left: 0;\n}\n/**\n   * Whole\n   */\n.one-whole {\n  width: 100%;\n}\n/**\n   * Halves\n   */\n.one-half,\n.two-quarters,\n.three-sixths,\n.four-eighths,\n.five-tenths,\n.six-twelfths {\n  width: 50%;\n}\n/**\n   * Thirds\n   */\n.one-third,\n.two-sixths,\n.four-twelfths {\n  width: 33.333%;\n}\n.two-thirds,\n.four-sixths,\n.eight-twelfths {\n  width: 66.666%;\n}\n/**\n   * Quarters\n   */\n.one-quarter,\n.two-eighths,\n.three-twelfths {\n  width: 25%;\n}\n.three-quarters,\n.six-eighths,\n.nine-twelfths {\n  width: 75%;\n}\n/**\n   * Fifths\n   */\n.one-fifth,\n.two-tenths {\n  width: 20%;\n}\n.two-fifths,\n.four-tenths {\n  width: 40%;\n}\n.three-fifths,\n.six-tenths {\n  width: 60%;\n}\n.four-fifths,\n.eight-tenths {\n  width: 80%;\n}\n/**\n   * Sixths\n   */\n.one-sixth,\n.two-twelfths {\n  width: 16.666%;\n}\n.five-sixths,\n.ten-twelfths {\n  width: 83.333%;\n}\n/**\n   * Eighths\n   */\n.one-eighth {\n  width: 12.5%;\n}\n.three-eighths {\n  width: 37.5%;\n}\n.five-eighths {\n  width: 62.5%;\n}\n.seven-eighths {\n  width: 87.5%;\n}\n/**\n   * Tenths\n   */\n.one-tenth {\n  width: 10%;\n}\n.three-tenths {\n  width: 30%;\n}\n.seven-tenths {\n  width: 70%;\n}\n.nine-tenths {\n  width: 90%;\n}\n/**\n   * Twelfths\n   */\n.one-twelfth {\n  width: 8.333%;\n}\n.five-twelfths {\n  width: 41.666%;\n}\n.seven-twelfths {\n  width: 58.333%;\n}\n.eleven-twelfths {\n  width: 91.666%;\n}\n/**\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n */\n[class^=\"icon-\"]:before,\n[class*=\" icon-\"]:before {\n  font-family: \"Blip Icons\";\n  font-style: normal;\n  font-weight: normal;\n  speak: none;\n  display: inline-block;\n  text-decoration: inherit;\n  width: 1em;\n  margin-right: .2em;\n  text-align: center;\n  /* opacity: .8; */\n  /* For safety - reset parent styles, that can break glyph codes*/\n  font-variant: normal;\n  text-transform: none;\n  /* fix buttons height, for twitter bootstrap */\n  line-height: 1em;\n  /* Animation center compensation - margins should be symmetric */\n  /* remove if not needed */\n  margin-left: .2em;\n  /* you can be more comfortable with increased icons size */\n  font-size: 110%;\n  /* Uncomment for 3D effect */\n  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */\n}\n.icon-upload:before {\n  content: '\\e800';\n}\n/* '' */\n.icon-up:before {\n  content: '\\e801';\n}\n/* '' */\n.icon-unsure-data:before {\n  content: '\\e802';\n}\n/* '' */\n.icon-settings:before {\n  content: '\\e803';\n}\n/* '' */\n.icon-refresh:before {\n  content: '\\e804';\n}\n/* '' */\n.icon-profile:before {\n  content: '\\e805';\n}\n/* '' */\n.icon-next:before {\n  content: '\\e806';\n}\n/* '' */\n.icon-next-up:before {\n  content: '\\e807';\n}\n/* '' */\n.icon-most-recent:before {\n  content: '\\e808';\n}\n/* '' */\n.icon-most-recent-up:before {\n  content: '\\e809';\n}\n/* '' */\n.icon-logout:before {\n  content: '\\e80a';\n}\n/* '' */\n.icon-down:before {\n  content: '\\e80b';\n}\n/* '' */\n.icon-close:before {\n  content: '\\e80c';\n}\n/* '' */\n.icon-careteam:before {\n  content: '\\e80d';\n}\n/* '' */\n.icon-back:before {\n  content: '\\e80e';\n}\n/* '' */\n.icon-back-down:before {\n  content: '\\e80f';\n}\n/* '' */\n.icon-add:before {\n  content: '\\e810';\n}\n/* '' */\n.icon-right:before {\n  content: '\\e811';\n}\n/* '' */\n@media print {\n  .icon-back,\n  .icon-next,\n  .icon-next-up,\n  .icon-back-down {\n    display: none;\n  }\n}\n/*\n * == BSD2 LICENSE ==\n * Copyright (c) 2014, Tidepool Project\n *\n * This program is free software; you can redistribute it and/or modify it under\n * the terms of the associated License, which is identical to the BSD 2-Clause\n * License as published by the Open Source Initiative at opensource.org.\n *\n * This program is distributed in the hope that it will be useful, but WITHOUT\n * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS\n * FOR A PARTICULAR PURPOSE. See the License for more details.\n *\n * You should have received a copy of the License along with this program; if\n * not, you can obtain one from Tidepool Project at tidepool.org.\n * == BSD2 LICENSE ==\n */\n.spinner {\n  width: 40px;\n  height: 40px;\n  position: relative;\n  margin: 10px auto;\n}\n.double-bounce1,\n.double-bounce2 {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  background-color: #989897;\n  opacity: 0.75;\n  position: absolute;\n  top: 0;\n  left: 0;\n  -webkit-animation: bounce 2s infinite ease-in-out;\n  animation: bounce 2s infinite ease-in-out;\n}\n.double-bounce2 {\n  -webkit-animation-delay: -1s;\n  animation-delay: -1s;\n}\n@-webkit-keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@keyframes bounce {\n  0%,\n  100% {\n    -webkit-transform: scale(0);\n    transform: scale(0);\n  }\n  50% {\n    -webkit-transform: scale(1);\n    transform: scale(1);\n  }\n}\n@font-face {\n  font-family: 'Blip Icons';\n  src: url("+__webpack_require__(220)+") format('embedded-opentype'), url("+__webpack_require__(221)+") format('woff'), url("+__webpack_require__(222)+") format('truetype'), url("+__webpack_require__(223)+") format('svg');\n  font-weight: normal;\n  font-style: normal;\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 400;\n  src: local('Open Sans'), local('OpenSans'), url("+__webpack_require__(224)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 700;\n  src: local('Open Sans Bold'), local('OpenSans-Bold'), url("+__webpack_require__(225)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 400;\n  src: local('Open Sans Italic'), local('OpenSans-Italic'), url("+__webpack_require__(226)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 700;\n  src: local('Open Sans Bold Italic'), local('OpenSans-BoldItalic'), url("+__webpack_require__(227)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 300;\n  src: local('Open Sans Light'), local('OpenSans-Light'), url("+__webpack_require__(228)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: normal;\n  font-weight: 600;\n  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url("+__webpack_require__(229)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 300;\n  src: local('Open Sans Light Italic'), local('OpenSansLight-Italic'), url("+__webpack_require__(230)+") format('woff');\n}\n@font-face {\n  font-family: 'Open Sans';\n  font-style: italic;\n  font-weight: 600;\n  src: local('Open Sans Semibold Italic'), local('OpenSans-SemiboldItalic'), url("+__webpack_require__(231)+") format('woff');\n}\n.vSpace {\n  width: 100vw;\n  height: 10px;\n}\nbody {\n  background-color: #F7F7F8;\n}\n@media (max-width: 1024px) {\n  #tidelineMain {\n    width: 100%;\n    margin: 0 0;\n    padding: 0 10px;\n  }\n  .vSpace {\n    height: 44px;\n  }\n}\n#tidelineMain {\n  font-family: \"Open Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  font-size: 16px;\n  width: 1000px;\n  height: 100%;\n  margin: 0 auto;\n}\n#tidelineMain a {\n  color: white;\n  text-decoration: none;\n  line-height: 40px;\n  display: inline-block;\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav {\n  background-color: #989897;\n  width: 980px;\n  height: 40px;\n  margin: 0 auto;\n}\n#tidelineMain .tidelineNav .tidelineNavLabelWrapper {\n  min-width: 220px;\n  display: inline-block;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel {\n  font-family: 'Open Sans';\n  font-size: 16px;\n  font-weight: normal;\n  color: white;\n  padding: 0px 10px;\n}\n#tidelineMain .tidelineNav .tidelineNavLabel.active {\n  font-weight: bold;\n  cursor: text;\n}\n#tidelineMain .tidelineNav .tidelineNavRightLabel {\n  text-align: right !important;\n  float: right;\n}\n#tidelineMain .tidelineNav #tidelineLabel {\n  text-align: center;\n  line-height: 40px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a {\n  vertical-align: middle;\n  width: 32px;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.active {\n  cursor: pointer;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.inactive {\n  cursor: default;\n  opacity: 0.5;\n}\n#tidelineMain .tidelineNav #tidelineLabel a.hidden {\n  display: none;\n}\n#tidelineOuterContainer {\n  margin: 0px 10px;\n  padding: 5px 10px;\n  height: 590px;\n  background-color: white;\n}\n#tidelineOuterContainer #fetchAndProcess {\n  height: 100%;\n  display: -webkit-box;\n  display: -webkit-flex;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n  -webkit-flex-direction: column;\n  -ms-flex-direction: column;\n  flex-direction: column;\n  -webkit-box-pack: center;\n  -webkit-justify-content: center;\n  -ms-flex-pack: center;\n  justify-content: center;\n}\n#tidelineOuterContainer #fetchAndProcess p {\n  color: #585857;\n  font-style: italic;\n  text-align: center;\n  width: 100%;\n}\n#tidelineOuterContainer #tidelineContainer {\n  height: 590px;\n  overflow-y: auto;\n}\n";
+
+/***/ },
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/** @jsx React.DOM */
+	/* 
 	 * == BSD2 LICENSE ==
 	 * Copyright (c) 2014, Tidepool Project
 	 * 
@@ -19166,270 +19232,103 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
+	var bows = __webpack_require__(8);
+	var React = __webpack_require__(9);
+	var cx = __webpack_require__(30);
 
-	var _ = __webpack_require__(11);
+	var tideline = {
+	  log: bows('Header')
+	};
 
-	var dt = __webpack_require__(26);
+	var TidelineHeader = React.createClass({displayName: 'TidelineHeader',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    inTransition: React.PropTypes.bool.isRequired,
+	    atMostRecent: React.PropTypes.bool.isRequired,
+	    title: React.PropTypes.string.isRequired,
+	    onClickBack: React.PropTypes.func,
+	    onClickMostRecent: React.PropTypes.func.isRequired,
+	    onClickNext: React.PropTypes.func,
+	    onClickOneDay: React.PropTypes.func.isRequired,
+	    onClickTwoWeeks: React.PropTypes.func.isRequired,
+	    onClickSettings: React.PropTypes.func.isRequired
+	  },
+	  render: function() {
+	    var next = this.props.next;
+	    var back = this.props.back;
+	    var mostRecent = this.props.mostRecent;
 
-	function SettingsUtil(data, endpoints) {
+	    var dayLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'daily'
+	    });
 
-	  function findStarts(ms, starts) {
-	    for (var i = 0; i < starts.length; ++i) {
-	      var start = starts[i];
-	      if (i !== starts.length - 1) {
-	        if (ms >= start && ms < starts[i + 1]) {
-	          return {starts: [start, starts[i + 1]], startIndex: i+1};
-	        }
-	      }
-	      else {
-	        return {starts:[start], startIndex: 0};
-	      }
-	    }
+	    var weekLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'active': this.props.chartType === 'weekly'
+	    });
+
+	    var mostRecentLinkClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var backClass = cx({
+	      'active': !this.props.inTransition,
+	      'inactive': this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var nextClass = cx({
+	      'active': !this.props.atMostRecent && !this.props.inTransition,
+	      'inactive': this.props.atMostRecent || this.props.inTransition,
+	      'hidden': this.props.chartType === 'settings'
+	    });
+
+	    var settingsLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true,
+	      'active': this.props.chartType === 'settings'
+	    });
+
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.div( {className:"grid-item three-eighths"}, 
+	            React.DOM.a( {className:dayLinkClass, onClick:this.props.onClickOneDay}, "One Day")
+	          ),
+	          React.DOM.div( {className:"grid-item one-half"}, 
+	            React.DOM.a( {className:weekLinkClass, onClick:this.props.onClickTwoWeeks}, "Two Weeks")
+	          )
+	        ),
+	        React.DOM.div( {className:"grid-item one-half", id:"tidelineLabel"}, 
+	          React.DOM.a( {href:"#", className:backClass, onClick:this.props.onClickBack}, React.DOM.i( {className:this.props.iconBack})),
+	          React.DOM.div( {className:"tidelineNavLabelWrapper"}, 
+	            React.DOM.span( {className:"tidelineNavLabel"}, this.props.title)
+	          ),
+	          React.DOM.a( {href:"#", className:nextClass, onClick:this.props.onClickNext}, React.DOM.i( {className:this.props.iconNext})),
+	          React.DOM.a( {href:"#", className:mostRecentLinkClass, onClick:this.props.onClickMostRecent}, React.DOM.i( {className:this.props.iconMostRecent}))
+	        ),
+	        React.DOM.div( {className:"grid-item one-quarter"}, 
+	          React.DOM.a( {className:settingsLinkClass, onClick:this.props.onClickSettings}, "Device Settings")
+	        )
+	      )
+	      );
+	    /* jshint ignore:end */
 	  }
+	});
 
-	  function getSegmentsForSchedule(opts) {
-	    var sched = opts.schedule;
-	    if (sched.value.length === 0) {
-	      return [];
-	    }
-	    var s = opts.start, e = opts.end;
-	    var starts = [];
-	    var ratesByStart = {};
-	    var segments;
-	    for (var i = 0; i < sched.value.length; ++i) {
-	      starts.push(sched.value[i].start);
-	      ratesByStart[sched.value[i].start] = sched.value[i].rate;
-	    }
-	    var startsObj = findStarts(dt.getMsFromMidnight(s), starts);
-	    var startPair = startsObj.starts;
-	    var firstSegmentEnd = (startPair.length === 2) ?
-	      dt.composeMsAndDateString(startPair[1], s) :
-	      dt.composeMsAndDateString(starts[0], dt.addDays(s, 1));
-	    segments = [{
-	      type: 'basal-settings-segment',
-	      schedule: sched.name,
-	      normalTime: s,
-	      normalEnd: firstSegmentEnd,
-	      value: ratesByStart[startPair[0]],
-	      active: opts.active,
-	      confidence: opts.confidence,
-	      id: sched.name.replace(' ', '_') + '_' + s.replace(/[^\w\s]|_/g, '')
-	    }];
-	    var currentDatetime = firstSegmentEnd, currentIndex = startsObj.startIndex;
-	    while (currentDatetime < e) {
-	      var end;
-	      if (currentIndex !== starts.length - 1) {
-	        end =  dt.composeMsAndDateString(starts[currentIndex + 1], currentDatetime);
-	      }
-	      else {
-	        end = dt.composeMsAndDateString(0, dt.addDays(currentDatetime, 1));
-	      }
-	      if (end > e) {
-	        end = e;
-	      }
-	      segments.push({
-	        type: 'basal-settings-segment',
-	        schedule: sched.name,
-	        normalTime: currentDatetime,
-	        normalEnd: end,
-	        value: ratesByStart[starts[currentIndex]],
-	        active: opts.active,
-	        confidence: opts.confidence,
-	        id: sched.name.replace(' ', '_') + '_' + currentDatetime.replace(/[^\w\s]|_/g, '')
-	      });
-	      if (currentIndex !== starts.length - 1) {
-	        currentIndex++;
-	      }
-	      else {
-	        currentIndex = 0;
-	      }
-	      currentDatetime = end;
-	    }
-	    return segments;
-	  }
+	module.exports = TidelineHeader;
 
-	  this.annotateBasalSettings = function(a) {
-	    // don't necessarily want unsquashing of midnights to propogate beyond this method
-	    // hence using _.cloneDeep() to copy the array
-	    var actuals = _.cloneDeep(a) || [];
-
-	    var actualsByInterval = {};
-
-	    for (var i = 0; i < actuals.length; ++i) {
-	      var actual = actuals[i];
-	      if (dt.isSegmentAcrossMidnight(actual.normalTime, dt.addDuration(actual.normalTime, actual.duration))) {
-	        var midnight = dt.getMidnight(actual.normalTime, true);
-	        var end = dt.addDuration(actual.normalTime, actual.duration);
-	        var firstDuration = Date.parse(midnight) - Date.parse(actual.normalTime);
-	        var newActual = _.clone(actual);
-	        newActual.normalTime = midnight;
-	        newActual.duration = actual.duration - firstDuration;
-	        actual.duration = firstDuration;
-	        actuals.splice(i + 1, 0, newActual);
-	        actual = actuals[i];
-	      }
-	      // Animas basal schedules have a resolution of thirty minutes
-	      var s = dt.roundToNearestMinutes(actual.normalTime, 30);
-	      var e = dt.roundToNearestMinutes(dt.addDuration(actual.normalTime, actual.duration), 30);
-	      actualsByInterval[s + '/' + e] = actual;
-	    }
-	    for (var key in this.segmentsBySchedule) {
-	      var currentSchedule = this.segmentsBySchedule[key];
-	      if (currentSchedule.length === 0) {
-	        return;
-	      }
-	      for (var j = 0; j < currentSchedule.length; ++j) {
-	        var segment = currentSchedule[j];
-	        var interval = segment.normalTime + '/' + segment.normalEnd;
-	        if (actualsByInterval[interval]) {
-	          var matchedActual = actualsByInterval[interval];
-	          if (segment.value === matchedActual.rate) {
-	            segment.actualized = true;
-	          }
-	        }
-	      }
-	    }
-	    return this.segmentsBySchedule;
-	  };
-
-	  this.getAllSchedules = function(s, e) {
-	    if (dt.verifyEndpoints(s, e, this.endpoints) && this.data.length !== 0) {
-	      var settingsIntervals = this.getIntervals(s, e);
-	      var segmentsBySchedule = {};
-	      if (settingsIntervals) {
-	        for (var i = 0; i < settingsIntervals.length; ++i) {
-	          var interval = settingsIntervals[i];
-	          for (var j = 0; j < interval.settings.basalSchedules.length; ++j) {
-	            var schedule = interval.settings.basalSchedules[j];
-	            if (segmentsBySchedule[schedule.name]) {
-	              segmentsBySchedule[schedule.name] = segmentsBySchedule[schedule.name].concat(getSegmentsForSchedule({
-	                schedule: schedule,
-	                start: interval.start,
-	                end: interval.end,
-	                active: schedule.name === interval.settings.activeBasalSchedule,
-	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
-	              }));
-	            }
-	            // there can be schedules in the settings with an empty array as their value
-	            else if (schedule.value.length > 0) {
-	              segmentsBySchedule[schedule.name] = getSegmentsForSchedule({
-	                schedule: schedule,
-	                start: interval.start,
-	                end: interval.end,
-	                active: schedule.name === interval.settings.activeBasalSchedule,
-	                confidence: interval.settings.confidence ? interval.settings.confidence : 'normal'
-	              });
-	            }
-	          }
-	        }
-	        this.segmentsBySchedule = segmentsBySchedule;
-	        return segmentsBySchedule;
-	      }
-	      else {
-	        return [];
-	      }
-	    }
-	    else {
-	      return [];
-	    }
-	  };
-
-	  this.getIntervals = function(s, e) {
-	    var actualIntervals = [];
-	    for (var i = 0; i < this.intervals.length; ++i) {
-	      var interval = this.intervals[i];
-	      var intervalEndpoints = [interval.start, interval.end];
-	      if (dt.checkIfDateInRange(s, intervalEndpoints) &&
-	        dt.checkIfDateInRange(e, intervalEndpoints)) {
-	        actualIntervals.push({
-	          start: s,
-	          end: e,
-	          settings: interval.settings
-	        });
-	      }
-	      else {
-	        if (dt.checkIfDateInRange(s, intervalEndpoints)) {
-	          actualIntervals.push({
-	            start: s,
-	            end: interval.end,
-	            settings: interval.settings
-	          });
-	        }
-	        if (dt.checkIfDateInRange(e, intervalEndpoints)) {
-	          actualIntervals.push({
-	            start: interval.start,
-	            end: e,
-	            settings: interval.settings
-	          });
-	        }
-	        if (s < interval.start && e > interval.end) {
-	          actualIntervals.push({
-	            start: interval.start,
-	            end: interval.end,
-	            settings: interval.settings
-	          });
-	        }
-	      }
-	    }
-	    if (actualIntervals.length === 0) {
-	      return undefined;
-	    }
-	    return actualIntervals;
-	  };
-
-	  this.data = data || [];
-	  // valid endpoints for settings are endpoints of all diabetes data
-	  this.endpoints = endpoints;
-	  // intervals of effectiveness of a settings object
-	  this.intervals = _.reject(_.flatten(_.map(this.data, function(d, i, data) {
-	    if (i === 0) {
-	      if (this.endpoints[1] === d.normalTime) {
-	        return {
-	          start: this.endpoints[0],
-	          end: this.endpoints[1],
-	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
-	        };
-	      }
-	      else {
-	        return [{
-	          start: this.endpoints[0],
-	          end: d.normalTime,
-	          settings: _.defaults(_.clone(d), {confidence: 'uncertain'})
-	        },{
-	          start: d.normalTime,
-	          end: data[1] ? data[1].normalTime : this.endpoints[1],
-	          settings: _.clone(d)
-	        }];
-	      }
-	    }
-	    else {
-	      if (i !== data.length - 1) {
-	        return {
-	          start: d.normalTime,
-	          end: data[i + 1].normalTime,
-	          settings: _.clone(d)
-	        };
-	      }
-	      else {
-	        return {
-	          start: d.normalTime,
-	          end: this.endpoints[1],
-	          settings: _.clone(d)
-	        };
-	      }
-	    }
-	  }, this)), function(d) {
-	    return d.start === d.end;
-	  });
-	}
-
-	module.exports = SettingsUtil;
 
 /***/ },
-/* 25 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/*
+	/** @jsx React.DOM */
+	/* 
 	 * == BSD2 LICENSE ==
 	 * Copyright (c) 2014, Tidepool Project
 	 * 
@@ -19445,75 +19344,65 @@
 	 * not, you can obtain one from Tidepool Project at tidepool.org.
 	 * == BSD2 LICENSE ==
 	 */
+	var bows = __webpack_require__(8);
+	var React = __webpack_require__(9);
+	var cx = __webpack_require__(30);
 
-	var crossfilter = __webpack_require__(27);
-	var _ = __webpack_require__(11);
+	var tideline = {
+	  log: bows('Footer')
+	};
 
-	function TidelineCrossFilter(data) {
+	var TidelineFooter = React.createClass({displayName: 'TidelineFooter',
+	  propTypes: {
+	    chartType: React.PropTypes.string.isRequired,
+	    onClickValues: React.PropTypes.func,
+	    showingValues: React.PropTypes.bool
+	  },
+	  render: function() {
+	    var valuesLinkClass = cx({
+	      'tidelineNavLabel': true,
+	      'tidelineNavRightLabel': true
+	    });
 
-	  this.add = function(datum) {
-	    return cf.add([datum]);
-	  };
-
-	  this.addDimension = function(key) {
-	    // define some common dimension accessors for tideline
-	    // so we don't have to keep writing the same ones
-	    var accessor;
-	    switch(key) {
-	    case 'date':
-	      accessor = function(d) { return new Date(d.normalTime).valueOf(); };
-	      break;
-	    case 'datatype':
-	      accessor = function(d) { return d.type; };
-	      break;
-	    case 'id':
-	      accessor = function(d) { return d.id; };
-	      break;
+	    function getValuesLinkText(props) {
+	      if (props.chartType === 'weekly') {
+	        if (props.showingValues) {
+	          return 'Hide Values';
+	        }
+	        else {
+	          return 'Show Values';
+	        }
+	      }
+	      else {
+	        return '';
+	      }
 	    }
 
-	    return cf.dimension(accessor);
-	  };
+	    var valuesLinkText = getValuesLinkText(this.props);
 
-	  this.getAll = function(dimension, ascending) {
-	    // default return ascending sort array
-	    if (!ascending) {
-	      return dimension.top(Infinity);
-	    }
-	    return dimension.top(Infinity).reverse();
-	  };
+	    /* jshint ignore:start */
+	    var showValues = (
+	      React.DOM.a( {className:valuesLinkClass, onClick:this.props.onClickValues}, valuesLinkText)
+	      );
+	    /* jshint ignore:end */
 
-	  this.getOne = function(dimension) {
-	    var res = dimension.top(Infinity);
+	    /* jshint ignore:start */
+	    return (
+	      React.DOM.div( {className:"tidelineNav grid"}, 
+	        React.DOM.div( {className:"grid-item one-half"}
+	        ),
+	        React.DOM.div( {className:"grid-item one-half"}, showValues)
+	      )
+	      );
+	    /* jshint ignore:end */
+	  }
+	});
 
-	    if (res.length > 1) {
-	      return undefined;
-	    }
-	    else {
-	      return res[0];
-	    }
-	  };
-
-	  this.getType = function(dimension, type, ascending) {
-	    if (!ascending) {
-	      return dimension.filter(type).top(Infinity);
-	    }
-	    return dimension.filter(type).top(Infinity).reverse();
-	  };
-
-	  this.remove = function() {
-	    return cf.remove();
-	  };
-
-	  var cf = crossfilter(data);
-
-	  return this;
-	}
-
-	module.exports = TidelineCrossFilter;
+	module.exports = TidelineFooter;
 
 
 /***/ },
-/* 26 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -19533,221 +19422,118 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
-	var moment = __webpack_require__(29);
+	module.exports = {
+	  oneday: __webpack_require__(39),
+	  twoweek: __webpack_require__(40),
+	  settings: __webpack_require__(41)
+	};
 
-	var datetime = {
+/***/ },
+/* 23 */
+/***/ function(module, exports, __webpack_require__) {
 
-	  APPEND: 'T00:00:00.000Z',
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
 
-	  MS_IN_24: 86400000,
+	var _ = __webpack_require__(12);
+	var util = __webpack_require__(26);
 
-	  addDays: function(s, n) {
-	    var d = moment(s);
-	    d.add(n, 'days');
-	    return d.toISOString();
-	  },
+	var schema = __webpack_require__(49);
 
-	  addDuration: function(datetime, duration) {
-	    datetime = new Date(datetime);
+	var schemas = {
+	  basal: __webpack_require__(42),
+	  bolus: __webpack_require__(43),
+	  cbg: __webpack_require__(44),
+	  common: __webpack_require__(45),
+	  deviceMeta: schema(),
+	  message: __webpack_require__(46),
+	  settings: __webpack_require__(47),
+	  smbg: __webpack_require__(44),
+	  wizard: __webpack_require__(48)
+	};
 
-	    return new Date(datetime.valueOf() + duration).toISOString();
-	  },
-
-	  adjustToInnerEndpoints: function(s, e, endpoints) {
-	    if (!endpoints) {
-	      return null;
-	    }
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    var thisTypeStart = new Date(endpoints[0]).valueOf(), thisTypeEnd = new Date(endpoints[1]).valueOf();
-	    if (start < thisTypeStart) {
-	      return [thisTypeStart, end];
-	    }
-	    else if (end > thisTypeEnd) {
-	      return [start, thisTypeEnd];
-	    }
-	    else {
-	      return [start, end];
-	    }
-	  },
-
-	  checkIfDateInRange: function(s, endpoints) {
-	    var d = new Date(s);
-	    var start = new Date(endpoints[0]);
-	    var end = new Date(endpoints[1]);
-	    if ((d.valueOf() >= start.valueOf()) && (d.valueOf() <= end.valueOf())) {
-	      return true;
-	    }
-	    else {
-	      return false;
-	    }
-	  },
-
-	  checkIfUTCDate: function(s) {
-	    var d = new Date(s);
-	    if (typeof s === 'number') {
-	      if (d.getUTCFullYear() < 2008) {
-	        return false;
-	      }
-	      else {
-	        return true;
-	      }
-	    }
-	    else if (s.slice(s.length - 1, s.length) !== 'Z') {
-	      return false;
+	module.exports = {
+	  validateOne: function(datum, result) {
+	    result = result || {valid: [], invalid: []};
+	    var handler = schemas[datum.type];
+	    if (handler == null) {
+	      datum.errorMessage = util.format('No schema defined for data.type[%s]', datum.type);
+	      console.log(new Error(datum.errorMessage), datum);
+	      result.invalid.push(datum);
 	    }
 	    else {
-	      if (s === d.toISOString()) {
-	        return true;
+	      try {
+	        handler(datum);
+	        result.valid.push(datum);
 	      }
-	      else {
-	        return false;
-	      }
-	    }
-	  },
-
-	  composeMsAndDateString: function(ms, d) {
-	    return new Date(ms + new Date(this.toISODateString(d) + this.APPEND).valueOf()).toISOString();
-	  },
-
-	  difference: function(d2, d1) {
-	    return new Date(d2) - new Date(d1);
-	  },
-
-	  getDuration: function(d1, d2) {
-	    return new Date(d2).valueOf() - new Date(d1).valueOf();
-	  },
-
-	  getMidnight: function(d, next) {
-	    if (next) {
-	      return this.getMidnight(this.addDays(d, 1));
-	    }
-	    else {
-	      return this.toISODateString(d) + this.APPEND;
-	    }
-	  },
-
-	  getMsFromMidnight: function(d) {
-	    var midnight = new Date(this.getMidnight(d)).valueOf();
-	    return new Date(d).valueOf() - midnight;
-	  },
-
-	  getNumDays: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    return Math.ceil((end - start)/this.MS_IN_24);
-	  },
-
-	  isLessThanTwentyFourHours: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    if (end - start < this.MS_IN_24) {
-	      return true;
-	    }
-	    else { return false; }
-	  },
-
-	  isNearRightEdge: function(d, edge) {
-	    // check if d.normalTime is within six hours before edge
-	    var t = new Date(d.normalTime);
-	    if (edge.valueOf() - t.valueOf() < this.MS_IN_24/4) {
-	      return true;
-	    }
-	    return false;
-	  },
-
-	  isSegmentAcrossMidnight: function(s, e) {
-	    var start = new Date(s), end = new Date(e);
-	    var startDate = this.toISODateString(s), endDate = this.toISODateString(e);
-	    if (startDate === endDate) {
-	      return false;
-	    }
-	    else {
-	      if (end.getUTCDate() === start.getUTCDate() + 1) {
-	        if (this.getMidnight(e) === e) {
-	          return false;
-	        }
-	        return true;
-	      }
-	      else {
-	        return false;
+	      catch(e) {
+	        console.log('Oh noes! This is wrong:\n', datum);
+	        console.log(util.format('Error Message: %s%s', datum.type, e.message));
+	        datum.errorMessage = e.message;
+	        result.invalid.push(datum);
 	      }
 	    }
 	  },
-
-	  isTwentyFourHours: function(s, e) {
-	    var start = new Date(s).valueOf(), end = new Date(e).valueOf();
-	    if (end - start === this.MS_IN_24) {
-	      return true;
+	  validateAll: function(data) {
+	    var result = {valid: [], invalid: []};
+	    for (var i = 0; i < data.length; ++i) {
+	      this.validateOne(data[i], result);
 	    }
-	    else { return false; }
-	  },
-
-	  roundToNearestMinutes: function(d, resolution) {
-	    var date = new Date(d);
-	    var min = date.getUTCMinutes();
-	    var values = _.range(0, 60, resolution);
-	    for (var i = 0; i < values.length; ++i) {
-	      if (min - values[i] < resolution/2) {
-	        date.setUTCMinutes(values[i]);
-	        return date.toISOString();
-	      }
-	      else if (i === values.length - 1) {
-	        date.setUTCMinutes(0);
-	        date.setUTCHours(date.getUTCHours() + 1);
-	        return date.toISOString();
-	      }
-	    }
-	  },
-
-	  toISODateString: function(d) {
-	    var date = new Date(d);
-	    return date.toISOString().slice(0,10);
-	  },
-
-	  smbgEdge: function(d) {
-	    var date = new Date(d);
-	    if (date.getUTCHours() <= 2) {
-	      return 'left';
-	    }
-	    else if (date.getUTCHours() >= 21) {
-	      return 'right';
-	    }
-	    else {
-	      return null;
-	    }
-	  },
-
-	  verifyEndpoints: function(s, e, endpoints) {
-	    if (!endpoints) {
-	      return null;
-	    }
-	    if (this.checkIfUTCDate(s) && this.checkIfUTCDate(e)) {
-	      endpoints = this.adjustToInnerEndpoints(s, e, endpoints);
-	      s = endpoints[0];
-	      e = endpoints[1];
-	      if (this.checkIfDateInRange(s, endpoints) && this.checkIfDateInRange(e, endpoints)) {
-	        return true;
-	      }
-	      else {
-	        return false;
-	      }
-	    }
-	    else {
-	      return false;
-	    }
+	    return result;
 	  }
 	};
 
-	module.exports = datetime;
 
 /***/ },
-/* 27 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(54).crossfilter;
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	module.exports = function addStyle(cssCode) {
+		if(false) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		var head = document.getElementsByTagName("head")[0];
+		head.appendChild(styleElement);
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = cssCode;
+		} else {
+			styleElement.appendChild(document.createTextNode(cssCode));
+		}
+		return function() {
+			head.removeChild(styleElement);
+		};
+	}
 
 
 /***/ },
-/* 28 */
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(52).crossfilter;
+
+
+/***/ },
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -20275,7 +20061,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(75);
+	exports.isBuffer = __webpack_require__(74);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -20337,10 +20123,10 @@
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 29 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//! moment.js
@@ -23152,204 +22938,10 @@
 	    }
 	}).call(this);
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(52)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(50)(module)))
 
 /***/ },
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */,
-/* 34 */,
-/* 35 */,
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule React
-	 */
-
-	"use strict";
-
-	var DOMPropertyOperations = __webpack_require__(55);
-	var EventPluginUtils = __webpack_require__(56);
-	var ReactChildren = __webpack_require__(57);
-	var ReactComponent = __webpack_require__(58);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactContext = __webpack_require__(60);
-	var ReactCurrentOwner = __webpack_require__(61);
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactDOM = __webpack_require__(63);
-	var ReactDOMComponent = __webpack_require__(64);
-	var ReactDefaultInjection = __webpack_require__(65);
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactMount = __webpack_require__(67);
-	var ReactMultiChild = __webpack_require__(68);
-	var ReactPerf = __webpack_require__(69);
-	var ReactPropTypes = __webpack_require__(70);
-	var ReactServerRendering = __webpack_require__(71);
-	var ReactTextComponent = __webpack_require__(72);
-
-	var onlyChild = __webpack_require__(73);
-
-	ReactDefaultInjection.inject();
-
-	var React = {
-	  Children: {
-	    map: ReactChildren.map,
-	    forEach: ReactChildren.forEach,
-	    count: ReactChildren.count,
-	    only: onlyChild
-	  },
-	  DOM: ReactDOM,
-	  PropTypes: ReactPropTypes,
-	  initializeTouchEvents: function(shouldUseTouch) {
-	    EventPluginUtils.useTouchEvents = shouldUseTouch;
-	  },
-	  createClass: ReactCompositeComponent.createClass,
-	  createDescriptor: function(type, props, children) {
-	    var args = Array.prototype.slice.call(arguments, 1);
-	    return type.apply(null, args);
-	  },
-	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
-	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
-	  renderComponent: ReactPerf.measure(
-	    'React',
-	    'renderComponent',
-	    ReactMount.renderComponent
-	  ),
-	  renderComponentToString: ReactServerRendering.renderComponentToString,
-	  renderComponentToStaticMarkup:
-	    ReactServerRendering.renderComponentToStaticMarkup,
-	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
-	  isValidClass: ReactDescriptor.isValidFactory,
-	  isValidComponent: ReactDescriptor.isValidDescriptor,
-	  withContext: ReactContext.withContext,
-	  __internals: {
-	    Component: ReactComponent,
-	    CurrentOwner: ReactCurrentOwner,
-	    DOMComponent: ReactDOMComponent,
-	    DOMPropertyOperations: DOMPropertyOperations,
-	    InstanceHandles: ReactInstanceHandles,
-	    Mount: ReactMount,
-	    MultiChild: ReactMultiChild,
-	    TextComponent: ReactTextComponent
-	  }
-	};
-
-	if ("production" !== process.env.NODE_ENV) {
-	  var ExecutionEnvironment = __webpack_require__(74);
-	  if (ExecutionEnvironment.canUseDOM &&
-	      window.top === window.self &&
-	      navigator.userAgent.indexOf('Chrome') > -1) {
-	    console.debug(
-	      'Download the React DevTools for a better development experience: ' +
-	      'http://fb.me/react-devtools'
-	    );
-
-	    var expectedFeatures = [
-	      // shims
-	      Array.isArray,
-	      Array.prototype.every,
-	      Array.prototype.forEach,
-	      Array.prototype.indexOf,
-	      Array.prototype.map,
-	      Date.now,
-	      Function.prototype.bind,
-	      Object.keys,
-	      String.prototype.split,
-	      String.prototype.trim,
-
-	      // shams
-	      Object.create,
-	      Object.freeze
-	    ];
-
-	    for (var i in expectedFeatures) {
-	      if (!expectedFeatures[i]) {
-	        console.error(
-	          'One or more ES5 shim/shams expected by React are not available: ' +
-	          'http://fb.me/react-warning-polyfills'
-	        );
-	        break;
-	      }
-	    }
-	  }
-	}
-
-	// Version exists only in the open-source version of React, not in Facebook's
-	// internal version.
-	React.version = '0.11.1';
-
-	module.exports = React;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule cx
-	 */
-
-	/**
-	 * This function is used to mark string literals representing CSS class names
-	 * so that they can be transformed statically. This allows for modularization
-	 * and minification of CSS class names.
-	 *
-	 * In static_upstream, this function is actually implemented, but it should
-	 * eventually be replaced with something more descriptive, and the transform
-	 * that is used in the main stack should be ported for use elsewhere.
-	 *
-	 * @param string|object className to modularize, or an object of key/values.
-	 *                      In the object case, the values are conditions that
-	 *                      determine if the className keys should be included.
-	 * @param [string ...]  Variable list of classNames in the string case.
-	 * @return string       Renderable space-separated CSS className.
-	 */
-	function cx(classNames) {
-	  if (typeof classNames == 'object') {
-	    return Object.keys(classNames).filter(function(className) {
-	      return classNames[className];
-	    }).join(' ');
-	  } else {
-	    return Array.prototype.join.call(arguments, ' ');
-	  }
-	}
-
-	module.exports = cx;
-
-
-/***/ },
-/* 38 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -23370,15 +22962,15 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var Duration = __webpack_require__(219);
-	var moment = __webpack_require__(29);
+	var Duration = __webpack_require__(157);
+	var moment = __webpack_require__(27);
 
 	var format = {
 
 	  MS_IN_24: 86400000,
 
 	  tooltipBG: function(d, units) {
-	    return units === 'mg/dL' ? Math.round(d.value) : d3.format('.1f')(d.value);
+	    return units === 'mg/dL' ? d3.format('g')(Math.round(d.value)) : d3.format('.1f')(d.value);
 	  },
 
 	  tooltipValue: function(x) {
@@ -23468,17 +23060,27 @@
 	    }
 	  },
 
-	  timestamp: function(i) {
+	  timestamp: function(i, offset) {
 	    var d = new Date(i);
+	    if (offset) {
+	      d.setUTCMinutes(d.getUTCMinutes() + offset);
+	    }
 	    return d3.time.format.utc('%-I:%M %p')(d).toLowerCase();
 	  },
 
-	  xAxisDayText: function(i) {
+	  xAxisDayText: function(i, offset) {
+	    if (offset) {
+	      i = new Date(i);
+	      i.setUTCMinutes(i.getUTCMinutes() + offset);
+	    }
 	    return moment(i).utc().format('dddd, MMMM Do');
 	  },
 
-	  xAxisTickText: function(i) {
+	  xAxisTickText: function(i, offset) {
 	    var d = new Date(i);
+	    if (offset) {
+	      d.setUTCMinutes(d.getUTCMinutes() + offset);
+	    }
 	    return d3.time.format.utc('%-I %p')(d).toLowerCase();
 	  }
 
@@ -23486,6 +23088,339 @@
 
 	module.exports = format;
 
+
+/***/ },
+/* 29 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var moment = module.exports = __webpack_require__(75);
+	moment.tz.load(__webpack_require__(250));
+
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule cx
+	 */
+
+	/**
+	 * This function is used to mark string literals representing CSS class names
+	 * so that they can be transformed statically. This allows for modularization
+	 * and minification of CSS class names.
+	 *
+	 * In static_upstream, this function is actually implemented, but it should
+	 * eventually be replaced with something more descriptive, and the transform
+	 * that is used in the main stack should be ported for use elsewhere.
+	 *
+	 * @param string|object className to modularize, or an object of key/values.
+	 *                      In the object case, the values are conditions that
+	 *                      determine if the className keys should be included.
+	 * @param [string ...]  Variable list of classNames in the string case.
+	 * @return string       Renderable space-separated CSS className.
+	 */
+	function cx(classNames) {
+	  if (typeof classNames == 'object') {
+	    return Object.keys(classNames).filter(function(className) {
+	      return classNames[className];
+	    }).join(' ');
+	  } else {
+	    return Array.prototype.join.call(arguments, ' ');
+	  }
+	}
+
+	module.exports = cx;
+
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule React
+	 */
+
+	"use strict";
+
+	var DOMPropertyOperations = __webpack_require__(54);
+	var EventPluginUtils = __webpack_require__(55);
+	var ReactChildren = __webpack_require__(56);
+	var ReactComponent = __webpack_require__(57);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactContext = __webpack_require__(61);
+	var ReactCurrentOwner = __webpack_require__(59);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactDOM = __webpack_require__(62);
+	var ReactDOMComponent = __webpack_require__(63);
+	var ReactDefaultInjection = __webpack_require__(64);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactMount = __webpack_require__(65);
+	var ReactMultiChild = __webpack_require__(66);
+	var ReactPerf = __webpack_require__(67);
+	var ReactPropTypes = __webpack_require__(73);
+	var ReactServerRendering = __webpack_require__(69);
+	var ReactTextComponent = __webpack_require__(70);
+
+	var onlyChild = __webpack_require__(71);
+
+	ReactDefaultInjection.inject();
+
+	var React = {
+	  Children: {
+	    map: ReactChildren.map,
+	    forEach: ReactChildren.forEach,
+	    count: ReactChildren.count,
+	    only: onlyChild
+	  },
+	  DOM: ReactDOM,
+	  PropTypes: ReactPropTypes,
+	  initializeTouchEvents: function(shouldUseTouch) {
+	    EventPluginUtils.useTouchEvents = shouldUseTouch;
+	  },
+	  createClass: ReactCompositeComponent.createClass,
+	  createDescriptor: function(type, props, children) {
+	    var args = Array.prototype.slice.call(arguments, 1);
+	    return type.apply(null, args);
+	  },
+	  constructAndRenderComponent: ReactMount.constructAndRenderComponent,
+	  constructAndRenderComponentByID: ReactMount.constructAndRenderComponentByID,
+	  renderComponent: ReactPerf.measure(
+	    'React',
+	    'renderComponent',
+	    ReactMount.renderComponent
+	  ),
+	  renderComponentToString: ReactServerRendering.renderComponentToString,
+	  renderComponentToStaticMarkup:
+	    ReactServerRendering.renderComponentToStaticMarkup,
+	  unmountComponentAtNode: ReactMount.unmountComponentAtNode,
+	  isValidClass: ReactDescriptor.isValidFactory,
+	  isValidComponent: ReactDescriptor.isValidDescriptor,
+	  withContext: ReactContext.withContext,
+	  __internals: {
+	    Component: ReactComponent,
+	    CurrentOwner: ReactCurrentOwner,
+	    DOMComponent: ReactDOMComponent,
+	    DOMPropertyOperations: DOMPropertyOperations,
+	    InstanceHandles: ReactInstanceHandles,
+	    Mount: ReactMount,
+	    MultiChild: ReactMultiChild,
+	    TextComponent: ReactTextComponent
+	  }
+	};
+
+	if ("production" !== process.env.NODE_ENV) {
+	  var ExecutionEnvironment = __webpack_require__(72);
+	  if (ExecutionEnvironment.canUseDOM &&
+	      window.top === window.self &&
+	      navigator.userAgent.indexOf('Chrome') > -1) {
+	    console.debug(
+	      'Download the React DevTools for a better development experience: ' +
+	      'http://fb.me/react-devtools'
+	    );
+
+	    var expectedFeatures = [
+	      // shims
+	      Array.isArray,
+	      Array.prototype.every,
+	      Array.prototype.forEach,
+	      Array.prototype.indexOf,
+	      Array.prototype.map,
+	      Date.now,
+	      Function.prototype.bind,
+	      Object.keys,
+	      String.prototype.split,
+	      String.prototype.trim,
+
+	      // shams
+	      Object.create,
+	      Object.freeze
+	    ];
+
+	    for (var i in expectedFeatures) {
+	      if (!expectedFeatures[i]) {
+	        console.error(
+	          'One or more ES5 shim/shams expected by React are not available: ' +
+	          'http://fb.me/react-warning-polyfills'
+	        );
+	        break;
+	      }
+	    }
+	  }
+	}
+
+	// Version exists only in the open-source version of React, not in Facebook's
+	// internal version.
+	React.version = '0.11.1';
+
+	module.exports = React;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 32 */,
+/* 33 */,
+/* 34 */,
+/* 35 */,
+/* 36 */,
+/* 37 */,
+/* 38 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var _ = __webpack_require__(12);
+
+	module.exports = {
+	  getRecommended: function(d) {
+	    if (!d.recommended) {
+	      return NaN;
+	    }
+	    var rec = 0;
+	    if (d.recommended.carb) {
+	      rec += d.recommended.carb;
+	    }
+	    if (d.recommended.correction) {
+	      rec += d.recommended.correction;
+	    }
+	    return rec;
+	  },
+	  getMaxValue: function(d) {
+	    var wiz;
+	    if (d.type === 'wizard') {
+	      if (d.bolus) {
+	        wiz = _.clone(d);
+	        d = d.bolus;
+	      }
+	      else {
+	        return NaN;
+	      }
+	    }
+	    var programmedTotal = this.getProgrammed(d);
+	    var rec = 0;
+	    if (wiz) {
+	      rec = this.getRecommended(wiz); 
+	    }
+	    return rec > programmedTotal ? rec : programmedTotal;
+	  },
+	  getDelivered: function(d) {
+	    if (d.type === 'wizard') {
+	      if (d.bolus) {
+	        d = d.bolus;
+	      }
+	      else {
+	        return NaN;
+	      }
+	    }
+	    if (d.extended != null) {
+	      if (d.normal != null) {
+	        return d.extended + d.normal;
+	      }
+	      else {
+	        return d.extended;
+	      }
+	    }
+	    else {
+	      return d.normal;
+	    }
+	  },
+	  getProgrammed: function(d) {
+	    if (d.type === 'wizard') {
+	      if (d.bolus) {
+	        d = d.bolus;
+	      }
+	      else {
+	        return NaN;
+	      }
+	    }
+	    if (d.extended != null && d.expectedExtended != null) {
+	      if (d.normal != null) {
+	        if (d.expectedNormal != null) {
+	          return d.expectedNormal + d.expectedExtended;
+	        }
+	        else {
+	          return d.normal + d.expectedExtended;
+	        }
+	      }
+	      else {
+	        return d.expectedExtended;
+	      }
+	    }
+	    else if (d.extended != null) {
+	      if (d.normal != null) {
+	        if (d.expectedNormal != null) {
+	          return d.expectedNormal + d.extended;
+	        }
+	        else {
+	          return d.normal + d.extended;
+	        }
+	      }
+	      else {
+	        return d.extended;
+	      }
+	    }
+	    else {
+	      return d.expectedNormal || d.normal;
+	    }
+	  },
+	  getMaxDuration: function(d) {
+	    if (d.type === 'wizard') {
+	      if (d.bolus) {
+	        d = d.bolus;
+	      }
+	      else {
+	        return NaN;
+	      }
+	    }
+	    if (!d.duration) {
+	      return NaN;
+	    }
+	    return d.expectedDuration || d.duration;
+	  }
+	};
 
 /***/ },
 /* 39 */
@@ -23508,13 +23443,11 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	 /* global __DEV__ */
-
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
 	var d3 = __webpack_require__(10);
 
-	var EventEmitter = __webpack_require__(218).EventEmitter;
+	var EventEmitter = __webpack_require__(219).EventEmitter;
 
 	var tideline = __webpack_require__(76);
 	var fill = tideline.plot.util.fill;
@@ -23528,10 +23461,11 @@
 	    bgUnits: 'mg/dL',
 	    bolusRatio: 0.35,
 	    dynamicCarbs: false,
-	    hiddenPools: {
-	      basalSettings: null
-	    },
-	    labelBaseline: 4
+	    labelBaseline: 4,
+	    timePrefs: {
+	      timezoneAware: false,
+	      timezoneName: 'US/Pacific'
+	    }
 	  };
 	  _.defaults(options, defaults);
 
@@ -23541,7 +23475,7 @@
 	  chart.emitter = emitter;
 	  chart.options = options;
 
-	  var poolXAxis, poolMessages, poolBG, poolBolus, poolBasal, poolBasalSettings, poolStats;
+	  var poolXAxis, poolMessages, poolBG, poolBolus, poolBasal, poolStats;
 
 	  var SMBG_SIZE = 16;
 
@@ -23615,66 +23549,18 @@
 	      .weight(1.5)
 	      .gutterWeight(1.0);
 
-	    var basalSettingsBool = chart.options.hiddenPools.basalSettings;
-
-	    var basalPoolLabel = {
-	      main: 'Basal Rates',
-	      light: ' u/hr'
-	    };
-
-	    if (basalSettingsBool === null) {
-	      // basal data pool
-	      poolBasal = chart.newPool()
-	        .id('poolBasal', chart.poolGroup())
-	        .label([basalPoolLabel])
-	        .labelBaseline(options.labelBaseline)
-	        .legend(['basal'])
-	        .index(chart.pools().indexOf(poolBasal))
-	        .weight(1.0)
-	        .gutterWeight(1.0);
-	    }
-	    else if (basalSettingsBool) {
-	      // basal settings pool, bare
-	      poolBasalSettings = chart.newPool()
-	        .id('poolBasalSettings', chart.poolGroup())
-	        .label('')
-	        .labelBaseline(options.labelBaseline)
-	        .index(chart.pools().indexOf(poolBasal))
-	        .weight(1.0)
-	        .gutterWeight(1.0)
-	        .hidden(chart.options.hiddenPools.basalSettings);
-
-	      // basal data pool with label, legend, and gutter
-	      poolBasal = chart.newPool()
-	        .id('poolBasal', chart.poolGroup())
-	        .label([basalPoolLabel])
-	        .labelBaseline(options.labelBaseline)
-	        .legend(['basal'])
-	        .index(chart.pools().indexOf(poolBasal))
-	        .weight(1.0)
-	        .gutterWeight(1.0);
-	    }
-	    else if (basalSettingsBool === false) {
-	      // basal settings pool with label, legend, and gutter
-	      poolBasalSettings = chart.newPool()
-	        .id('poolBasalSettings', chart.poolGroup())
-	        .label([basalPoolLabel])
-	        .labelBaseline(options.labelBaseline)
-	        .legend(['basal'])
-	        .index(chart.pools().indexOf(poolBasal))
-	        .weight(1.0)
-	        .gutterWeight(1.0)
-	        .hidden(chart.options.hiddenPools.basalSettings);
-
-	      // basal data pool, bare
-	      poolBasal = chart.newPool()
-	        .id('poolBasal', chart.poolGroup())
-	        .label('')
-	        .labelBaseline(options.labelBaseline)
-	        .index(chart.pools().indexOf(poolBasal))
-	        .weight(1.0)
-	        .gutterWeight(0.1);
-	    }
+	    // basal data pool
+	    poolBasal = chart.newPool()
+	      .id('poolBasal', chart.poolGroup())
+	      .label([{
+	        main: 'Basal Rates',
+	        light: ' u/hr'
+	      }])
+	      .labelBaseline(options.labelBaseline)
+	      .legend(['basal'])
+	      .index(chart.pools().indexOf(poolBasal))
+	      .weight(1.0)
+	      .gutterWeight(1.0);
 
 	    // stats data pool
 	    poolStats = chart.newPool()
@@ -23735,7 +23621,8 @@
 	    poolXAxis.addPlotType('fill', tideline.plot.util.axes.dailyx(poolXAxis, {
 	      'class': 'd3-top',
 	      emitter: emitter,
-	      leftEdge: chart.axisGutter()
+	      leftEdge: chart.axisGutter(),
+	      timePrefs: chart.options.timePrefs
 	    }), true, true);
 
 	    // BG pool
@@ -23779,7 +23666,8 @@
 	    poolBG.addPlotType('smbg', tideline.plot.smbg(poolBG, {
 	      bgUnits: chart.options.bgUnits,
 	      classes: chart.options.bgClasses,
-	      yScale: scaleBG
+	      yScale: scaleBG,
+	      timezoneAware: chart.options.timePrefs.timezoneAware
 	    }), true, true);
 
 	    // TODO: when we bring responsiveness in
@@ -23809,14 +23697,16 @@
 	      yScale: scaleBolus,
 	      yScaleCarbs: scaleCarbs,
 	      emitter: emitter,
-	      subdueOpacity: 0.4
+	      subdueOpacity: 0.4,
+	      timezoneAware: chart.options.timePrefs.timezoneAware
 	    }), true, true);
 
 	    // quick bolus data to wizard pool
 	    poolBolus.addPlotType('bolus', tideline.plot.quickbolus(poolBolus, {
 	      yScale: scaleBolus,
 	      emitter: emitter,
-	      subdueOpacity: 0.4
+	      subdueOpacity: 0.4,
+	      timezoneAware: chart.options.timePrefs.timezoneAware
 	    }), true, true);
 
 	    // basal pool
@@ -23834,14 +23724,9 @@
 	    poolBasal.addPlotType('basal', tideline.plot.basal(poolBasal, {
 	      yScale: scaleBasal,
 	      emitter: emitter,
-	      data: tidelineData.grouped.basal
+	      data: tidelineData.grouped.basal,
+	      timezoneAware: chart.options.timePrefs.timezoneAware
 	    }), true, true);
-
-	    if (poolBasalSettings !== undefined) {
-	      poolBasalSettings.addPlotType('basal-settings-segment', tideline.plot.basaltab(poolBasalSettings, {
-	        data: tidelineData.grouped['basal-settings-segment']
-	      }), true, true);
-	    }
 
 	    // messages pool
 	    // add background fill rectangles to messages pool
@@ -23929,15 +23814,6 @@
 	      pool.render(chart.poolGroup(), chart.renderedData());
 	    });
 
-	    if (poolBasalSettings !== undefined) {
-	      if (false) {
-	        setTimeout(function() { chart.drawBasalSettingsButton(); }, 500);
-	      }
-	      else {
-	        chart.drawBasalSettingsButton();
-	      }
-	    }
-
 	    chart.setAtDate(start, atMostRecent);
 
 	    return chart;
@@ -23971,57 +23847,6 @@
 	    chart.poolGroup().selectAll('.d3-rect-message').classed('hidden', true);
 	  };
 
-	  chart.drawBasalSettingsButton = function() {
-	    var labelGroup = chart.svg().select('#tidelineLabels');
-	    var labelTextBox = chart.options.hiddenPools.basalSettings ?
-	      labelGroup.select('text#poolBasal_label') :
-	      labelGroup.select('text#poolBasalSettings_label');
-	    var labelDims = labelTextBox[0][0].getBoundingClientRect();
-	    var labelHeight = labelDims.height, labelWidth = labelDims.width;
-	    var horizontalTranslation = labelWidth + chart.axisGutter();
-	    var verticalTranslation = parseFloat(labelTextBox.attr('transform').match(/translate\([0-9.]+,([0-9.]+)\)/)[1]);
-	    var fo = labelGroup.append('foreignObject')
-	      .attr({
-	        transform: 'translate(' + horizontalTranslation + ',' + verticalTranslation + ')'
-	      });
-
-	    var div = fo.append('xhtml:div')
-	      .attr('class', 'd3-tabular-ui');
-
-	    var icon = div.html(chart.options.hiddenPools.basalSettings ?
-	        '<i class="icon-right"></i>' : '<i class="icon-down"></i>');
-
-	    var iconWidth = icon.select('i')[0][0].getBoundingClientRect().width;
-	    var foHeight = div[0][0].getBoundingClientRect().height;
-
-	    fo.attr({
-	      width: iconWidth,
-	      height: foHeight,
-	      transform: 'translate(' + horizontalTranslation + ',' + (verticalTranslation - foHeight + options.labelBaseline) + ')'
-	    });
-
-	    labelGroup.append('text')
-	      .attr({
-	        x: chart.axisGutter() + labelWidth + iconWidth,
-	        y: verticalTranslation,
-	        'class': 'd3-tabular-ui'
-	      })
-	      .text(chart.options.hiddenPools.basalSettings ? 'show rates' : 'hide rates');
-
-	    if (chart.options.hiddenPools.basalSettings) {
-	      labelGroup.selectAll('.d3-tabular-ui')
-	        .on('click', function() {
-	          chart.emitter.emit('showBasalSettings');
-	        });
-	    }
-	    else {
-	      labelGroup.selectAll('.d3-tabular-ui')
-	        .on('click', function() {
-	          chart.emitter.emit('hideBasalSettings');
-	        });
-	    }
-	  };
-
 	  chart.type = 'daily';
 
 	  return create(el, options);
@@ -24051,11 +23876,11 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
 	var d3 = __webpack_require__(10);
 
-	var EventEmitter = __webpack_require__(218).EventEmitter;
+	var EventEmitter = __webpack_require__(219).EventEmitter;
 
 	var tideline = __webpack_require__(76);
 	var fill = tideline.plot.util.fill;
@@ -24066,7 +23891,11 @@
 	  var log = bows('Weekly Factory');
 	  options = options || {};
 	  var defaults = {
-	    'bgUnits': 'mg/dL'
+	    bgUnits: 'mg/dL',
+	    timePrefs: {
+	      timezoneAware: false,
+	      timezoneName: 'US/Pacific'
+	    }
 	  };
 	  _.defaults(options, defaults);
 
@@ -24110,14 +23939,14 @@
 	    var twoWeekData = tidelineData.twoWeekData || [];
 
 	    if (!datetime) {
-	      chart.data(twoWeekData);
+	      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware);
 	    }
 	    else {
 	      if (twoWeekData.length &&
 	          Date.parse(datetime) > Date.parse(twoWeekData[twoWeekData.length - 1].normalTime)) {
 	        datetime = twoWeekData[twoWeekData.length - 1].normalTime;
 	      }
-	      chart.data(twoWeekData, datetime);
+	      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
 	    }
 
 	    chart.setup();
@@ -24142,12 +23971,12 @@
 
 	    chart.setAxes().setNav().setScrollNav();
 
-	    var fillEndpoints = [new Date('2014-01-01T00:00:00Z'), new Date('2014-01-02T00:00:00Z')];
-	    var fillScale = d3.time.scale.utc()
-	      .domain(fillEndpoints)
-	      .range([chart.axisGutter() + chart.dataGutter(), chart.width() - chart.navGutter() - chart.dataGutter()]);
-
-	    smbgTime = new tideline.plot.SMBGTime({emitter: emitter, bgUnits: chart.options.bgUnits, classes: chart.options.bgClasses});
+	    smbgTime = new tideline.plot.SMBGTime({
+	      emitter: emitter,
+	      bgUnits: chart.options.bgUnits,
+	      classes: chart.options.bgClasses,
+	      timezoneAware: chart.options.timePrefs.timezoneAware
+	    });
 
 	    chart.pools().forEach(function(pool, i) {
 	      var d = new Date(pool.id().replace('poolBG_', ''));
@@ -24158,7 +23987,7 @@
 	        gutter: {'top': 0.5, 'bottom': 0.5},
 	        dataGutter: chart.dataGutter(),
 	        fillClass: weekend ? 'd3-pool-weekend' : '',
-	        x: function(t) { return dt.getMsFromMidnight(t); }
+	        x: function(t) { return t.twoWeekX; }
 	      }), true, true);
 	      pool.addPlotType('smbg', smbgTime.draw(pool), true, true);
 	      chart.tooltips().addGroup(pool, {
@@ -24231,11 +24060,11 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var bows = __webpack_require__(8);
 	var d3 = __webpack_require__(10);
 
-	var EventEmitter = __webpack_require__(218).EventEmitter;
+	var EventEmitter = __webpack_require__(219).EventEmitter;
 
 	var tideline = __webpack_require__(76);
 
@@ -24295,7 +24124,7 @@
 
 	var basalCommon = {
 	  deliveryType: schema().in(['scheduled', 'suspend', 'temp']),
-	  deviceTime: schema().isDeviceTime(),
+	  deviceTime: schema().ifExists().isDeviceTime(),
 	  duration: schema().ifExists().number().min(0),
 	  normalEnd: schema().isISODateTime(),
 	  rate: schema().number().min(0)
@@ -24336,7 +24165,7 @@
 
 	var bolusCommon = schema(
 	  {
-	    deviceTime: schema().isDeviceTime(),
+	    deviceTime: schema().ifExists().isDeviceTime(),
 	  }
 	);
 
@@ -24398,7 +24227,7 @@
 	module.exports = schema(
 	  common,
 	  {
-	    deviceTime: schema().isDeviceTime(),
+	    deviceTime: schema().ifExists().isDeviceTime(),
 	    units: schema().in(['mg/dL', 'mmol/L']),
 	    value: schema().number()
 	  }
@@ -24430,6 +24259,7 @@
 
 	module.exports = schema(
 	  {
+	    displayOffset: schema().number(),
 	    id: schema().isId(),
 	    joinKey: schema().ifExists().isId(),
 	    normalTime: schema().isISODateTime(),
@@ -24562,7 +24392,7 @@
 	        }
 	      )
 	    ),
-	    deviceTime: schema().isDeviceTime(),
+	    deviceTime: schema().ifExists().isDeviceTime(),
 	    insulinSensitivity: schema().array(
 	      schema(
 	        {
@@ -24601,7 +24431,7 @@
 	module.exports = schema(
 	  common,
 	  {
-	    deviceTime: schema().isDeviceTime(),
+	    deviceTime: schema().ifExists().isDeviceTime(),
 	    recommended: schema().object({
 	      carb: schema().ifExists().number(),
 	      correction: schema().ifExists().number()
@@ -24670,9 +24500,9 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var util = __webpack_require__(28);
+	var util = __webpack_require__(26);
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var validator = __webpack_require__(77);
 
@@ -24925,132 +24755,17 @@
 /* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/*
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
+	module.exports = function(module) {
+		if(!module.webpackPolyfill) {
+			module.deprecate = function() {};
+			module.paths = [];
+			// module.parent = undefined by default
+			module.children = [];
+			module.webpackPolyfill = 1;
+		}
+		return module;
+	}
 
-	var _ = __webpack_require__(11);
-
-	module.exports = {
-	  getRecommended: function(d) {
-	    if (!d.recommended) {
-	      return NaN;
-	    }
-	    var rec = 0;
-	    if (d.recommended.carb) {
-	      rec += d.recommended.carb;
-	    }
-	    if (d.recommended.correction) {
-	      rec += d.recommended.correction;
-	    }
-	    return rec;
-	  },
-	  getMaxValue: function(d) {
-	    var wiz;
-	    if (d.type === 'wizard') {
-	      if (d.bolus) {
-	        wiz = _.clone(d);
-	        d = d.bolus;
-	      }
-	      else {
-	        return NaN;
-	      }
-	    }
-	    var programmedTotal = this.getProgrammed(d);
-	    var rec = 0;
-	    if (wiz) {
-	      rec = this.getRecommended(wiz); 
-	    }
-	    return rec > programmedTotal ? rec : programmedTotal;
-	  },
-	  getDelivered: function(d) {
-	    if (d.type === 'wizard') {
-	      if (d.bolus) {
-	        d = d.bolus;
-	      }
-	      else {
-	        return NaN;
-	      }
-	    }
-	    if (d.extended != null) {
-	      if (d.normal != null) {
-	        return d.extended + d.normal;
-	      }
-	      else {
-	        return d.extended;
-	      }
-	    }
-	    else {
-	      return d.normal;
-	    }
-	  },
-	  getProgrammed: function(d) {
-	    if (d.type === 'wizard') {
-	      if (d.bolus) {
-	        d = d.bolus;
-	      }
-	      else {
-	        return NaN;
-	      }
-	    }
-	    if (d.extended != null && d.expectedExtended != null) {
-	      if (d.normal != null) {
-	        if (d.expectedNormal != null) {
-	          return d.expectedNormal + d.expectedExtended;
-	        }
-	        else {
-	          return d.normal + d.expectedExtended;
-	        }
-	      }
-	      else {
-	        return d.expectedExtended;
-	      }
-	    }
-	    else if (d.extended != null) {
-	      if (d.normal != null) {
-	        if (d.expectedNormal != null) {
-	          return d.expectedNormal + d.extended;
-	        }
-	        else {
-	          return d.normal + d.extended;
-	        }
-	      }
-	      else {
-	        return d.extended;
-	      }
-	    }
-	    else {
-	      return d.expectedNormal || d.normal;
-	    }
-	  },
-	  getMaxDuration: function(d) {
-	    if (d.type === 'wizard') {
-	      if (d.bolus) {
-	        d = d.bolus;
-	      }
-	      else {
-	        return NaN;
-	      }
-	    }
-	    if (!d.duration) {
-	      return NaN;
-	    }
-	    return d.expectedDuration || d.duration;
-	  }
-	};
 
 /***/ },
 /* 51 */
@@ -25089,198 +24804,6 @@
 
 /***/ },
 /* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function(module) {
-		if(!module.webpackPolyfill) {
-			module.deprecate = function() {};
-			module.paths = [];
-			// module.parent = undefined by default
-			module.children = [];
-			module.webpackPolyfill = 1;
-		}
-		return module;
-	}
-
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var map = {
-		"./af": 78,
-		"./af.js": 78,
-		"./ar": 81,
-		"./ar-ma": 79,
-		"./ar-ma.js": 79,
-		"./ar-sa": 80,
-		"./ar-sa.js": 80,
-		"./ar.js": 81,
-		"./az": 82,
-		"./az.js": 82,
-		"./be": 83,
-		"./be.js": 83,
-		"./bg": 84,
-		"./bg.js": 84,
-		"./bn": 85,
-		"./bn.js": 85,
-		"./bo": 86,
-		"./bo.js": 86,
-		"./br": 87,
-		"./br.js": 87,
-		"./bs": 88,
-		"./bs.js": 88,
-		"./ca": 89,
-		"./ca.js": 89,
-		"./cs": 90,
-		"./cs.js": 90,
-		"./cv": 91,
-		"./cv.js": 91,
-		"./cy": 92,
-		"./cy.js": 92,
-		"./da": 93,
-		"./da.js": 93,
-		"./de": 95,
-		"./de-at": 94,
-		"./de-at.js": 94,
-		"./de.js": 95,
-		"./el": 96,
-		"./el.js": 96,
-		"./en-au": 97,
-		"./en-au.js": 97,
-		"./en-ca": 98,
-		"./en-ca.js": 98,
-		"./en-gb": 99,
-		"./en-gb.js": 99,
-		"./eo": 100,
-		"./eo.js": 100,
-		"./es": 101,
-		"./es.js": 101,
-		"./et": 102,
-		"./et.js": 102,
-		"./eu": 103,
-		"./eu.js": 103,
-		"./fa": 104,
-		"./fa.js": 104,
-		"./fi": 105,
-		"./fi.js": 105,
-		"./fo": 106,
-		"./fo.js": 106,
-		"./fr": 108,
-		"./fr-ca": 107,
-		"./fr-ca.js": 107,
-		"./fr.js": 108,
-		"./gl": 109,
-		"./gl.js": 109,
-		"./he": 110,
-		"./he.js": 110,
-		"./hi": 111,
-		"./hi.js": 111,
-		"./hr": 112,
-		"./hr.js": 112,
-		"./hu": 113,
-		"./hu.js": 113,
-		"./hy-am": 114,
-		"./hy-am.js": 114,
-		"./id": 115,
-		"./id.js": 115,
-		"./is": 116,
-		"./is.js": 116,
-		"./it": 117,
-		"./it.js": 117,
-		"./ja": 118,
-		"./ja.js": 118,
-		"./ka": 119,
-		"./ka.js": 119,
-		"./km": 120,
-		"./km.js": 120,
-		"./ko": 121,
-		"./ko.js": 121,
-		"./lb": 122,
-		"./lb.js": 122,
-		"./lt": 123,
-		"./lt.js": 123,
-		"./lv": 124,
-		"./lv.js": 124,
-		"./mk": 125,
-		"./mk.js": 125,
-		"./ml": 126,
-		"./ml.js": 126,
-		"./mr": 127,
-		"./mr.js": 127,
-		"./ms-my": 128,
-		"./ms-my.js": 128,
-		"./my": 129,
-		"./my.js": 129,
-		"./nb": 130,
-		"./nb.js": 130,
-		"./ne": 131,
-		"./ne.js": 131,
-		"./nl": 132,
-		"./nl.js": 132,
-		"./nn": 133,
-		"./nn.js": 133,
-		"./pl": 134,
-		"./pl.js": 134,
-		"./pt": 136,
-		"./pt-br": 135,
-		"./pt-br.js": 135,
-		"./pt.js": 136,
-		"./ro": 137,
-		"./ro.js": 137,
-		"./ru": 138,
-		"./ru.js": 138,
-		"./sk": 139,
-		"./sk.js": 139,
-		"./sl": 140,
-		"./sl.js": 140,
-		"./sq": 141,
-		"./sq.js": 141,
-		"./sr": 143,
-		"./sr-cyrl": 142,
-		"./sr-cyrl.js": 142,
-		"./sr.js": 143,
-		"./sv": 144,
-		"./sv.js": 144,
-		"./ta": 145,
-		"./ta.js": 145,
-		"./th": 146,
-		"./th.js": 146,
-		"./tl-ph": 147,
-		"./tl-ph.js": 147,
-		"./tr": 148,
-		"./tr.js": 148,
-		"./tzm": 150,
-		"./tzm-latn": 149,
-		"./tzm-latn.js": 149,
-		"./tzm.js": 150,
-		"./uk": 151,
-		"./uk.js": 151,
-		"./uz": 152,
-		"./uz.js": 152,
-		"./vi": 153,
-		"./vi.js": 153,
-		"./zh-cn": 154,
-		"./zh-cn.js": 154,
-		"./zh-tw": 155,
-		"./zh-tw.js": 155
-	};
-	function webpackContext(req) {
-		return __webpack_require__(webpackContextResolve(req));
-	};
-	function webpackContextResolve(req) {
-		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
-	};
-	webpackContext.keys = function webpackContextKeys() {
-		return Object.keys(map);
-	};
-	webpackContext.resolve = webpackContextResolve;
-	module.exports = webpackContext;
-	webpackContext.id = 53;
-
-
-/***/ },
-/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	(function(exports){
@@ -26682,7 +26205,183 @@
 
 
 /***/ },
-/* 55 */
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./af": 78,
+		"./af.js": 78,
+		"./ar": 81,
+		"./ar-ma": 79,
+		"./ar-ma.js": 79,
+		"./ar-sa": 80,
+		"./ar-sa.js": 80,
+		"./ar.js": 81,
+		"./az": 82,
+		"./az.js": 82,
+		"./be": 83,
+		"./be.js": 83,
+		"./bg": 84,
+		"./bg.js": 84,
+		"./bn": 85,
+		"./bn.js": 85,
+		"./bo": 86,
+		"./bo.js": 86,
+		"./br": 87,
+		"./br.js": 87,
+		"./bs": 88,
+		"./bs.js": 88,
+		"./ca": 89,
+		"./ca.js": 89,
+		"./cs": 90,
+		"./cs.js": 90,
+		"./cv": 91,
+		"./cv.js": 91,
+		"./cy": 92,
+		"./cy.js": 92,
+		"./da": 93,
+		"./da.js": 93,
+		"./de": 95,
+		"./de-at": 94,
+		"./de-at.js": 94,
+		"./de.js": 95,
+		"./el": 96,
+		"./el.js": 96,
+		"./en-au": 97,
+		"./en-au.js": 97,
+		"./en-ca": 98,
+		"./en-ca.js": 98,
+		"./en-gb": 99,
+		"./en-gb.js": 99,
+		"./eo": 100,
+		"./eo.js": 100,
+		"./es": 101,
+		"./es.js": 101,
+		"./et": 102,
+		"./et.js": 102,
+		"./eu": 103,
+		"./eu.js": 103,
+		"./fa": 104,
+		"./fa.js": 104,
+		"./fi": 105,
+		"./fi.js": 105,
+		"./fo": 106,
+		"./fo.js": 106,
+		"./fr": 108,
+		"./fr-ca": 107,
+		"./fr-ca.js": 107,
+		"./fr.js": 108,
+		"./gl": 109,
+		"./gl.js": 109,
+		"./he": 110,
+		"./he.js": 110,
+		"./hi": 111,
+		"./hi.js": 111,
+		"./hr": 112,
+		"./hr.js": 112,
+		"./hu": 113,
+		"./hu.js": 113,
+		"./hy-am": 114,
+		"./hy-am.js": 114,
+		"./id": 115,
+		"./id.js": 115,
+		"./is": 116,
+		"./is.js": 116,
+		"./it": 117,
+		"./it.js": 117,
+		"./ja": 118,
+		"./ja.js": 118,
+		"./ka": 119,
+		"./ka.js": 119,
+		"./km": 120,
+		"./km.js": 120,
+		"./ko": 121,
+		"./ko.js": 121,
+		"./lb": 122,
+		"./lb.js": 122,
+		"./lt": 123,
+		"./lt.js": 123,
+		"./lv": 124,
+		"./lv.js": 124,
+		"./mk": 125,
+		"./mk.js": 125,
+		"./ml": 126,
+		"./ml.js": 126,
+		"./mr": 127,
+		"./mr.js": 127,
+		"./ms-my": 128,
+		"./ms-my.js": 128,
+		"./my": 129,
+		"./my.js": 129,
+		"./nb": 130,
+		"./nb.js": 130,
+		"./ne": 131,
+		"./ne.js": 131,
+		"./nl": 132,
+		"./nl.js": 132,
+		"./nn": 133,
+		"./nn.js": 133,
+		"./pl": 134,
+		"./pl.js": 134,
+		"./pt": 136,
+		"./pt-br": 135,
+		"./pt-br.js": 135,
+		"./pt.js": 136,
+		"./ro": 137,
+		"./ro.js": 137,
+		"./ru": 138,
+		"./ru.js": 138,
+		"./sk": 139,
+		"./sk.js": 139,
+		"./sl": 140,
+		"./sl.js": 140,
+		"./sq": 141,
+		"./sq.js": 141,
+		"./sr": 143,
+		"./sr-cyrl": 142,
+		"./sr-cyrl.js": 142,
+		"./sr.js": 143,
+		"./sv": 144,
+		"./sv.js": 144,
+		"./ta": 145,
+		"./ta.js": 145,
+		"./th": 146,
+		"./th.js": 146,
+		"./tl-ph": 147,
+		"./tl-ph.js": 147,
+		"./tr": 148,
+		"./tr.js": 148,
+		"./tzm": 150,
+		"./tzm-latn": 149,
+		"./tzm-latn.js": 149,
+		"./tzm.js": 150,
+		"./uk": 151,
+		"./uk.js": 151,
+		"./uz": 152,
+		"./uz.js": 152,
+		"./vi": 153,
+		"./vi.js": 153,
+		"./zh-cn": 154,
+		"./zh-cn.js": 154,
+		"./zh-tw": 155,
+		"./zh-tw.js": 155
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 53;
+
+
+/***/ },
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -26706,11 +26405,11 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
+	var DOMProperty = __webpack_require__(158);
 
-	var escapeTextForBrowser = __webpack_require__(160);
-	var memoizeStringOnly = __webpack_require__(161);
-	var warning = __webpack_require__(162);
+	var escapeTextForBrowser = __webpack_require__(159);
+	var memoizeStringOnly = __webpack_require__(160);
+	var warning = __webpack_require__(161);
 
 	function shouldIgnoreValue(name, value) {
 	  return value == null ||
@@ -26879,10 +26578,10 @@
 
 	module.exports = DOMPropertyOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -26905,9 +26604,9 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Injected dependencies:
@@ -27110,10 +26809,10 @@
 
 	module.exports = EventPluginUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27136,10 +26835,10 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(163);
+	var PooledClass = __webpack_require__(164);
 
-	var traverseAllChildren = __webpack_require__(164);
-	var warning = __webpack_require__(162);
+	var traverseAllChildren = __webpack_require__(165);
+	var warning = __webpack_require__(161);
 
 	var twoArgumentPooler = PooledClass.twoArgumentPooler;
 	var threeArgumentPooler = PooledClass.threeArgumentPooler;
@@ -27270,10 +26969,10 @@
 
 	module.exports = ReactChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27296,13 +26995,13 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactOwner = __webpack_require__(165);
-	var ReactUpdates = __webpack_require__(166);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactOwner = __webpack_require__(166);
+	var ReactUpdates = __webpack_require__(167);
 
-	var invariant = __webpack_require__(158);
-	var keyMirror = __webpack_require__(167);
-	var merge = __webpack_require__(168);
+	var invariant = __webpack_require__(163);
+	var keyMirror = __webpack_require__(168);
+	var merge = __webpack_require__(169);
 
 	/**
 	 * Every React component is in one of these life cycles.
@@ -27723,10 +27422,10 @@
 
 	module.exports = ReactComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -27749,29 +27448,29 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(58);
-	var ReactContext = __webpack_require__(60);
-	var ReactCurrentOwner = __webpack_require__(61);
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactDescriptorValidator = __webpack_require__(169);
-	var ReactEmptyComponent = __webpack_require__(170);
-	var ReactErrorUtils = __webpack_require__(171);
-	var ReactOwner = __webpack_require__(165);
-	var ReactPerf = __webpack_require__(69);
-	var ReactPropTransferer = __webpack_require__(172);
-	var ReactPropTypeLocations = __webpack_require__(173);
-	var ReactPropTypeLocationNames = __webpack_require__(174);
-	var ReactUpdates = __webpack_require__(166);
+	var ReactComponent = __webpack_require__(57);
+	var ReactContext = __webpack_require__(61);
+	var ReactCurrentOwner = __webpack_require__(59);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactDescriptorValidator = __webpack_require__(170);
+	var ReactEmptyComponent = __webpack_require__(171);
+	var ReactErrorUtils = __webpack_require__(172);
+	var ReactOwner = __webpack_require__(166);
+	var ReactPerf = __webpack_require__(67);
+	var ReactPropTransferer = __webpack_require__(173);
+	var ReactPropTypeLocations = __webpack_require__(174);
+	var ReactPropTypeLocationNames = __webpack_require__(175);
+	var ReactUpdates = __webpack_require__(167);
 
-	var instantiateReactComponent = __webpack_require__(175);
-	var invariant = __webpack_require__(158);
-	var keyMirror = __webpack_require__(167);
-	var merge = __webpack_require__(168);
-	var mixInto = __webpack_require__(176);
-	var monitorCodeUse = __webpack_require__(177);
-	var mapObject = __webpack_require__(178);
-	var shouldUpdateReactComponent = __webpack_require__(179);
-	var warning = __webpack_require__(162);
+	var instantiateReactComponent = __webpack_require__(176);
+	var invariant = __webpack_require__(163);
+	var keyMirror = __webpack_require__(168);
+	var merge = __webpack_require__(169);
+	var mixInto = __webpack_require__(177);
+	var monitorCodeUse = __webpack_require__(178);
+	var mapObject = __webpack_require__(179);
+	var shouldUpdateReactComponent = __webpack_require__(180);
+	var warning = __webpack_require__(161);
 
 	/**
 	 * Policies that describe methods in `ReactCompositeComponentInterface`.
@@ -29155,83 +28854,10 @@
 
 	module.exports = ReactCompositeComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 60 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactContext
-	 */
-
-	"use strict";
-
-	var merge = __webpack_require__(168);
-
-	/**
-	 * Keeps track of the current context.
-	 *
-	 * The context is automatically passed down the component ownership hierarchy
-	 * and is accessible via `this.context` on ReactCompositeComponents.
-	 */
-	var ReactContext = {
-
-	  /**
-	   * @internal
-	   * @type {object}
-	   */
-	  current: {},
-
-	  /**
-	   * Temporarily extends the current context while executing scopedCallback.
-	   *
-	   * A typical use case might look like
-	   *
-	   *  render: function() {
-	   *    var children = ReactContext.withContext({foo: 'foo'} () => (
-	   *
-	   *    ));
-	   *    return <div>{children}</div>;
-	   *  }
-	   *
-	   * @param {object} newContext New context to merge into the existing context
-	   * @param {function} scopedCallback Callback to run with the new context
-	   * @return {ReactComponent|array<ReactComponent>}
-	   */
-	  withContext: function(newContext, scopedCallback) {
-	    var result;
-	    var previousContext = ReactContext.current;
-	    ReactContext.current = merge(previousContext, newContext);
-	    try {
-	      result = scopedCallback();
-	    } finally {
-	      ReactContext.current = previousContext;
-	    }
-	    return result;
-	  }
-
-	};
-
-	module.exports = ReactContext;
-
-
-/***/ },
-/* 61 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -29276,7 +28902,7 @@
 
 
 /***/ },
-/* 62 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -29299,11 +28925,11 @@
 
 	"use strict";
 
-	var ReactContext = __webpack_require__(60);
-	var ReactCurrentOwner = __webpack_require__(61);
+	var ReactContext = __webpack_require__(61);
+	var ReactCurrentOwner = __webpack_require__(59);
 
-	var merge = __webpack_require__(168);
-	var warning = __webpack_require__(162);
+	var merge = __webpack_require__(169);
+	var warning = __webpack_require__(161);
 
 	/**
 	 * Warn for mutations.
@@ -29531,10 +29157,83 @@
 
 	module.exports = ReactDescriptor;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 63 */
+/* 61 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule ReactContext
+	 */
+
+	"use strict";
+
+	var merge = __webpack_require__(169);
+
+	/**
+	 * Keeps track of the current context.
+	 *
+	 * The context is automatically passed down the component ownership hierarchy
+	 * and is accessible via `this.context` on ReactCompositeComponents.
+	 */
+	var ReactContext = {
+
+	  /**
+	   * @internal
+	   * @type {object}
+	   */
+	  current: {},
+
+	  /**
+	   * Temporarily extends the current context while executing scopedCallback.
+	   *
+	   * A typical use case might look like
+	   *
+	   *  render: function() {
+	   *    var children = ReactContext.withContext({foo: 'foo'} () => (
+	   *
+	   *    ));
+	   *    return <div>{children}</div>;
+	   *  }
+	   *
+	   * @param {object} newContext New context to merge into the existing context
+	   * @param {function} scopedCallback Callback to run with the new context
+	   * @return {ReactComponent|array<ReactComponent>}
+	   */
+	  withContext: function(newContext, scopedCallback) {
+	    var result;
+	    var previousContext = ReactContext.current;
+	    ReactContext.current = merge(previousContext, newContext);
+	    try {
+	      result = scopedCallback();
+	    } finally {
+	      ReactContext.current = previousContext;
+	    }
+	    return result;
+	  }
+
+	};
+
+	module.exports = ReactContext;
+
+
+/***/ },
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -29558,12 +29257,12 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactDescriptorValidator = __webpack_require__(169);
-	var ReactDOMComponent = __webpack_require__(64);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactDescriptorValidator = __webpack_require__(170);
+	var ReactDOMComponent = __webpack_require__(63);
 
-	var mergeInto = __webpack_require__(184);
-	var mapObject = __webpack_require__(178);
+	var mergeInto = __webpack_require__(181);
+	var mapObject = __webpack_require__(179);
 
 	/**
 	 * Creates a new React class that is idempotent and capable of containing other
@@ -29747,10 +29446,10 @@
 
 	module.exports = ReactDOM;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -29774,21 +29473,21 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(180);
-	var DOMProperty = __webpack_require__(159);
-	var DOMPropertyOperations = __webpack_require__(55);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactComponent = __webpack_require__(58);
-	var ReactBrowserEventEmitter = __webpack_require__(182);
-	var ReactMount = __webpack_require__(67);
-	var ReactMultiChild = __webpack_require__(68);
-	var ReactPerf = __webpack_require__(69);
+	var CSSPropertyOperations = __webpack_require__(182);
+	var DOMProperty = __webpack_require__(158);
+	var DOMPropertyOperations = __webpack_require__(54);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactComponent = __webpack_require__(57);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
+	var ReactMount = __webpack_require__(65);
+	var ReactMultiChild = __webpack_require__(66);
+	var ReactPerf = __webpack_require__(67);
 
-	var escapeTextForBrowser = __webpack_require__(160);
-	var invariant = __webpack_require__(158);
-	var keyOf = __webpack_require__(183);
-	var merge = __webpack_require__(168);
-	var mixInto = __webpack_require__(176);
+	var escapeTextForBrowser = __webpack_require__(159);
+	var invariant = __webpack_require__(163);
+	var keyOf = __webpack_require__(185);
+	var merge = __webpack_require__(169);
+	var mixInto = __webpack_require__(177);
 
 	var deleteListener = ReactBrowserEventEmitter.deleteListener;
 	var listenTo = ReactBrowserEventEmitter.listenTo;
@@ -30172,10 +29871,10 @@
 
 	module.exports = ReactDOMComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -30198,37 +29897,37 @@
 
 	"use strict";
 
-	var BeforeInputEventPlugin = __webpack_require__(185);
-	var ChangeEventPlugin = __webpack_require__(186);
-	var ClientReactRootIndex = __webpack_require__(187);
-	var CompositionEventPlugin = __webpack_require__(188);
-	var DefaultEventPluginOrder = __webpack_require__(189);
-	var EnterLeaveEventPlugin = __webpack_require__(190);
-	var ExecutionEnvironment = __webpack_require__(74);
-	var HTMLDOMPropertyConfig = __webpack_require__(191);
-	var MobileSafariClickEventPlugin = __webpack_require__(192);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
+	var BeforeInputEventPlugin = __webpack_require__(186);
+	var ChangeEventPlugin = __webpack_require__(187);
+	var ClientReactRootIndex = __webpack_require__(188);
+	var CompositionEventPlugin = __webpack_require__(189);
+	var DefaultEventPluginOrder = __webpack_require__(190);
+	var EnterLeaveEventPlugin = __webpack_require__(191);
+	var ExecutionEnvironment = __webpack_require__(72);
+	var HTMLDOMPropertyConfig = __webpack_require__(192);
+	var MobileSafariClickEventPlugin = __webpack_require__(193);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
 	var ReactComponentBrowserEnvironment =
-	  __webpack_require__(193);
-	var ReactDefaultBatchingStrategy = __webpack_require__(194);
-	var ReactDOM = __webpack_require__(63);
-	var ReactDOMButton = __webpack_require__(195);
-	var ReactDOMForm = __webpack_require__(196);
-	var ReactDOMImg = __webpack_require__(197);
-	var ReactDOMInput = __webpack_require__(198);
-	var ReactDOMOption = __webpack_require__(199);
-	var ReactDOMSelect = __webpack_require__(200);
-	var ReactDOMTextarea = __webpack_require__(201);
-	var ReactEventListener = __webpack_require__(202);
-	var ReactInjection = __webpack_require__(203);
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactMount = __webpack_require__(67);
-	var SelectEventPlugin = __webpack_require__(204);
-	var ServerReactRootIndex = __webpack_require__(205);
-	var SimpleEventPlugin = __webpack_require__(206);
-	var SVGDOMPropertyConfig = __webpack_require__(207);
+	  __webpack_require__(194);
+	var ReactDefaultBatchingStrategy = __webpack_require__(195);
+	var ReactDOM = __webpack_require__(62);
+	var ReactDOMButton = __webpack_require__(196);
+	var ReactDOMForm = __webpack_require__(197);
+	var ReactDOMImg = __webpack_require__(198);
+	var ReactDOMInput = __webpack_require__(199);
+	var ReactDOMOption = __webpack_require__(200);
+	var ReactDOMSelect = __webpack_require__(201);
+	var ReactDOMTextarea = __webpack_require__(202);
+	var ReactEventListener = __webpack_require__(203);
+	var ReactInjection = __webpack_require__(204);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactMount = __webpack_require__(65);
+	var SelectEventPlugin = __webpack_require__(205);
+	var ServerReactRootIndex = __webpack_require__(206);
+	var SimpleEventPlugin = __webpack_require__(207);
+	var SVGDOMPropertyConfig = __webpack_require__(208);
 
-	var createFullPageComponent = __webpack_require__(208);
+	var createFullPageComponent = __webpack_require__(209);
 
 	function inject() {
 	  ReactInjection.EventEmitter.injectReactEventListener(
@@ -30297,7 +29996,7 @@
 	  if ("production" !== process.env.NODE_ENV) {
 	    var url = (ExecutionEnvironment.canUseDOM && window.location.href) || '';
 	    if ((/[?&]react_perf\b/).test(url)) {
-	      var ReactDefaultPerf = __webpack_require__(209);
+	      var ReactDefaultPerf = __webpack_require__(210);
 	      ReactDefaultPerf.start();
 	    }
 	  }
@@ -30307,355 +30006,10 @@
 	  inject: inject
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 66 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactInstanceHandles
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var ReactRootIndex = __webpack_require__(210);
-
-	var invariant = __webpack_require__(158);
-
-	var SEPARATOR = '.';
-	var SEPARATOR_LENGTH = SEPARATOR.length;
-
-	/**
-	 * Maximum depth of traversals before we consider the possibility of a bad ID.
-	 */
-	var MAX_TREE_DEPTH = 100;
-
-	/**
-	 * Creates a DOM ID prefix to use when mounting React components.
-	 *
-	 * @param {number} index A unique integer
-	 * @return {string} React root ID.
-	 * @internal
-	 */
-	function getReactRootIDString(index) {
-	  return SEPARATOR + index.toString(36);
-	}
-
-	/**
-	 * Checks if a character in the supplied ID is a separator or the end.
-	 *
-	 * @param {string} id A React DOM ID.
-	 * @param {number} index Index of the character to check.
-	 * @return {boolean} True if the character is a separator or end of the ID.
-	 * @private
-	 */
-	function isBoundary(id, index) {
-	  return id.charAt(index) === SEPARATOR || index === id.length;
-	}
-
-	/**
-	 * Checks if the supplied string is a valid React DOM ID.
-	 *
-	 * @param {string} id A React DOM ID, maybe.
-	 * @return {boolean} True if the string is a valid React DOM ID.
-	 * @private
-	 */
-	function isValidID(id) {
-	  return id === '' || (
-	    id.charAt(0) === SEPARATOR && id.charAt(id.length - 1) !== SEPARATOR
-	  );
-	}
-
-	/**
-	 * Checks if the first ID is an ancestor of or equal to the second ID.
-	 *
-	 * @param {string} ancestorID
-	 * @param {string} descendantID
-	 * @return {boolean} True if `ancestorID` is an ancestor of `descendantID`.
-	 * @internal
-	 */
-	function isAncestorIDOf(ancestorID, descendantID) {
-	  return (
-	    descendantID.indexOf(ancestorID) === 0 &&
-	    isBoundary(descendantID, ancestorID.length)
-	  );
-	}
-
-	/**
-	 * Gets the parent ID of the supplied React DOM ID, `id`.
-	 *
-	 * @param {string} id ID of a component.
-	 * @return {string} ID of the parent, or an empty string.
-	 * @private
-	 */
-	function getParentID(id) {
-	  return id ? id.substr(0, id.lastIndexOf(SEPARATOR)) : '';
-	}
-
-	/**
-	 * Gets the next DOM ID on the tree path from the supplied `ancestorID` to the
-	 * supplied `destinationID`. If they are equal, the ID is returned.
-	 *
-	 * @param {string} ancestorID ID of an ancestor node of `destinationID`.
-	 * @param {string} destinationID ID of the destination node.
-	 * @return {string} Next ID on the path from `ancestorID` to `destinationID`.
-	 * @private
-	 */
-	function getNextDescendantID(ancestorID, destinationID) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    isValidID(ancestorID) && isValidID(destinationID),
-	    'getNextDescendantID(%s, %s): Received an invalid React DOM ID.',
-	    ancestorID,
-	    destinationID
-	  ) : invariant(isValidID(ancestorID) && isValidID(destinationID)));
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    isAncestorIDOf(ancestorID, destinationID),
-	    'getNextDescendantID(...): React has made an invalid assumption about ' +
-	    'the DOM hierarchy. Expected `%s` to be an ancestor of `%s`.',
-	    ancestorID,
-	    destinationID
-	  ) : invariant(isAncestorIDOf(ancestorID, destinationID)));
-	  if (ancestorID === destinationID) {
-	    return ancestorID;
-	  }
-	  // Skip over the ancestor and the immediate separator. Traverse until we hit
-	  // another separator or we reach the end of `destinationID`.
-	  var start = ancestorID.length + SEPARATOR_LENGTH;
-	  for (var i = start; i < destinationID.length; i++) {
-	    if (isBoundary(destinationID, i)) {
-	      break;
-	    }
-	  }
-	  return destinationID.substr(0, i);
-	}
-
-	/**
-	 * Gets the nearest common ancestor ID of two IDs.
-	 *
-	 * Using this ID scheme, the nearest common ancestor ID is the longest common
-	 * prefix of the two IDs that immediately preceded a "marker" in both strings.
-	 *
-	 * @param {string} oneID
-	 * @param {string} twoID
-	 * @return {string} Nearest common ancestor ID, or the empty string if none.
-	 * @private
-	 */
-	function getFirstCommonAncestorID(oneID, twoID) {
-	  var minLength = Math.min(oneID.length, twoID.length);
-	  if (minLength === 0) {
-	    return '';
-	  }
-	  var lastCommonMarkerIndex = 0;
-	  // Use `<=` to traverse until the "EOL" of the shorter string.
-	  for (var i = 0; i <= minLength; i++) {
-	    if (isBoundary(oneID, i) && isBoundary(twoID, i)) {
-	      lastCommonMarkerIndex = i;
-	    } else if (oneID.charAt(i) !== twoID.charAt(i)) {
-	      break;
-	    }
-	  }
-	  var longestCommonID = oneID.substr(0, lastCommonMarkerIndex);
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    isValidID(longestCommonID),
-	    'getFirstCommonAncestorID(%s, %s): Expected a valid React DOM ID: %s',
-	    oneID,
-	    twoID,
-	    longestCommonID
-	  ) : invariant(isValidID(longestCommonID)));
-	  return longestCommonID;
-	}
-
-	/**
-	 * Traverses the parent path between two IDs (either up or down). The IDs must
-	 * not be the same, and there must exist a parent path between them. If the
-	 * callback returns `false`, traversal is stopped.
-	 *
-	 * @param {?string} start ID at which to start traversal.
-	 * @param {?string} stop ID at which to end traversal.
-	 * @param {function} cb Callback to invoke each ID with.
-	 * @param {?boolean} skipFirst Whether or not to skip the first node.
-	 * @param {?boolean} skipLast Whether or not to skip the last node.
-	 * @private
-	 */
-	function traverseParentPath(start, stop, cb, arg, skipFirst, skipLast) {
-	  start = start || '';
-	  stop = stop || '';
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    start !== stop,
-	    'traverseParentPath(...): Cannot traverse from and to the same ID, `%s`.',
-	    start
-	  ) : invariant(start !== stop));
-	  var traverseUp = isAncestorIDOf(stop, start);
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    traverseUp || isAncestorIDOf(start, stop),
-	    'traverseParentPath(%s, %s, ...): Cannot traverse from two IDs that do ' +
-	    'not have a parent path.',
-	    start,
-	    stop
-	  ) : invariant(traverseUp || isAncestorIDOf(start, stop)));
-	  // Traverse from `start` to `stop` one depth at a time.
-	  var depth = 0;
-	  var traverse = traverseUp ? getParentID : getNextDescendantID;
-	  for (var id = start; /* until break */; id = traverse(id, stop)) {
-	    var ret;
-	    if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
-	      ret = cb(id, traverseUp, arg);
-	    }
-	    if (ret === false || id === stop) {
-	      // Only break //after// visiting `stop`.
-	      break;
-	    }
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      depth++ < MAX_TREE_DEPTH,
-	      'traverseParentPath(%s, %s, ...): Detected an infinite loop while ' +
-	      'traversing the React DOM ID tree. This may be due to malformed IDs: %s',
-	      start, stop
-	    ) : invariant(depth++ < MAX_TREE_DEPTH));
-	  }
-	}
-
-	/**
-	 * Manages the IDs assigned to DOM representations of React components. This
-	 * uses a specific scheme in order to traverse the DOM efficiently (e.g. in
-	 * order to simulate events).
-	 *
-	 * @internal
-	 */
-	var ReactInstanceHandles = {
-
-	  /**
-	   * Constructs a React root ID
-	   * @return {string} A React root ID.
-	   */
-	  createReactRootID: function() {
-	    return getReactRootIDString(ReactRootIndex.createReactRootIndex());
-	  },
-
-	  /**
-	   * Constructs a React ID by joining a root ID with a name.
-	   *
-	   * @param {string} rootID Root ID of a parent component.
-	   * @param {string} name A component's name (as flattened children).
-	   * @return {string} A React ID.
-	   * @internal
-	   */
-	  createReactID: function(rootID, name) {
-	    return rootID + name;
-	  },
-
-	  /**
-	   * Gets the DOM ID of the React component that is the root of the tree that
-	   * contains the React component with the supplied DOM ID.
-	   *
-	   * @param {string} id DOM ID of a React component.
-	   * @return {?string} DOM ID of the React component that is the root.
-	   * @internal
-	   */
-	  getReactRootIDFromNodeID: function(id) {
-	    if (id && id.charAt(0) === SEPARATOR && id.length > 1) {
-	      var index = id.indexOf(SEPARATOR, 1);
-	      return index > -1 ? id.substr(0, index) : id;
-	    }
-	    return null;
-	  },
-
-	  /**
-	   * Traverses the ID hierarchy and invokes the supplied `cb` on any IDs that
-	   * should would receive a `mouseEnter` or `mouseLeave` event.
-	   *
-	   * NOTE: Does not invoke the callback on the nearest common ancestor because
-	   * nothing "entered" or "left" that element.
-	   *
-	   * @param {string} leaveID ID being left.
-	   * @param {string} enterID ID being entered.
-	   * @param {function} cb Callback to invoke on each entered/left ID.
-	   * @param {*} upArg Argument to invoke the callback with on left IDs.
-	   * @param {*} downArg Argument to invoke the callback with on entered IDs.
-	   * @internal
-	   */
-	  traverseEnterLeave: function(leaveID, enterID, cb, upArg, downArg) {
-	    var ancestorID = getFirstCommonAncestorID(leaveID, enterID);
-	    if (ancestorID !== leaveID) {
-	      traverseParentPath(leaveID, ancestorID, cb, upArg, false, true);
-	    }
-	    if (ancestorID !== enterID) {
-	      traverseParentPath(ancestorID, enterID, cb, downArg, true, false);
-	    }
-	  },
-
-	  /**
-	   * Simulates the traversal of a two-phase, capture/bubble event dispatch.
-	   *
-	   * NOTE: This traversal happens on IDs without touching the DOM.
-	   *
-	   * @param {string} targetID ID of the target node.
-	   * @param {function} cb Callback to invoke.
-	   * @param {*} arg Argument to invoke the callback with.
-	   * @internal
-	   */
-	  traverseTwoPhase: function(targetID, cb, arg) {
-	    if (targetID) {
-	      traverseParentPath('', targetID, cb, arg, true, false);
-	      traverseParentPath(targetID, '', cb, arg, false, true);
-	    }
-	  },
-
-	  /**
-	   * Traverse a node ID, calling the supplied `cb` for each ancestor ID. For
-	   * example, passing `.0.$row-0.1` would result in `cb` getting called
-	   * with `.0`, `.0.$row-0`, and `.0.$row-0.1`.
-	   *
-	   * NOTE: This traversal happens on IDs without touching the DOM.
-	   *
-	   * @param {string} targetID ID of the target node.
-	   * @param {function} cb Callback to invoke.
-	   * @param {*} arg Argument to invoke the callback with.
-	   * @internal
-	   */
-	  traverseAncestors: function(targetID, cb, arg) {
-	    traverseParentPath('', targetID, cb, arg, true, false);
-	  },
-
-	  /**
-	   * Exposed for unit testing.
-	   * @private
-	   */
-	  _getFirstCommonAncestorID: getFirstCommonAncestorID,
-
-	  /**
-	   * Exposed for unit testing.
-	   * @private
-	   */
-	  _getNextDescendantID: getNextDescendantID,
-
-	  isAncestorIDOf: isAncestorIDOf,
-
-	  SEPARATOR: SEPARATOR
-
-	};
-
-	module.exports = ReactInstanceHandles;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
-/* 67 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -30678,19 +30032,19 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
-	var ReactBrowserEventEmitter = __webpack_require__(182);
-	var ReactCurrentOwner = __webpack_require__(61);
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactPerf = __webpack_require__(69);
+	var DOMProperty = __webpack_require__(158);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
+	var ReactCurrentOwner = __webpack_require__(59);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactPerf = __webpack_require__(67);
 
 	var containsNode = __webpack_require__(211);
 	var getReactRootElementInContainer = __webpack_require__(212);
-	var instantiateReactComponent = __webpack_require__(175);
-	var invariant = __webpack_require__(158);
-	var shouldUpdateReactComponent = __webpack_require__(179);
-	var warning = __webpack_require__(162);
+	var instantiateReactComponent = __webpack_require__(176);
+	var invariant = __webpack_require__(163);
+	var shouldUpdateReactComponent = __webpack_require__(180);
+	var warning = __webpack_require__(161);
 
 	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
 
@@ -31340,10 +30694,10 @@
 
 	module.exports = ReactMount;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 68 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -31367,12 +30721,12 @@
 
 	"use strict";
 
-	var ReactComponent = __webpack_require__(58);
+	var ReactComponent = __webpack_require__(57);
 	var ReactMultiChildUpdateTypes = __webpack_require__(213);
 
 	var flattenChildren = __webpack_require__(214);
-	var instantiateReactComponent = __webpack_require__(175);
-	var shouldUpdateReactComponent = __webpack_require__(179);
+	var instantiateReactComponent = __webpack_require__(176);
+	var shouldUpdateReactComponent = __webpack_require__(180);
 
 	/**
 	 * Updating children of a component may trigger recursive updates. The depth is
@@ -31779,7 +31133,7 @@
 
 
 /***/ },
-/* 69 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -31868,10 +31222,670 @@
 
 	module.exports = ReactPerf;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule ReactInstanceHandles
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var ReactRootIndex = __webpack_require__(215);
+
+	var invariant = __webpack_require__(163);
+
+	var SEPARATOR = '.';
+	var SEPARATOR_LENGTH = SEPARATOR.length;
+
+	/**
+	 * Maximum depth of traversals before we consider the possibility of a bad ID.
+	 */
+	var MAX_TREE_DEPTH = 100;
+
+	/**
+	 * Creates a DOM ID prefix to use when mounting React components.
+	 *
+	 * @param {number} index A unique integer
+	 * @return {string} React root ID.
+	 * @internal
+	 */
+	function getReactRootIDString(index) {
+	  return SEPARATOR + index.toString(36);
+	}
+
+	/**
+	 * Checks if a character in the supplied ID is a separator or the end.
+	 *
+	 * @param {string} id A React DOM ID.
+	 * @param {number} index Index of the character to check.
+	 * @return {boolean} True if the character is a separator or end of the ID.
+	 * @private
+	 */
+	function isBoundary(id, index) {
+	  return id.charAt(index) === SEPARATOR || index === id.length;
+	}
+
+	/**
+	 * Checks if the supplied string is a valid React DOM ID.
+	 *
+	 * @param {string} id A React DOM ID, maybe.
+	 * @return {boolean} True if the string is a valid React DOM ID.
+	 * @private
+	 */
+	function isValidID(id) {
+	  return id === '' || (
+	    id.charAt(0) === SEPARATOR && id.charAt(id.length - 1) !== SEPARATOR
+	  );
+	}
+
+	/**
+	 * Checks if the first ID is an ancestor of or equal to the second ID.
+	 *
+	 * @param {string} ancestorID
+	 * @param {string} descendantID
+	 * @return {boolean} True if `ancestorID` is an ancestor of `descendantID`.
+	 * @internal
+	 */
+	function isAncestorIDOf(ancestorID, descendantID) {
+	  return (
+	    descendantID.indexOf(ancestorID) === 0 &&
+	    isBoundary(descendantID, ancestorID.length)
+	  );
+	}
+
+	/**
+	 * Gets the parent ID of the supplied React DOM ID, `id`.
+	 *
+	 * @param {string} id ID of a component.
+	 * @return {string} ID of the parent, or an empty string.
+	 * @private
+	 */
+	function getParentID(id) {
+	  return id ? id.substr(0, id.lastIndexOf(SEPARATOR)) : '';
+	}
+
+	/**
+	 * Gets the next DOM ID on the tree path from the supplied `ancestorID` to the
+	 * supplied `destinationID`. If they are equal, the ID is returned.
+	 *
+	 * @param {string} ancestorID ID of an ancestor node of `destinationID`.
+	 * @param {string} destinationID ID of the destination node.
+	 * @return {string} Next ID on the path from `ancestorID` to `destinationID`.
+	 * @private
+	 */
+	function getNextDescendantID(ancestorID, destinationID) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    isValidID(ancestorID) && isValidID(destinationID),
+	    'getNextDescendantID(%s, %s): Received an invalid React DOM ID.',
+	    ancestorID,
+	    destinationID
+	  ) : invariant(isValidID(ancestorID) && isValidID(destinationID)));
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    isAncestorIDOf(ancestorID, destinationID),
+	    'getNextDescendantID(...): React has made an invalid assumption about ' +
+	    'the DOM hierarchy. Expected `%s` to be an ancestor of `%s`.',
+	    ancestorID,
+	    destinationID
+	  ) : invariant(isAncestorIDOf(ancestorID, destinationID)));
+	  if (ancestorID === destinationID) {
+	    return ancestorID;
+	  }
+	  // Skip over the ancestor and the immediate separator. Traverse until we hit
+	  // another separator or we reach the end of `destinationID`.
+	  var start = ancestorID.length + SEPARATOR_LENGTH;
+	  for (var i = start; i < destinationID.length; i++) {
+	    if (isBoundary(destinationID, i)) {
+	      break;
+	    }
+	  }
+	  return destinationID.substr(0, i);
+	}
+
+	/**
+	 * Gets the nearest common ancestor ID of two IDs.
+	 *
+	 * Using this ID scheme, the nearest common ancestor ID is the longest common
+	 * prefix of the two IDs that immediately preceded a "marker" in both strings.
+	 *
+	 * @param {string} oneID
+	 * @param {string} twoID
+	 * @return {string} Nearest common ancestor ID, or the empty string if none.
+	 * @private
+	 */
+	function getFirstCommonAncestorID(oneID, twoID) {
+	  var minLength = Math.min(oneID.length, twoID.length);
+	  if (minLength === 0) {
+	    return '';
+	  }
+	  var lastCommonMarkerIndex = 0;
+	  // Use `<=` to traverse until the "EOL" of the shorter string.
+	  for (var i = 0; i <= minLength; i++) {
+	    if (isBoundary(oneID, i) && isBoundary(twoID, i)) {
+	      lastCommonMarkerIndex = i;
+	    } else if (oneID.charAt(i) !== twoID.charAt(i)) {
+	      break;
+	    }
+	  }
+	  var longestCommonID = oneID.substr(0, lastCommonMarkerIndex);
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    isValidID(longestCommonID),
+	    'getFirstCommonAncestorID(%s, %s): Expected a valid React DOM ID: %s',
+	    oneID,
+	    twoID,
+	    longestCommonID
+	  ) : invariant(isValidID(longestCommonID)));
+	  return longestCommonID;
+	}
+
+	/**
+	 * Traverses the parent path between two IDs (either up or down). The IDs must
+	 * not be the same, and there must exist a parent path between them. If the
+	 * callback returns `false`, traversal is stopped.
+	 *
+	 * @param {?string} start ID at which to start traversal.
+	 * @param {?string} stop ID at which to end traversal.
+	 * @param {function} cb Callback to invoke each ID with.
+	 * @param {?boolean} skipFirst Whether or not to skip the first node.
+	 * @param {?boolean} skipLast Whether or not to skip the last node.
+	 * @private
+	 */
+	function traverseParentPath(start, stop, cb, arg, skipFirst, skipLast) {
+	  start = start || '';
+	  stop = stop || '';
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    start !== stop,
+	    'traverseParentPath(...): Cannot traverse from and to the same ID, `%s`.',
+	    start
+	  ) : invariant(start !== stop));
+	  var traverseUp = isAncestorIDOf(stop, start);
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    traverseUp || isAncestorIDOf(start, stop),
+	    'traverseParentPath(%s, %s, ...): Cannot traverse from two IDs that do ' +
+	    'not have a parent path.',
+	    start,
+	    stop
+	  ) : invariant(traverseUp || isAncestorIDOf(start, stop)));
+	  // Traverse from `start` to `stop` one depth at a time.
+	  var depth = 0;
+	  var traverse = traverseUp ? getParentID : getNextDescendantID;
+	  for (var id = start; /* until break */; id = traverse(id, stop)) {
+	    var ret;
+	    if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
+	      ret = cb(id, traverseUp, arg);
+	    }
+	    if (ret === false || id === stop) {
+	      // Only break //after// visiting `stop`.
+	      break;
+	    }
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      depth++ < MAX_TREE_DEPTH,
+	      'traverseParentPath(%s, %s, ...): Detected an infinite loop while ' +
+	      'traversing the React DOM ID tree. This may be due to malformed IDs: %s',
+	      start, stop
+	    ) : invariant(depth++ < MAX_TREE_DEPTH));
+	  }
+	}
+
+	/**
+	 * Manages the IDs assigned to DOM representations of React components. This
+	 * uses a specific scheme in order to traverse the DOM efficiently (e.g. in
+	 * order to simulate events).
+	 *
+	 * @internal
+	 */
+	var ReactInstanceHandles = {
+
+	  /**
+	   * Constructs a React root ID
+	   * @return {string} A React root ID.
+	   */
+	  createReactRootID: function() {
+	    return getReactRootIDString(ReactRootIndex.createReactRootIndex());
+	  },
+
+	  /**
+	   * Constructs a React ID by joining a root ID with a name.
+	   *
+	   * @param {string} rootID Root ID of a parent component.
+	   * @param {string} name A component's name (as flattened children).
+	   * @return {string} A React ID.
+	   * @internal
+	   */
+	  createReactID: function(rootID, name) {
+	    return rootID + name;
+	  },
+
+	  /**
+	   * Gets the DOM ID of the React component that is the root of the tree that
+	   * contains the React component with the supplied DOM ID.
+	   *
+	   * @param {string} id DOM ID of a React component.
+	   * @return {?string} DOM ID of the React component that is the root.
+	   * @internal
+	   */
+	  getReactRootIDFromNodeID: function(id) {
+	    if (id && id.charAt(0) === SEPARATOR && id.length > 1) {
+	      var index = id.indexOf(SEPARATOR, 1);
+	      return index > -1 ? id.substr(0, index) : id;
+	    }
+	    return null;
+	  },
+
+	  /**
+	   * Traverses the ID hierarchy and invokes the supplied `cb` on any IDs that
+	   * should would receive a `mouseEnter` or `mouseLeave` event.
+	   *
+	   * NOTE: Does not invoke the callback on the nearest common ancestor because
+	   * nothing "entered" or "left" that element.
+	   *
+	   * @param {string} leaveID ID being left.
+	   * @param {string} enterID ID being entered.
+	   * @param {function} cb Callback to invoke on each entered/left ID.
+	   * @param {*} upArg Argument to invoke the callback with on left IDs.
+	   * @param {*} downArg Argument to invoke the callback with on entered IDs.
+	   * @internal
+	   */
+	  traverseEnterLeave: function(leaveID, enterID, cb, upArg, downArg) {
+	    var ancestorID = getFirstCommonAncestorID(leaveID, enterID);
+	    if (ancestorID !== leaveID) {
+	      traverseParentPath(leaveID, ancestorID, cb, upArg, false, true);
+	    }
+	    if (ancestorID !== enterID) {
+	      traverseParentPath(ancestorID, enterID, cb, downArg, true, false);
+	    }
+	  },
+
+	  /**
+	   * Simulates the traversal of a two-phase, capture/bubble event dispatch.
+	   *
+	   * NOTE: This traversal happens on IDs without touching the DOM.
+	   *
+	   * @param {string} targetID ID of the target node.
+	   * @param {function} cb Callback to invoke.
+	   * @param {*} arg Argument to invoke the callback with.
+	   * @internal
+	   */
+	  traverseTwoPhase: function(targetID, cb, arg) {
+	    if (targetID) {
+	      traverseParentPath('', targetID, cb, arg, true, false);
+	      traverseParentPath(targetID, '', cb, arg, false, true);
+	    }
+	  },
+
+	  /**
+	   * Traverse a node ID, calling the supplied `cb` for each ancestor ID. For
+	   * example, passing `.0.$row-0.1` would result in `cb` getting called
+	   * with `.0`, `.0.$row-0`, and `.0.$row-0.1`.
+	   *
+	   * NOTE: This traversal happens on IDs without touching the DOM.
+	   *
+	   * @param {string} targetID ID of the target node.
+	   * @param {function} cb Callback to invoke.
+	   * @param {*} arg Argument to invoke the callback with.
+	   * @internal
+	   */
+	  traverseAncestors: function(targetID, cb, arg) {
+	    traverseParentPath('', targetID, cb, arg, true, false);
+	  },
+
+	  /**
+	   * Exposed for unit testing.
+	   * @private
+	   */
+	  _getFirstCommonAncestorID: getFirstCommonAncestorID,
+
+	  /**
+	   * Exposed for unit testing.
+	   * @private
+	   */
+	  _getNextDescendantID: getNextDescendantID,
+
+	  isAncestorIDOf: isAncestorIDOf,
+
+	  SEPARATOR: SEPARATOR
+
+	};
+
+	module.exports = ReactInstanceHandles;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @typechecks static-only
+	 * @providesModule ReactServerRendering
+	 */
+	"use strict";
+
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactMarkupChecksum = __webpack_require__(216);
+	var ReactServerRenderingTransaction =
+	  __webpack_require__(217);
+
+	var instantiateReactComponent = __webpack_require__(176);
+	var invariant = __webpack_require__(163);
+
+	/**
+	 * @param {ReactComponent} component
+	 * @return {string} the HTML markup
+	 */
+	function renderComponentToString(component) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactDescriptor.isValidDescriptor(component),
+	    'renderComponentToString(): You must pass a valid ReactComponent.'
+	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
+
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    !(arguments.length === 2 && typeof arguments[1] === 'function'),
+	    'renderComponentToString(): This function became synchronous and now ' +
+	    'returns the generated markup. Please remove the second parameter.'
+	  ) : invariant(!(arguments.length === 2 && typeof arguments[1] === 'function')));
+
+	  var transaction;
+	  try {
+	    var id = ReactInstanceHandles.createReactRootID();
+	    transaction = ReactServerRenderingTransaction.getPooled(false);
+
+	    return transaction.perform(function() {
+	      var componentInstance = instantiateReactComponent(component);
+	      var markup = componentInstance.mountComponent(id, transaction, 0);
+	      return ReactMarkupChecksum.addChecksumToMarkup(markup);
+	    }, null);
+	  } finally {
+	    ReactServerRenderingTransaction.release(transaction);
+	  }
+	}
+
+	/**
+	 * @param {ReactComponent} component
+	 * @return {string} the HTML markup, without the extra React ID and checksum
+	* (for generating static pages)
+	 */
+	function renderComponentToStaticMarkup(component) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactDescriptor.isValidDescriptor(component),
+	    'renderComponentToStaticMarkup(): You must pass a valid ReactComponent.'
+	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
+
+	  var transaction;
+	  try {
+	    var id = ReactInstanceHandles.createReactRootID();
+	    transaction = ReactServerRenderingTransaction.getPooled(true);
+
+	    return transaction.perform(function() {
+	      var componentInstance = instantiateReactComponent(component);
+	      return componentInstance.mountComponent(id, transaction, 0);
+	    }, null);
+	  } finally {
+	    ReactServerRenderingTransaction.release(transaction);
+	  }
+	}
+
+	module.exports = {
+	  renderComponentToString: renderComponentToString,
+	  renderComponentToStaticMarkup: renderComponentToStaticMarkup
+	};
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule ReactTextComponent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var DOMPropertyOperations = __webpack_require__(54);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactComponent = __webpack_require__(57);
+	var ReactDescriptor = __webpack_require__(60);
+
+	var escapeTextForBrowser = __webpack_require__(159);
+	var mixInto = __webpack_require__(177);
+
+	/**
+	 * Text nodes violate a couple assumptions that React makes about components:
+	 *
+	 *  - When mounting text into the DOM, adjacent text nodes are merged.
+	 *  - Text nodes cannot be assigned a React root ID.
+	 *
+	 * This component is used to wrap strings in elements so that they can undergo
+	 * the same reconciliation that is applied to elements.
+	 *
+	 * TODO: Investigate representing React components in the DOM with text nodes.
+	 *
+	 * @class ReactTextComponent
+	 * @extends ReactComponent
+	 * @internal
+	 */
+	var ReactTextComponent = function(descriptor) {
+	  this.construct(descriptor);
+	};
+
+	mixInto(ReactTextComponent, ReactComponent.Mixin);
+	mixInto(ReactTextComponent, ReactBrowserComponentMixin);
+	mixInto(ReactTextComponent, {
+
+	  /**
+	   * Creates the markup for this text node. This node is not intended to have
+	   * any features besides containing text content.
+	   *
+	   * @param {string} rootID DOM ID of the root node.
+	   * @param {ReactReconcileTransaction|ReactServerRenderingTransaction} transaction
+	   * @param {number} mountDepth number of components in the owner hierarchy
+	   * @return {string} Markup for this text node.
+	   * @internal
+	   */
+	  mountComponent: function(rootID, transaction, mountDepth) {
+	    ReactComponent.Mixin.mountComponent.call(
+	      this,
+	      rootID,
+	      transaction,
+	      mountDepth
+	    );
+
+	    var escapedText = escapeTextForBrowser(this.props);
+
+	    if (transaction.renderToStaticMarkup) {
+	      // Normally we'd wrap this in a `span` for the reasons stated above, but
+	      // since this is a situation where React won't take over (static pages),
+	      // we can simply return the text as it is.
+	      return escapedText;
+	    }
+
+	    return (
+	      '<span ' + DOMPropertyOperations.createMarkupForID(rootID) + '>' +
+	        escapedText +
+	      '</span>'
+	    );
+	  },
+
+	  /**
+	   * Updates this component by updating the text content.
+	   *
+	   * @param {object} nextComponent Contains the next text content.
+	   * @param {ReactReconcileTransaction} transaction
+	   * @internal
+	   */
+	  receiveComponent: function(nextComponent, transaction) {
+	    var nextProps = nextComponent.props;
+	    if (nextProps !== this.props) {
+	      this.props = nextProps;
+	      ReactComponent.BackendIDOperations.updateTextContentByID(
+	        this._rootNodeID,
+	        nextProps
+	      );
+	    }
+	  }
+
+	});
+
+	module.exports = ReactDescriptor.createFactory(ReactTextComponent);
+
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule onlyChild
+	 */
+	"use strict";
+
+	var ReactDescriptor = __webpack_require__(60);
+
+	var invariant = __webpack_require__(163);
+
+	/**
+	 * Returns the first child in a collection of children and verifies that there
+	 * is only one child in the collection. The current implementation of this
+	 * function assumes that a single child gets passed without a wrapper, but the
+	 * purpose of this helper function is to abstract away the particular structure
+	 * of children.
+	 *
+	 * @param {?object} children Child collection structure.
+	 * @return {ReactComponent} The first and only `ReactComponent` contained in the
+	 * structure.
+	 */
+	function onlyChild(children) {
+	  ("production" !== process.env.NODE_ENV ? invariant(
+	    ReactDescriptor.isValidDescriptor(children),
+	    'onlyChild must be passed a children with exactly one child.'
+	  ) : invariant(ReactDescriptor.isValidDescriptor(children)));
+	  return children;
+	}
+
+	module.exports = onlyChild;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule ExecutionEnvironment
+	 */
+
+	/*jslint evil: true */
+
+	"use strict";
+
+	var canUseDOM = !!(
+	  typeof window !== 'undefined' &&
+	  window.document &&
+	  window.document.createElement
+	);
+
+	/**
+	 * Simple, lightweight module assisting with the detection and context of
+	 * Worker. Helps avoid circular dependencies and allows code to reason about
+	 * whether or not they are in a Worker, even if they never include the main
+	 * `ReactWorker` dependency.
+	 */
+	var ExecutionEnvironment = {
+
+	  canUseDOM: canUseDOM,
+
+	  canUseWorkers: typeof Worker !== 'undefined',
+
+	  canUseEventListeners:
+	    canUseDOM && !!(window.addEventListener || window.attachEvent),
+
+	  canUseViewport: canUseDOM && !!window.screen,
+
+	  isInWorker: !canUseDOM // For now, this is true - might change in the future.
+
+	};
+
+	module.exports = ExecutionEnvironment;
+
+
+/***/ },
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -31894,10 +31908,10 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactPropTypeLocationNames = __webpack_require__(174);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactPropTypeLocationNames = __webpack_require__(175);
 
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 
 	/**
 	 * Collection of methods that allow declaration and validation of props that are
@@ -32220,322 +32234,7 @@
 
 
 /***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @typechecks static-only
-	 * @providesModule ReactServerRendering
-	 */
-	"use strict";
-
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactMarkupChecksum = __webpack_require__(216);
-	var ReactServerRenderingTransaction =
-	  __webpack_require__(217);
-
-	var instantiateReactComponent = __webpack_require__(175);
-	var invariant = __webpack_require__(158);
-
-	/**
-	 * @param {ReactComponent} component
-	 * @return {string} the HTML markup
-	 */
-	function renderComponentToString(component) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(component),
-	    'renderComponentToString(): You must pass a valid ReactComponent.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
-
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    !(arguments.length === 2 && typeof arguments[1] === 'function'),
-	    'renderComponentToString(): This function became synchronous and now ' +
-	    'returns the generated markup. Please remove the second parameter.'
-	  ) : invariant(!(arguments.length === 2 && typeof arguments[1] === 'function')));
-
-	  var transaction;
-	  try {
-	    var id = ReactInstanceHandles.createReactRootID();
-	    transaction = ReactServerRenderingTransaction.getPooled(false);
-
-	    return transaction.perform(function() {
-	      var componentInstance = instantiateReactComponent(component);
-	      var markup = componentInstance.mountComponent(id, transaction, 0);
-	      return ReactMarkupChecksum.addChecksumToMarkup(markup);
-	    }, null);
-	  } finally {
-	    ReactServerRenderingTransaction.release(transaction);
-	  }
-	}
-
-	/**
-	 * @param {ReactComponent} component
-	 * @return {string} the HTML markup, without the extra React ID and checksum
-	* (for generating static pages)
-	 */
-	function renderComponentToStaticMarkup(component) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(component),
-	    'renderComponentToStaticMarkup(): You must pass a valid ReactComponent.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(component)));
-
-	  var transaction;
-	  try {
-	    var id = ReactInstanceHandles.createReactRootID();
-	    transaction = ReactServerRenderingTransaction.getPooled(true);
-
-	    return transaction.perform(function() {
-	      var componentInstance = instantiateReactComponent(component);
-	      return componentInstance.mountComponent(id, transaction, 0);
-	    }, null);
-	  } finally {
-	    ReactServerRenderingTransaction.release(transaction);
-	  }
-	}
-
-	module.exports = {
-	  renderComponentToString: renderComponentToString,
-	  renderComponentToStaticMarkup: renderComponentToStaticMarkup
-	};
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactTextComponent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var DOMPropertyOperations = __webpack_require__(55);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactComponent = __webpack_require__(58);
-	var ReactDescriptor = __webpack_require__(62);
-
-	var escapeTextForBrowser = __webpack_require__(160);
-	var mixInto = __webpack_require__(176);
-
-	/**
-	 * Text nodes violate a couple assumptions that React makes about components:
-	 *
-	 *  - When mounting text into the DOM, adjacent text nodes are merged.
-	 *  - Text nodes cannot be assigned a React root ID.
-	 *
-	 * This component is used to wrap strings in elements so that they can undergo
-	 * the same reconciliation that is applied to elements.
-	 *
-	 * TODO: Investigate representing React components in the DOM with text nodes.
-	 *
-	 * @class ReactTextComponent
-	 * @extends ReactComponent
-	 * @internal
-	 */
-	var ReactTextComponent = function(descriptor) {
-	  this.construct(descriptor);
-	};
-
-	mixInto(ReactTextComponent, ReactComponent.Mixin);
-	mixInto(ReactTextComponent, ReactBrowserComponentMixin);
-	mixInto(ReactTextComponent, {
-
-	  /**
-	   * Creates the markup for this text node. This node is not intended to have
-	   * any features besides containing text content.
-	   *
-	   * @param {string} rootID DOM ID of the root node.
-	   * @param {ReactReconcileTransaction|ReactServerRenderingTransaction} transaction
-	   * @param {number} mountDepth number of components in the owner hierarchy
-	   * @return {string} Markup for this text node.
-	   * @internal
-	   */
-	  mountComponent: function(rootID, transaction, mountDepth) {
-	    ReactComponent.Mixin.mountComponent.call(
-	      this,
-	      rootID,
-	      transaction,
-	      mountDepth
-	    );
-
-	    var escapedText = escapeTextForBrowser(this.props);
-
-	    if (transaction.renderToStaticMarkup) {
-	      // Normally we'd wrap this in a `span` for the reasons stated above, but
-	      // since this is a situation where React won't take over (static pages),
-	      // we can simply return the text as it is.
-	      return escapedText;
-	    }
-
-	    return (
-	      '<span ' + DOMPropertyOperations.createMarkupForID(rootID) + '>' +
-	        escapedText +
-	      '</span>'
-	    );
-	  },
-
-	  /**
-	   * Updates this component by updating the text content.
-	   *
-	   * @param {object} nextComponent Contains the next text content.
-	   * @param {ReactReconcileTransaction} transaction
-	   * @internal
-	   */
-	  receiveComponent: function(nextComponent, transaction) {
-	    var nextProps = nextComponent.props;
-	    if (nextProps !== this.props) {
-	      this.props = nextProps;
-	      ReactComponent.BackendIDOperations.updateTextContentByID(
-	        this._rootNodeID,
-	        nextProps
-	      );
-	    }
-	  }
-
-	});
-
-	module.exports = ReactDescriptor.createFactory(ReactTextComponent);
-
-
-/***/ },
-/* 73 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule onlyChild
-	 */
-	"use strict";
-
-	var ReactDescriptor = __webpack_require__(62);
-
-	var invariant = __webpack_require__(158);
-
-	/**
-	 * Returns the first child in a collection of children and verifies that there
-	 * is only one child in the collection. The current implementation of this
-	 * function assumes that a single child gets passed without a wrapper, but the
-	 * purpose of this helper function is to abstract away the particular structure
-	 * of children.
-	 *
-	 * @param {?object} children Child collection structure.
-	 * @return {ReactComponent} The first and only `ReactComponent` contained in the
-	 * structure.
-	 */
-	function onlyChild(children) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    ReactDescriptor.isValidDescriptor(children),
-	    'onlyChild must be passed a children with exactly one child.'
-	  ) : invariant(ReactDescriptor.isValidDescriptor(children)));
-	  return children;
-	}
-
-	module.exports = onlyChild;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
 /* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ExecutionEnvironment
-	 */
-
-	/*jslint evil: true */
-
-	"use strict";
-
-	var canUseDOM = !!(
-	  typeof window !== 'undefined' &&
-	  window.document &&
-	  window.document.createElement
-	);
-
-	/**
-	 * Simple, lightweight module assisting with the detection and context of
-	 * Worker. Helps avoid circular dependencies and allows code to reason about
-	 * whether or not they are in a Worker, even if they never include the main
-	 * `ReactWorker` dependency.
-	 */
-	var ExecutionEnvironment = {
-
-	  canUseDOM: canUseDOM,
-
-	  canUseWorkers: typeof Worker !== 'undefined',
-
-	  canUseEventListeners:
-	    canUseDOM && !!(window.addEventListener || window.attachEvent),
-
-	  canUseViewport: canUseDOM && !!window.screen,
-
-	  isInWorker: !canUseDOM // For now, this is true - might change in the future.
-
-	};
-
-	module.exports = ExecutionEnvironment;
-
-
-/***/ },
-/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = function isBuffer(arg) {
@@ -32544,6 +32243,413 @@
 	    && typeof arg.fill === 'function'
 	    && typeof arg.readUInt8 === 'function';
 	}
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//! moment-timezone.js
+	//! version : 0.2.2
+	//! author : Tim Wood
+	//! license : MIT
+	//! github.com/moment/moment-timezone
+
+	(function (root, factory) {
+		"use strict";
+
+		/*global define*/
+		if (true) {
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));                 // AMD
+		} else if (typeof exports === 'object') {
+			module.exports = factory(require('moment')); // Node
+		} else {
+			factory(root.moment);                        // Browser
+		}
+	}(this, function (moment) {
+		"use strict";
+
+		// Do not load moment-timezone a second time.
+		if (moment.tz !== undefined) { return moment; }
+
+		var VERSION = "0.2.2",
+			zones = {},
+			links = {},
+
+			momentVersion = moment.version.split('.'),
+			major = +momentVersion[0],
+			minor = +momentVersion[1];
+
+		// Moment.js version check
+		if (major < 2 || (major === 2 && minor < 6)) {
+			logError('Moment Timezone requires Moment.js >= 2.6.0. You are using Moment.js ' + moment.version + '. See momentjs.com');
+		}
+
+		/************************************
+			Unpacking
+		************************************/
+
+		function charCodeToInt(charCode) {
+			if (charCode > 96) {
+				return charCode - 87;
+			} else if (charCode > 64) {
+				return charCode - 29;
+			}
+			return charCode - 48;
+		}
+
+		function unpackBase60(string) {
+			var i = 0,
+				parts = string.split('.'),
+				whole = parts[0],
+				fractional = parts[1] || '',
+				multiplier = 1,
+				num,
+				out = 0,
+				sign = 1;
+
+			// handle negative numbers
+			if (string.charCodeAt(0) === 45) {
+				i = 1;
+				sign = -1;
+			}
+
+			// handle digits before the decimal
+			for (i; i < whole.length; i++) {
+				num = charCodeToInt(whole.charCodeAt(i));
+				out = 60 * out + num;
+			}
+
+			// handle digits after the decimal
+			for (i = 0; i < fractional.length; i++) {
+				multiplier = multiplier / 60;
+				num = charCodeToInt(fractional.charCodeAt(i));
+				out += num * multiplier;
+			}
+
+			return out * sign;
+		}
+
+		function arrayToInt (array) {
+			for (var i = 0; i < array.length; i++) {
+				array[i] = unpackBase60(array[i]);
+			}
+		}
+
+		function intToUntil (array, length) {
+			for (var i = 0; i < length; i++) {
+				array[i] = Math.round((array[i - 1] || 0) + (array[i] * 60000)); // minutes to milliseconds
+			}
+
+			array[length - 1] = Infinity;
+		}
+
+		function mapIndices (source, indices) {
+			var out = [], i;
+
+			for (i = 0; i < indices.length; i++) {
+				out[i] = source[indices[i]];
+			}
+
+			return out;
+		}
+
+		function unpack (string) {
+			var data = string.split('|'),
+				offsets = data[2].split(' '),
+				indices = data[3].split(''),
+				untils  = data[4].split(' ');
+
+			arrayToInt(offsets);
+			arrayToInt(indices);
+			arrayToInt(untils);
+
+			intToUntil(untils, indices.length);
+
+			return {
+				name    : data[0],
+				abbrs   : mapIndices(data[1].split(' '), indices),
+				offsets : mapIndices(offsets, indices),
+				untils  : untils
+			};
+		}
+
+		/************************************
+			Zone object
+		************************************/
+
+		function Zone (packedString) {
+			if (packedString) {
+				this._set(unpack(packedString));
+			}
+		}
+
+		Zone.prototype = {
+			_set : function (unpacked) {
+				this.name    = unpacked.name;
+				this.abbrs   = unpacked.abbrs;
+				this.untils  = unpacked.untils;
+				this.offsets = unpacked.offsets;
+			},
+
+			_index : function (timestamp) {
+				var target = +timestamp,
+					untils = this.untils,
+					i;
+
+				for (i = 0; i < untils.length; i++) {
+					if (target < untils[i]) {
+						return i;
+					}
+				}
+			},
+
+			parse : function (timestamp) {
+				var target  = +timestamp,
+					offsets = this.offsets,
+					untils  = this.untils,
+					max     = untils.length - 1,
+					offset, offsetNext, offsetPrev, i;
+
+				for (i = 0; i < max; i++) {
+					offset     = offsets[i];
+					offsetNext = offsets[i + 1];
+					offsetPrev = offsets[i ? i - 1 : i];
+
+					if (offset < offsetNext && tz.moveAmbiguousForward) {
+						offset = offsetNext;
+					} else if (offset > offsetPrev && tz.moveInvalidForward) {
+						offset = offsetPrev;
+					}
+
+					if (target < untils[i] - (offset * 60000)) {
+						return offsets[i];
+					}
+				}
+
+				return offsets[max];
+			},
+
+			abbr : function (mom) {
+				return this.abbrs[this._index(mom)];
+			},
+
+			offset : function (mom) {
+				return this.offsets[this._index(mom)];
+			}
+		};
+
+		/************************************
+			Global Methods
+		************************************/
+
+		function normalizeName (name) {
+			return (name || '').toLowerCase().replace(/\//g, '_');
+		}
+
+		function addZone (packed) {
+			var i, zone, zoneName;
+
+			if (typeof packed === "string") {
+				packed = [packed];
+			}
+
+			for (i = 0; i < packed.length; i++) {
+				zone = new Zone(packed[i]);
+				zoneName = normalizeName(zone.name);
+				zones[zoneName] = zone;
+				upgradeLinksToZones(zoneName);
+			}
+		}
+
+		function getZone (name) {
+			return zones[normalizeName(name)] || null;
+		}
+
+		function getNames () {
+			var i, out = [];
+
+			for (i in zones) {
+				if (zones.hasOwnProperty(i) && zones[i]) {
+					out.push(zones[i].name);
+				}
+			}
+
+			return out.sort();
+		}
+
+		function addLink (aliases) {
+			var i, alias;
+
+			if (typeof aliases === "string") {
+				aliases = [aliases];
+			}
+
+			for (i = 0; i < aliases.length; i++) {
+				alias = aliases[i].split('|');
+				pushLink(alias[0], alias[1]);
+				pushLink(alias[1], alias[0]);
+			}
+		}
+
+		function upgradeLinksToZones (zoneName) {
+			if (!links[zoneName]) {
+				return;
+			}
+
+			var i,
+				zone = zones[zoneName],
+				linkNames = links[zoneName];
+
+			for (i = 0; i < linkNames.length; i++) {
+				copyZoneWithName(zone, linkNames[i]);
+			}
+
+			links[zoneName] = null;
+		}
+
+		function copyZoneWithName (zone, name) {
+			var linkZone = zones[normalizeName(name)] = new Zone();
+			linkZone._set(zone);
+			linkZone.name = name;
+		}
+
+		function pushLink (zoneName, linkName) {
+			zoneName = normalizeName(zoneName);
+
+			if (zones[zoneName]) {
+				copyZoneWithName(zones[zoneName], linkName);
+			} else {
+				links[zoneName] = links[zoneName] || [];
+				links[zoneName].push(linkName);
+			}
+		}
+
+		function loadData (data) {
+			addZone(data.zones);
+			addLink(data.links);
+			tz.dataVersion = data.version;
+		}
+
+		function zoneExists (name) {
+			if (!zoneExists.didShowError) {
+				zoneExists.didShowError = true;
+					logError("moment.tz.zoneExists('" + name + "') has been deprecated in favor of !moment.tz.zone('" + name + "')");
+			}
+			return !!getZone(name);
+		}
+
+		function needsOffset (m) {
+			return !!(m._a && (m._tzm === undefined));
+		}
+
+		function logError (message) {
+			if (typeof console !== 'undefined' && typeof console.error === 'function') {
+				console.error(message);
+			}
+		}
+
+		/************************************
+			moment.tz namespace
+		************************************/
+
+		function tz () {
+			var args = Array.prototype.slice.call(arguments, 0, -1),
+				name = arguments[arguments.length - 1],
+				zone = getZone(name),
+				out  = moment.utc.apply(null, args);
+
+			if (zone && needsOffset(out)) {
+				out.add(zone.parse(out), 'minutes');
+			}
+
+			out.tz(name);
+
+			return out;
+		}
+
+		tz.version      = VERSION;
+		tz.dataVersion  = '';
+		tz._zones       = zones;
+		tz._links       = links;
+		tz.add          = addZone;
+		tz.link         = addLink;
+		tz.load         = loadData;
+		tz.zone         = getZone;
+		tz.zoneExists   = zoneExists; // deprecated in 0.1.0
+		tz.names        = getNames;
+		tz.Zone         = Zone;
+		tz.unpack       = unpack;
+		tz.unpackBase60 = unpackBase60;
+		tz.needsOffset  = needsOffset;
+		tz.moveInvalidForward   = true;
+		tz.moveAmbiguousForward = false;
+
+		/************************************
+			Interface with Moment.js
+		************************************/
+
+		var fn = moment.fn;
+
+		moment.tz = tz;
+
+		moment.updateOffset = function (mom, keepTime) {
+			var offset;
+			if (mom._z) {
+				offset = mom._z.offset(mom);
+				if (Math.abs(offset) < 16) {
+					offset = offset / 60;
+				}
+				mom.zone(offset, keepTime);
+			}
+		};
+
+		fn.tz = function (name) {
+			if (name) {
+				this._z = getZone(name);
+				if (this._z) {
+					moment.updateOffset(this);
+				} else {
+					logError("Moment Timezone has no data for " + name + ". See http://momentjs.com/timezone/docs/#/data-loading/.");
+				}
+				return this;
+			}
+			if (this._z) { return this._z.name; }
+		};
+
+		function abbrWrap (old) {
+			return function () {
+				if (this._z) { return this._z.abbr(this); }
+				return old.call(this);
+			};
+		}
+
+		function resetZoneWrap (old) {
+			return function () {
+				this._z = null;
+				return old.apply(this, arguments);
+			};
+		}
+
+		fn.zoneName = abbrWrap(fn.zoneName);
+		fn.zoneAbbr = abbrWrap(fn.zoneAbbr);
+		fn.utc      = resetZoneWrap(fn.utc);
+
+		// Cloning a moment should include the _z property.
+		var momentProperties = moment.momentProperties;
+		if (Object.prototype.toString.call(momentProperties) === '[object Array]') {
+			// moment 2.8.1+
+			momentProperties.push('_z');
+			momentProperties.push('_a');
+		} else if (momentProperties) {
+			// moment 2.7.0
+			momentProperties._z = null;
+		}
+
+		// INJECT DATA
+
+		return moment;
+	}));
+
 
 /***/ },
 /* 76 */
@@ -32574,38 +32680,35 @@
 	  settings: __webpack_require__(235),
 
 	  validation: {
-	    validate: __webpack_require__(20)
+	    validate: __webpack_require__(23)
 	  },
 
 	  data: {
-	    BasalUtil: __webpack_require__(21),
-	    BolusUtil: __webpack_require__(22),
-	    BGUtil: __webpack_require__(23),
-	    SettingsUtil: __webpack_require__(24),
+	    BasalUtil: __webpack_require__(13),
+	    BolusUtil: __webpack_require__(14),
+	    BGUtil: __webpack_require__(15),
 	    util: {
-	      datetime: __webpack_require__(26),
-	      format: __webpack_require__(38),
-	      TidelineCrossFilter: __webpack_require__(25)
+	      datetime: __webpack_require__(7),
+	      format: __webpack_require__(28)
 	    }
 	  },
 
 	  plot: {
 	    basal: __webpack_require__(236),
-	    basaltab: __webpack_require__(237),
-	    quickbolus: __webpack_require__(238),
-	    cbg: __webpack_require__(239),
-	    message: __webpack_require__(240),
-	    SMBGTime: __webpack_require__(241),
-	    smbg: __webpack_require__(242),
-	    wizard: __webpack_require__(243),
+	    quickbolus: __webpack_require__(237),
+	    cbg: __webpack_require__(238),
+	    message: __webpack_require__(239),
+	    SMBGTime: __webpack_require__(240),
+	    smbg: __webpack_require__(241),
+	    wizard: __webpack_require__(242),
 	    stats: {
 	      puddle: __webpack_require__(251),
 	      widget: __webpack_require__(252)
 	    },
 	    util: {
 	      annotations: {
-	        annotation: __webpack_require__(253),
-	        defs: __webpack_require__(254)
+	        annotation: __webpack_require__(254),
+	        defs: __webpack_require__(253)
 	      },
 	      axes: {
 	        dailyx: __webpack_require__(255)
@@ -32614,14 +32717,14 @@
 	        shapes: __webpack_require__(256),
 	        Tooltips: __webpack_require__(257)
 	      },
-	      bgboundary: __webpack_require__(244),
-	      commonbolus: __webpack_require__(50),
-	      drawbolus: __webpack_require__(245),
-	      fill: __webpack_require__(246),
-	      legend: __webpack_require__(247),
-	      scales: __webpack_require__(248),
-	      shadow: __webpack_require__(249),
-	      shapeutil: __webpack_require__(250)
+	      bgboundary: __webpack_require__(243),
+	      commonbolus: __webpack_require__(38),
+	      drawbolus: __webpack_require__(244),
+	      fill: __webpack_require__(245),
+	      legend: __webpack_require__(246),
+	      scales: __webpack_require__(247),
+	      shadow: __webpack_require__(248),
+	      shapeutil: __webpack_require__(249)
 	    }
 	  }
 	};
@@ -32705,7 +32808,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -32777,7 +32880,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -32838,7 +32941,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -32941,7 +33044,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33043,7 +33146,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33152,7 +33255,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33306,7 +33409,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33398,7 +33501,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33510,7 +33613,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33619,7 +33722,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33733,7 +33836,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33876,7 +33979,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -33948,7 +34051,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34109,7 +34212,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34174,7 +34277,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34257,7 +34360,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34321,7 +34424,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34398,7 +34501,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34474,7 +34577,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34569,7 +34672,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34638,7 +34741,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34703,7 +34806,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34774,7 +34877,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34843,7 +34946,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -34925,7 +35028,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35006,7 +35109,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35072,7 +35175,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35175,7 +35278,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35286,7 +35389,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35348,7 +35451,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35408,7 +35511,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35472,7 +35575,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35551,7 +35654,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35632,7 +35735,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35745,7 +35848,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35888,7 +35991,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -35999,7 +36102,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36118,7 +36221,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36190,7 +36293,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36321,7 +36424,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36385,7 +36488,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36449,7 +36552,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36562,7 +36665,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36626,7 +36729,7 @@
 	// - Jeeeyul Lee <jeeeyul@gmail.com>
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36696,7 +36799,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36835,7 +36938,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -36959,7 +37062,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37042,7 +37145,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37134,7 +37237,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37204,7 +37307,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37314,7 +37417,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37386,7 +37489,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37481,7 +37584,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37543,7 +37646,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37654,7 +37757,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37727,7 +37830,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37789,7 +37892,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37893,7 +37996,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -37955,7 +38058,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38022,7 +38125,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38100,7 +38203,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38272,7 +38375,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38433,7 +38536,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38585,7 +38688,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38650,7 +38753,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38761,7 +38864,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38872,7 +38975,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -38941,7 +39044,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39059,7 +39162,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39123,7 +39226,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39188,7 +39291,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39285,7 +39388,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39346,7 +39449,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39408,7 +39511,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39570,7 +39673,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39631,7 +39734,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39700,7 +39803,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39813,7 +39916,7 @@
 
 	(function (factory) {
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(29)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(27)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)); // AMD
 	    } else if (typeof exports === 'object') {
 	        module.exports = factory(require('../moment')); // Node
 	    } else {
@@ -39926,154 +40029,189 @@
 /* 157 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule EventConstants
-	 */
+	var Duration = (function () {
 
-	"use strict";
+	    var millisecond = 1,
+	        second      = 1000 * millisecond,
+	        minute      = 60   * second,
+	        hour        = 60   * minute,
+	        day         = 24   * hour,
+	        week        = 7    * day;
 
-	var keyMirror = __webpack_require__(167);
+	    var unitMap = {
+	        "ms" : millisecond,
+	        "s"  : second,
+	        "m"  : minute,
+	        "h"  : hour,
+	        "d"  : day,
+	        "w"  : week
+	    };
 
-	var PropagationPhases = keyMirror({bubbled: null, captured: null});
+	    var Duration = function (value) {
+	        if (value instanceof Duration) {
+	          return value;
+	        }
+	        switch (typeof value) {
+	            case "number":
+	                this._milliseconds = value;
+	                break;
+	            case "string":
+	                this._milliseconds = Duration.parse(value).valueOf();
+	                break;
+	            case "undefined":
+	                this._milliseconds = 0;
+	                break;
+	            default:
+	                throw new Error("invalid duration: " + value);
+	        }
+	    };
 
-	/**
-	 * Types of raw signals from the browser caught at the top level.
-	 */
-	var topLevelTypes = keyMirror({
-	  topBlur: null,
-	  topChange: null,
-	  topClick: null,
-	  topCompositionEnd: null,
-	  topCompositionStart: null,
-	  topCompositionUpdate: null,
-	  topContextMenu: null,
-	  topCopy: null,
-	  topCut: null,
-	  topDoubleClick: null,
-	  topDrag: null,
-	  topDragEnd: null,
-	  topDragEnter: null,
-	  topDragExit: null,
-	  topDragLeave: null,
-	  topDragOver: null,
-	  topDragStart: null,
-	  topDrop: null,
-	  topError: null,
-	  topFocus: null,
-	  topInput: null,
-	  topKeyDown: null,
-	  topKeyPress: null,
-	  topKeyUp: null,
-	  topLoad: null,
-	  topMouseDown: null,
-	  topMouseMove: null,
-	  topMouseOut: null,
-	  topMouseOver: null,
-	  topMouseUp: null,
-	  topPaste: null,
-	  topReset: null,
-	  topScroll: null,
-	  topSelectionChange: null,
-	  topSubmit: null,
-	  topTextInput: null,
-	  topTouchCancel: null,
-	  topTouchEnd: null,
-	  topTouchMove: null,
-	  topTouchStart: null,
-	  topWheel: null
-	});
+	    Duration.millisecond = new Duration(millisecond);
+	    Duration.second      = new Duration(second);
+	    Duration.minute      = new Duration(minute);
+	    Duration.hour        = new Duration(hour);
+	    Duration.day         = new Duration(day);
+	    Duration.week        = new Duration(week);
 
-	var EventConstants = {
-	  topLevelTypes: topLevelTypes,
-	  PropagationPhases: PropagationPhases
-	};
+	    Duration.prototype.nanoseconds = function () {
+	        return this._milliseconds * 1000000;
+	    };
 
-	module.exports = EventConstants;
+	    Duration.prototype.microseconds = function () {
+	        return this._milliseconds * 1000;
+	    };
+
+	    Duration.prototype.milliseconds = function () {
+	        return this._milliseconds;
+	    };
+
+	    Duration.prototype.seconds = function () {
+	        return Math.floor(this._milliseconds / second);
+	    };
+
+	    Duration.prototype.minutes = function () {
+	        return Math.floor(this._milliseconds / minute);
+	    };
+
+	    Duration.prototype.hours = function () {
+	        return Math.floor(this._milliseconds / hour);
+	    };
+
+	    Duration.prototype.days = function () {
+	      return Math.floor(this._milliseconds / day);
+	    };
+
+	    Duration.prototype.weeks = function () {
+	      return Math.floor(this._milliseconds / week);
+	    };
+
+	    Duration.prototype.toString = function () {
+	      var str          = "",
+	          milliseconds = Math.abs(this._milliseconds),
+	          sign         = this._milliseconds < 0 ? "-" : "";
+
+	      // no units for 0 duration
+	      if (milliseconds === 0) {
+	        return "0";
+	      }
+
+	      // days
+	      var days = Math.floor(milliseconds / day);
+	      if (days !== 0) {
+	        milliseconds -= day * days;
+	        str += days.toString() + "d";
+	      }
+
+	      // hours
+	      var hours = Math.floor(milliseconds / hour);
+	      if (hours !== 0) {
+	        milliseconds -= hour * hours;
+	        str += hours.toString() + "h";
+	      }
+
+	      // minutes
+	      var minutes = Math.floor(milliseconds / minute);
+	      if (minutes !== 0) {
+	        milliseconds -= minute * minutes;
+	        str += minutes.toString() + "m";
+	      }
+
+	      // seconds
+	      var seconds = Math.floor(milliseconds / second);
+	      if (seconds !== 0) {
+	        milliseconds -= second * seconds;
+	        str += seconds.toString() + "s";
+	      }
+
+	      // milliseconds
+	      if (milliseconds !== 0) {
+	        str += milliseconds.toString() + "ms";
+	      }
+
+	      return sign + str;
+	    };
+
+	    Duration.prototype.valueOf = function () {
+	      return this._milliseconds;
+	    };
+
+	    Duration.parse = function (duration) {
+
+	        if (duration === "0" || duration === "+0" || duration === "-0") {
+	          return new Duration(0);
+	        }
+
+	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
+	            total = 0,
+	            count = 0,
+	            sign  = duration[0] === '-' ? -1 : 1,
+	            unit, value, match;
+
+	        while (match = regex.exec(duration)) {
+
+	            unit  = match[2];
+	            value = Math.abs(parseFloat(match[1]));
+	            count++;
+
+	            if (isNaN(value)) {
+	              throw new Error("invalid duration");
+	            }
+
+	            if (typeof unitMap[unit] === "undefined") {
+	              throw new Error("invalid unit: " + unit);
+	            }
+
+	            total += value * unitMap[unit];
+	        }
+
+	        if (count === 0) {
+	          throw new Error("invalid duration");
+	        }
+
+	        return new Duration(total * sign);
+	    };
+
+	    Duration.fromMicroseconds = function (us) {
+	        var ms = Math.floor(us / 1000);
+	        return new Duration(ms);
+	    };
+
+	    Duration.fromNanoseconds = function (ns) {
+	        var ms = Math.floor(ns / 1000000);
+	        return new Duration(ms);
+	    };
+
+	    return Duration;
+
+	}).call(this);
+
+	if (true) {
+	   module.exports = Duration;
+	}
 
 
 /***/ },
 /* 158 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule invariant
-	 */
-
-	"use strict";
-
-	/**
-	 * Use invariant() to assert state which your program assumes to be true.
-	 *
-	 * Provide sprintf-style format (only %s is supported) and arguments
-	 * to provide information about what broke and what you were
-	 * expecting.
-	 *
-	 * The invariant message will be stripped in production, but the invariant
-	 * will remain to ensure logic does not differ in production.
-	 */
-
-	var invariant = function(condition, format, a, b, c, d, e, f) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    if (format === undefined) {
-	      throw new Error('invariant requires an error message argument');
-	    }
-	  }
-
-	  if (!condition) {
-	    var error;
-	    if (format === undefined) {
-	      error = new Error(
-	        'Minified exception occurred; use the non-minified dev environment ' +
-	        'for the full error message and additional helpful warnings.'
-	      );
-	    } else {
-	      var args = [a, b, c, d, e, f];
-	      var argIndex = 0;
-	      error = new Error(
-	        'Invariant Violation: ' +
-	        format.replace(/%s/g, function() { return args[argIndex++]; })
-	      );
-	    }
-
-	    error.framesToPop = 1; // we don't care about invariant's own frame
-	    throw error;
-	  }
-	};
-
-	module.exports = invariant;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
-/* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -40099,7 +40237,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var DOMPropertyInjection = {
 	  /**
@@ -40375,10 +40513,10 @@
 
 	module.exports = DOMProperty;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 160 */
+/* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -40430,7 +40568,7 @@
 
 
 /***/ },
-/* 161 */
+/* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -40475,7 +40613,7 @@
 
 
 /***/ },
-/* 162 */
+/* 161 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -40498,7 +40636,7 @@
 
 	"use strict";
 
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 
 	/**
 	 * Similar to invariant but only logs a warning if the condition is not met.
@@ -40527,10 +40665,160 @@
 
 	module.exports = warning;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 162 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule EventConstants
+	 */
+
+	"use strict";
+
+	var keyMirror = __webpack_require__(168);
+
+	var PropagationPhases = keyMirror({bubbled: null, captured: null});
+
+	/**
+	 * Types of raw signals from the browser caught at the top level.
+	 */
+	var topLevelTypes = keyMirror({
+	  topBlur: null,
+	  topChange: null,
+	  topClick: null,
+	  topCompositionEnd: null,
+	  topCompositionStart: null,
+	  topCompositionUpdate: null,
+	  topContextMenu: null,
+	  topCopy: null,
+	  topCut: null,
+	  topDoubleClick: null,
+	  topDrag: null,
+	  topDragEnd: null,
+	  topDragEnter: null,
+	  topDragExit: null,
+	  topDragLeave: null,
+	  topDragOver: null,
+	  topDragStart: null,
+	  topDrop: null,
+	  topError: null,
+	  topFocus: null,
+	  topInput: null,
+	  topKeyDown: null,
+	  topKeyPress: null,
+	  topKeyUp: null,
+	  topLoad: null,
+	  topMouseDown: null,
+	  topMouseMove: null,
+	  topMouseOut: null,
+	  topMouseOver: null,
+	  topMouseUp: null,
+	  topPaste: null,
+	  topReset: null,
+	  topScroll: null,
+	  topSelectionChange: null,
+	  topSubmit: null,
+	  topTextInput: null,
+	  topTouchCancel: null,
+	  topTouchEnd: null,
+	  topTouchMove: null,
+	  topTouchStart: null,
+	  topWheel: null
+	});
+
+	var EventConstants = {
+	  topLevelTypes: topLevelTypes,
+	  PropagationPhases: PropagationPhases
+	};
+
+	module.exports = EventConstants;
+
 
 /***/ },
 /* 163 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule invariant
+	 */
+
+	"use strict";
+
+	/**
+	 * Use invariant() to assert state which your program assumes to be true.
+	 *
+	 * Provide sprintf-style format (only %s is supported) and arguments
+	 * to provide information about what broke and what you were
+	 * expecting.
+	 *
+	 * The invariant message will be stripped in production, but the invariant
+	 * will remain to ensure logic does not differ in production.
+	 */
+
+	var invariant = function(condition, format, a, b, c, d, e, f) {
+	  if ("production" !== process.env.NODE_ENV) {
+	    if (format === undefined) {
+	      throw new Error('invariant requires an error message argument');
+	    }
+	  }
+
+	  if (!condition) {
+	    var error;
+	    if (format === undefined) {
+	      error = new Error(
+	        'Minified exception occurred; use the non-minified dev environment ' +
+	        'for the full error message and additional helpful warnings.'
+	      );
+	    } else {
+	      var args = [a, b, c, d, e, f];
+	      var argIndex = 0;
+	      error = new Error(
+	        'Invariant Violation: ' +
+	        format.replace(/%s/g, function() { return args[argIndex++]; })
+	      );
+	    }
+
+	    error.framesToPop = 1; // we don't care about invariant's own frame
+	    throw error;
+	  }
+	};
+
+	module.exports = invariant;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -40553,7 +40841,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Static poolers. Several custom versions for each potential number of
@@ -40653,10 +40941,10 @@
 
 	module.exports = PooledClass;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 164 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -40679,10 +40967,10 @@
 
 	"use strict";
 
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactTextComponent = __webpack_require__(72);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactTextComponent = __webpack_require__(70);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var SEPARATOR = ReactInstanceHandles.SEPARATOR;
 	var SUBSEPARATOR = ':';
@@ -40853,10 +41141,10 @@
 
 	module.exports = traverseAllChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 165 */
+/* 166 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -40880,7 +41168,7 @@
 	"use strict";
 
 	var emptyObject = __webpack_require__(258);
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * ReactOwners are capable of storing references to owned components.
@@ -41019,10 +41307,10 @@
 
 	module.exports = ReactOwner;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 166 */
+/* 167 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -41046,14 +41334,14 @@
 	"use strict";
 
 	var CallbackQueue = __webpack_require__(259);
-	var PooledClass = __webpack_require__(163);
-	var ReactCurrentOwner = __webpack_require__(61);
-	var ReactPerf = __webpack_require__(69);
+	var PooledClass = __webpack_require__(164);
+	var ReactCurrentOwner = __webpack_require__(59);
+	var ReactPerf = __webpack_require__(67);
 	var Transaction = __webpack_require__(260);
 
-	var invariant = __webpack_require__(158);
-	var mixInto = __webpack_require__(176);
-	var warning = __webpack_require__(162);
+	var invariant = __webpack_require__(163);
+	var mixInto = __webpack_require__(177);
+	var warning = __webpack_require__(161);
 
 	var dirtyComponents = [];
 
@@ -41291,10 +41579,10 @@
 
 	module.exports = ReactUpdates;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 167 */
+/* 168 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -41318,7 +41606,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Constructs an enumeration with keys equal to their value.
@@ -41356,10 +41644,10 @@
 
 	module.exports = keyMirror;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 168 */
+/* 169 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -41382,7 +41670,7 @@
 
 	"use strict";
 
-	var mergeInto = __webpack_require__(184);
+	var mergeInto = __webpack_require__(181);
 
 	/**
 	 * Shallow merges two structures into a return value, without mutating either.
@@ -41402,7 +41690,7 @@
 
 
 /***/ },
-/* 169 */
+/* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -41432,11 +41720,11 @@
 
 	"use strict";
 
-	var ReactDescriptor = __webpack_require__(62);
-	var ReactPropTypeLocations = __webpack_require__(173);
-	var ReactCurrentOwner = __webpack_require__(61);
+	var ReactDescriptor = __webpack_require__(60);
+	var ReactPropTypeLocations = __webpack_require__(174);
+	var ReactCurrentOwner = __webpack_require__(59);
 
-	var monitorCodeUse = __webpack_require__(177);
+	var monitorCodeUse = __webpack_require__(178);
 
 	/**
 	 * Warn if there's no key explicitly set on dynamic arrays of children or
@@ -41691,7 +41979,7 @@
 
 
 /***/ },
-/* 170 */
+/* 171 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -41714,7 +42002,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var component;
 	// This registry keeps track of the React IDs of the components that rendered to
@@ -41773,10 +42061,10 @@
 
 	module.exports = ReactEmptyComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 171 */
+/* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -41819,7 +42107,7 @@
 
 
 /***/ },
-/* 172 */
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -41842,10 +42130,10 @@
 
 	"use strict";
 
-	var emptyFunction = __webpack_require__(215);
-	var invariant = __webpack_require__(158);
+	var emptyFunction = __webpack_require__(218);
+	var invariant = __webpack_require__(163);
 	var joinClasses = __webpack_require__(261);
-	var merge = __webpack_require__(168);
+	var merge = __webpack_require__(169);
 
 	/**
 	 * Creates a transfer strategy that will merge prop values using the supplied
@@ -41985,10 +42273,10 @@
 
 	module.exports = ReactPropTransferer;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 173 */
+/* 174 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42011,7 +42299,7 @@
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(167);
+	var keyMirror = __webpack_require__(168);
 
 	var ReactPropTypeLocations = keyMirror({
 	  prop: null,
@@ -42023,7 +42311,7 @@
 
 
 /***/ },
-/* 174 */
+/* 175 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -42058,10 +42346,10 @@
 
 	module.exports = ReactPropTypeLocationNames;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 175 */
+/* 176 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -42085,7 +42373,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Validate a `componentDescriptor`. This should be exposed publicly in a follow
@@ -42127,10 +42415,10 @@
 
 	module.exports = instantiateReactComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 176 */
+/* 177 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42170,7 +42458,7 @@
 
 
 /***/ },
-/* 177 */
+/* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -42193,7 +42481,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Provides open-source compatible instrumentation for monitoring certain API
@@ -42211,10 +42499,10 @@
 
 	module.exports = monitorCodeUse;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 178 */
+/* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42272,7 +42560,7 @@
 
 
 /***/ },
-/* 179 */
+/* 180 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42322,7 +42610,59 @@
 
 
 /***/ },
-/* 180 */
+/* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule mergeInto
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var mergeHelpers = __webpack_require__(262);
+
+	var checkMergeObjectArg = mergeHelpers.checkMergeObjectArg;
+	var checkMergeIntoObjectArg = mergeHelpers.checkMergeIntoObjectArg;
+
+	/**
+	 * Shallow merges two structures by mutating the first parameter.
+	 *
+	 * @param {object|function} one Object to be merged into.
+	 * @param {?object} two Optional object with properties to merge from.
+	 */
+	function mergeInto(one, two) {
+	  checkMergeIntoObjectArg(one);
+	  if (two != null) {
+	    checkMergeObjectArg(two);
+	    for (var key in two) {
+	      if (!two.hasOwnProperty(key)) {
+	        continue;
+	      }
+	      one[key] = two[key];
+	    }
+	  }
+	}
+
+	module.exports = mergeInto;
+
+
+/***/ },
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42346,11 +42686,11 @@
 
 	"use strict";
 
-	var CSSProperty = __webpack_require__(262);
+	var CSSProperty = __webpack_require__(263);
 
-	var dangerousStyleValue = __webpack_require__(263);
-	var hyphenateStyleName = __webpack_require__(264);
-	var memoizeStringOnly = __webpack_require__(161);
+	var dangerousStyleValue = __webpack_require__(264);
+	var hyphenateStyleName = __webpack_require__(265);
+	var memoizeStringOnly = __webpack_require__(160);
 
 	var processStyleName = memoizeStringOnly(function(styleName) {
 	  return hyphenateStyleName(styleName);
@@ -42425,7 +42765,7 @@
 
 
 /***/ },
-/* 181 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -42448,10 +42788,10 @@
 
 	"use strict";
 
-	var ReactEmptyComponent = __webpack_require__(170);
-	var ReactMount = __webpack_require__(67);
+	var ReactEmptyComponent = __webpack_require__(171);
+	var ReactMount = __webpack_require__(65);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var ReactBrowserComponentMixin = {
 	  /**
@@ -42475,10 +42815,10 @@
 
 	module.exports = ReactBrowserComponentMixin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 182 */
+/* 184 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42502,14 +42842,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
-	var EventPluginHub = __webpack_require__(265);
-	var EventPluginRegistry = __webpack_require__(266);
-	var ReactEventEmitterMixin = __webpack_require__(267);
-	var ViewportMetrics = __webpack_require__(268);
+	var EventConstants = __webpack_require__(162);
+	var EventPluginHub = __webpack_require__(266);
+	var EventPluginRegistry = __webpack_require__(267);
+	var ReactEventEmitterMixin = __webpack_require__(268);
+	var ViewportMetrics = __webpack_require__(269);
 
-	var isEventSupported = __webpack_require__(269);
-	var merge = __webpack_require__(168);
+	var isEventSupported = __webpack_require__(270);
+	var merge = __webpack_require__(169);
 
 	/**
 	 * Summary of `ReactBrowserEventEmitter` event handling:
@@ -42844,7 +43184,7 @@
 
 
 /***/ },
-/* 183 */
+/* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42891,59 +43231,7 @@
 
 
 /***/ },
-/* 184 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule mergeInto
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var mergeHelpers = __webpack_require__(270);
-
-	var checkMergeObjectArg = mergeHelpers.checkMergeObjectArg;
-	var checkMergeIntoObjectArg = mergeHelpers.checkMergeIntoObjectArg;
-
-	/**
-	 * Shallow merges two structures by mutating the first parameter.
-	 *
-	 * @param {object|function} one Object to be merged into.
-	 * @param {?object} two Optional object with properties to merge from.
-	 */
-	function mergeInto(one, two) {
-	  checkMergeIntoObjectArg(one);
-	  if (two != null) {
-	    checkMergeObjectArg(two);
-	    for (var key in two) {
-	      if (!two.hasOwnProperty(key)) {
-	        continue;
-	      }
-	      one[key] = two[key];
-	    }
-	  }
-	}
-
-	module.exports = mergeInto;
-
-
-/***/ },
-/* 185 */
+/* 186 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42967,12 +43255,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var EventPropagators = __webpack_require__(271);
-	var ExecutionEnvironment = __webpack_require__(74);
-	var SyntheticInputEvent = __webpack_require__(281);
+	var ExecutionEnvironment = __webpack_require__(72);
+	var SyntheticInputEvent = __webpack_require__(272);
 
-	var keyOf = __webpack_require__(183);
+	var keyOf = __webpack_require__(185);
 
 	var canUseTextInputEvent = (
 	  ExecutionEnvironment.canUseDOM &&
@@ -43171,7 +43459,7 @@
 
 
 /***/ },
-/* 186 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43194,16 +43482,16 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
-	var EventPluginHub = __webpack_require__(265);
+	var EventConstants = __webpack_require__(162);
+	var EventPluginHub = __webpack_require__(266);
 	var EventPropagators = __webpack_require__(271);
-	var ExecutionEnvironment = __webpack_require__(74);
-	var ReactUpdates = __webpack_require__(166);
-	var SyntheticEvent = __webpack_require__(272);
+	var ExecutionEnvironment = __webpack_require__(72);
+	var ReactUpdates = __webpack_require__(167);
+	var SyntheticEvent = __webpack_require__(273);
 
-	var isEventSupported = __webpack_require__(269);
-	var isTextInputElement = __webpack_require__(273);
-	var keyOf = __webpack_require__(183);
+	var isEventSupported = __webpack_require__(270);
+	var isTextInputElement = __webpack_require__(274);
+	var keyOf = __webpack_require__(185);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -43564,7 +43852,7 @@
 
 
 /***/ },
-/* 187 */
+/* 188 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43600,7 +43888,7 @@
 
 
 /***/ },
-/* 188 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43624,14 +43912,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var EventPropagators = __webpack_require__(271);
-	var ExecutionEnvironment = __webpack_require__(74);
-	var ReactInputSelection = __webpack_require__(274);
-	var SyntheticCompositionEvent = __webpack_require__(275);
+	var ExecutionEnvironment = __webpack_require__(72);
+	var ReactInputSelection = __webpack_require__(275);
+	var SyntheticCompositionEvent = __webpack_require__(276);
 
-	var getTextContentAccessor = __webpack_require__(276);
-	var keyOf = __webpack_require__(183);
+	var getTextContentAccessor = __webpack_require__(277);
+	var keyOf = __webpack_require__(185);
 
 	var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 	var START_KEYCODE = 229;
@@ -43870,7 +44158,7 @@
 
 
 /***/ },
-/* 189 */
+/* 190 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43893,7 +44181,7 @@
 
 	"use strict";
 
-	 var keyOf = __webpack_require__(183);
+	 var keyOf = __webpack_require__(185);
 
 	/**
 	 * Module that is injectable into `EventPluginHub`, that specifies a
@@ -43921,7 +44209,7 @@
 
 
 /***/ },
-/* 190 */
+/* 191 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -43945,12 +44233,12 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var EventPropagators = __webpack_require__(271);
-	var SyntheticMouseEvent = __webpack_require__(277);
+	var SyntheticMouseEvent = __webpack_require__(278);
 
-	var ReactMount = __webpack_require__(67);
-	var keyOf = __webpack_require__(183);
+	var ReactMount = __webpack_require__(65);
+	var keyOf = __webpack_require__(185);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 	var getFirstReactDOM = ReactMount.getFirstReactDOM;
@@ -44072,7 +44360,7 @@
 
 
 /***/ },
-/* 191 */
+/* 192 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44097,8 +44385,8 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
-	var ExecutionEnvironment = __webpack_require__(74);
+	var DOMProperty = __webpack_require__(158);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 	var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
@@ -44264,7 +44552,7 @@
 
 
 /***/ },
-/* 192 */
+/* 193 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44288,9 +44576,9 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -44333,7 +44621,7 @@
 
 
 /***/ },
-/* 193 */
+/* 194 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -44358,15 +44646,15 @@
 
 	"use strict";
 
-	var ReactDOMIDOperations = __webpack_require__(278);
+	var ReactDOMIDOperations = __webpack_require__(279);
 	var ReactMarkupChecksum = __webpack_require__(216);
-	var ReactMount = __webpack_require__(67);
-	var ReactPerf = __webpack_require__(69);
-	var ReactReconcileTransaction = __webpack_require__(279);
+	var ReactMount = __webpack_require__(65);
+	var ReactPerf = __webpack_require__(67);
+	var ReactReconcileTransaction = __webpack_require__(280);
 
 	var getReactRootElementInContainer = __webpack_require__(212);
-	var invariant = __webpack_require__(158);
-	var setInnerHTML = __webpack_require__(280);
+	var invariant = __webpack_require__(163);
+	var setInnerHTML = __webpack_require__(281);
 
 
 	var ELEMENT_NODE_TYPE = 1;
@@ -44462,10 +44750,10 @@
 
 	module.exports = ReactComponentBrowserEnvironment;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 194 */
+/* 195 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44488,11 +44776,11 @@
 
 	"use strict";
 
-	var ReactUpdates = __webpack_require__(166);
+	var ReactUpdates = __webpack_require__(167);
 	var Transaction = __webpack_require__(260);
 
-	var emptyFunction = __webpack_require__(215);
-	var mixInto = __webpack_require__(176);
+	var emptyFunction = __webpack_require__(218);
+	var mixInto = __webpack_require__(177);
 
 	var RESET_BATCHED_UPDATES = {
 	  initialize: emptyFunction,
@@ -44546,7 +44834,7 @@
 
 
 /***/ },
-/* 195 */
+/* 196 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44570,11 +44858,11 @@
 	"use strict";
 
 	var AutoFocusMixin = __webpack_require__(282);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
-	var keyMirror = __webpack_require__(167);
+	var keyMirror = __webpack_require__(168);
 
 	// Store a reference to the <button> `ReactDOMComponent`.
 	var button = ReactDOM.button;
@@ -44621,7 +44909,7 @@
 
 
 /***/ },
-/* 196 */
+/* 197 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44644,11 +44932,11 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var LocalEventTrapMixin = __webpack_require__(283);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
 	// Store a reference to the <form> `ReactDOMComponent`.
 	var form = ReactDOM.form;
@@ -44681,7 +44969,7 @@
 
 
 /***/ },
-/* 197 */
+/* 198 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -44704,11 +44992,11 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var LocalEventTrapMixin = __webpack_require__(283);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
 	// Store a reference to the <img> `ReactDOMComponent`.
 	var img = ReactDOM.img;
@@ -44739,7 +45027,7 @@
 
 
 /***/ },
-/* 198 */
+/* 199 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -44763,15 +45051,15 @@
 	"use strict";
 
 	var AutoFocusMixin = __webpack_require__(282);
-	var DOMPropertyOperations = __webpack_require__(55);
+	var DOMPropertyOperations = __webpack_require__(54);
 	var LinkedValueUtils = __webpack_require__(284);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
-	var ReactMount = __webpack_require__(67);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
+	var ReactMount = __webpack_require__(65);
 
-	var invariant = __webpack_require__(158);
-	var merge = __webpack_require__(168);
+	var invariant = __webpack_require__(163);
+	var merge = __webpack_require__(169);
 
 	// Store a reference to the <input> `ReactDOMComponent`.
 	var input = ReactDOM.input;
@@ -44925,10 +45213,10 @@
 
 	module.exports = ReactDOMInput;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 199 */
+/* 200 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -44951,11 +45239,11 @@
 
 	"use strict";
 
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
-	var warning = __webpack_require__(162);
+	var warning = __webpack_require__(161);
 
 	// Store a reference to the <option> `ReactDOMComponent`.
 	var option = ReactDOM.option;
@@ -44987,10 +45275,10 @@
 
 	module.exports = ReactDOMOption;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 200 */
+/* 201 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -45015,11 +45303,11 @@
 
 	var AutoFocusMixin = __webpack_require__(282);
 	var LinkedValueUtils = __webpack_require__(284);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
-	var merge = __webpack_require__(168);
+	var merge = __webpack_require__(169);
 
 	// Store a reference to the <select> `ReactDOMComponent`.
 	var select = ReactDOM.select;
@@ -45177,7 +45465,7 @@
 
 
 /***/ },
-/* 201 */
+/* 202 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -45201,16 +45489,16 @@
 	"use strict";
 
 	var AutoFocusMixin = __webpack_require__(282);
-	var DOMPropertyOperations = __webpack_require__(55);
+	var DOMPropertyOperations = __webpack_require__(54);
 	var LinkedValueUtils = __webpack_require__(284);
-	var ReactBrowserComponentMixin = __webpack_require__(181);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
+	var ReactBrowserComponentMixin = __webpack_require__(183);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
 
-	var invariant = __webpack_require__(158);
-	var merge = __webpack_require__(168);
+	var invariant = __webpack_require__(163);
+	var merge = __webpack_require__(169);
 
-	var warning = __webpack_require__(162);
+	var warning = __webpack_require__(161);
 
 	// Store a reference to the <textarea> `ReactDOMComponent`.
 	var textarea = ReactDOM.textarea;
@@ -45323,10 +45611,10 @@
 
 	module.exports = ReactDOMTextarea;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 202 */
+/* 203 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -45351,15 +45639,15 @@
 	"use strict";
 
 	var EventListener = __webpack_require__(285);
-	var ExecutionEnvironment = __webpack_require__(74);
-	var PooledClass = __webpack_require__(163);
-	var ReactInstanceHandles = __webpack_require__(66);
-	var ReactMount = __webpack_require__(67);
-	var ReactUpdates = __webpack_require__(166);
+	var ExecutionEnvironment = __webpack_require__(72);
+	var PooledClass = __webpack_require__(164);
+	var ReactInstanceHandles = __webpack_require__(68);
+	var ReactMount = __webpack_require__(65);
+	var ReactUpdates = __webpack_require__(167);
 
 	var getEventTarget = __webpack_require__(286);
 	var getUnboundedScrollPosition = __webpack_require__(287);
-	var mixInto = __webpack_require__(176);
+	var mixInto = __webpack_require__(177);
 
 	/**
 	 * Finds the parent React component of `node`.
@@ -45521,7 +45809,7 @@
 
 
 /***/ },
-/* 203 */
+/* 204 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -45544,16 +45832,16 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
-	var EventPluginHub = __webpack_require__(265);
-	var ReactComponent = __webpack_require__(58);
-	var ReactCompositeComponent = __webpack_require__(59);
-	var ReactDOM = __webpack_require__(63);
-	var ReactEmptyComponent = __webpack_require__(170);
-	var ReactBrowserEventEmitter = __webpack_require__(182);
-	var ReactPerf = __webpack_require__(69);
-	var ReactRootIndex = __webpack_require__(210);
-	var ReactUpdates = __webpack_require__(166);
+	var DOMProperty = __webpack_require__(158);
+	var EventPluginHub = __webpack_require__(266);
+	var ReactComponent = __webpack_require__(57);
+	var ReactCompositeComponent = __webpack_require__(58);
+	var ReactDOM = __webpack_require__(62);
+	var ReactEmptyComponent = __webpack_require__(171);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
+	var ReactPerf = __webpack_require__(67);
+	var ReactRootIndex = __webpack_require__(215);
+	var ReactUpdates = __webpack_require__(167);
 
 	var ReactInjection = {
 	  Component: ReactComponent.injection,
@@ -45572,7 +45860,7 @@
 
 
 /***/ },
-/* 204 */
+/* 205 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -45595,14 +45883,14 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
+	var EventConstants = __webpack_require__(162);
 	var EventPropagators = __webpack_require__(271);
-	var ReactInputSelection = __webpack_require__(274);
-	var SyntheticEvent = __webpack_require__(272);
+	var ReactInputSelection = __webpack_require__(275);
+	var SyntheticEvent = __webpack_require__(273);
 
 	var getActiveElement = __webpack_require__(288);
-	var isTextInputElement = __webpack_require__(273);
-	var keyOf = __webpack_require__(183);
+	var isTextInputElement = __webpack_require__(274);
+	var keyOf = __webpack_require__(185);
 	var shallowEqual = __webpack_require__(289);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
@@ -45778,7 +46066,7 @@
 
 
 /***/ },
-/* 205 */
+/* 206 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -45820,7 +46108,7 @@
 
 
 /***/ },
-/* 206 */
+/* 207 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -45843,21 +46131,21 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
-	var EventPluginUtils = __webpack_require__(56);
+	var EventConstants = __webpack_require__(162);
+	var EventPluginUtils = __webpack_require__(55);
 	var EventPropagators = __webpack_require__(271);
 	var SyntheticClipboardEvent = __webpack_require__(290);
-	var SyntheticEvent = __webpack_require__(272);
+	var SyntheticEvent = __webpack_require__(273);
 	var SyntheticFocusEvent = __webpack_require__(291);
 	var SyntheticKeyboardEvent = __webpack_require__(292);
-	var SyntheticMouseEvent = __webpack_require__(277);
+	var SyntheticMouseEvent = __webpack_require__(278);
 	var SyntheticDragEvent = __webpack_require__(293);
 	var SyntheticTouchEvent = __webpack_require__(294);
 	var SyntheticUIEvent = __webpack_require__(295);
 	var SyntheticWheelEvent = __webpack_require__(296);
 
-	var invariant = __webpack_require__(158);
-	var keyOf = __webpack_require__(183);
+	var invariant = __webpack_require__(163);
+	var keyOf = __webpack_require__(185);
 
 	var topLevelTypes = EventConstants.topLevelTypes;
 
@@ -46243,10 +46531,10 @@
 
 	module.exports = SimpleEventPlugin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 207 */
+/* 208 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -46271,7 +46559,7 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
+	var DOMProperty = __webpack_require__(158);
 
 	var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 
@@ -46349,7 +46637,7 @@
 
 
 /***/ },
-/* 208 */
+/* 209 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -46374,9 +46662,9 @@
 	"use strict";
 
 	// Defeat circular references by requiring this directly.
-	var ReactCompositeComponent = __webpack_require__(59);
+	var ReactCompositeComponent = __webpack_require__(58);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Create a component that will throw an exception when unmounted.
@@ -46416,10 +46704,10 @@
 
 	module.exports = createFullPageComponent;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 209 */
+/* 210 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -46443,10 +46731,10 @@
 
 	"use strict";
 
-	var DOMProperty = __webpack_require__(159);
+	var DOMProperty = __webpack_require__(158);
 	var ReactDefaultPerfAnalysis = __webpack_require__(297);
-	var ReactMount = __webpack_require__(67);
-	var ReactPerf = __webpack_require__(69);
+	var ReactMount = __webpack_require__(65);
+	var ReactPerf = __webpack_require__(67);
 
 	var performanceNow = __webpack_require__(298);
 
@@ -46686,48 +46974,6 @@
 
 
 /***/ },
-/* 210 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactRootIndex
-	 * @typechecks
-	 */
-
-	"use strict";
-
-	var ReactRootIndexInjection = {
-	  /**
-	   * @param {function} _createReactRootIndex
-	   */
-	  injectCreateReactRootIndex: function(_createReactRootIndex) {
-	    ReactRootIndex.createReactRootIndex = _createReactRootIndex;
-	  }
-	};
-
-	var ReactRootIndex = {
-	  createReactRootIndex: null,
-	  injection: ReactRootIndexInjection
-	};
-
-	module.exports = ReactRootIndex;
-
-
-/***/ },
 /* 211 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -46852,7 +47098,7 @@
 
 	"use strict";
 
-	var keyMirror = __webpack_require__(167);
+	var keyMirror = __webpack_require__(168);
 
 	/**
 	 * When a component's children are updated, a series of update configuration
@@ -46896,8 +47142,8 @@
 
 	"use strict";
 
-	var traverseAllChildren = __webpack_require__(164);
-	var warning = __webpack_require__(162);
+	var traverseAllChildren = __webpack_require__(165);
+	var warning = __webpack_require__(161);
 
 	/**
 	 * @param {function} traverseContext Context passed through traversal.
@@ -46936,7 +47182,7 @@
 
 	module.exports = flattenChildren;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 215 */
@@ -46957,34 +47203,27 @@
 	 * See the License for the specific language governing permissions and
 	 * limitations under the License.
 	 *
-	 * @providesModule emptyFunction
+	 * @providesModule ReactRootIndex
+	 * @typechecks
 	 */
 
-	var copyProperties = __webpack_require__(300);
+	"use strict";
 
-	function makeEmptyFunction(arg) {
-	  return function() {
-	    return arg;
-	  };
-	}
+	var ReactRootIndexInjection = {
+	  /**
+	   * @param {function} _createReactRootIndex
+	   */
+	  injectCreateReactRootIndex: function(_createReactRootIndex) {
+	    ReactRootIndex.createReactRootIndex = _createReactRootIndex;
+	  }
+	};
 
-	/**
-	 * This function accepts and discards inputs; it has no side effects. This is
-	 * primarily useful idiomatically for overridable function endpoints which
-	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
-	 */
-	function emptyFunction() {}
+	var ReactRootIndex = {
+	  createReactRootIndex: null,
+	  injection: ReactRootIndexInjection
+	};
 
-	copyProperties(emptyFunction, {
-	  thatReturns: makeEmptyFunction,
-	  thatReturnsFalse: makeEmptyFunction(false),
-	  thatReturnsTrue: makeEmptyFunction(true),
-	  thatReturnsNull: makeEmptyFunction(null),
-	  thatReturnsThis: function() { return this; },
-	  thatReturnsArgument: function(arg) { return arg; }
-	});
-
-	module.exports = emptyFunction;
+	module.exports = ReactRootIndex;
 
 
 /***/ },
@@ -47011,7 +47250,7 @@
 
 	"use strict";
 
-	var adler32 = __webpack_require__(301);
+	var adler32 = __webpack_require__(300);
 
 	var ReactMarkupChecksum = {
 	  CHECKSUM_ATTR_NAME: 'data-react-checksum',
@@ -47071,13 +47310,13 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(163);
+	var PooledClass = __webpack_require__(164);
 	var CallbackQueue = __webpack_require__(259);
-	var ReactPutListenerQueue = __webpack_require__(302);
+	var ReactPutListenerQueue = __webpack_require__(301);
 	var Transaction = __webpack_require__(260);
 
-	var emptyFunction = __webpack_require__(215);
-	var mixInto = __webpack_require__(176);
+	var emptyFunction = __webpack_require__(218);
+	var mixInto = __webpack_require__(177);
 
 	/**
 	 * Provides a `CallbackQueue` queue for collecting `onDOMReady` callbacks
@@ -47169,6 +47408,55 @@
 
 /***/ },
 /* 218 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule emptyFunction
+	 */
+
+	var copyProperties = __webpack_require__(302);
+
+	function makeEmptyFunction(arg) {
+	  return function() {
+	    return arg;
+	  };
+	}
+
+	/**
+	 * This function accepts and discards inputs; it has no side effects. This is
+	 * primarily useful idiomatically for overridable function endpoints which
+	 * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+	 */
+	function emptyFunction() {}
+
+	copyProperties(emptyFunction, {
+	  thatReturns: makeEmptyFunction,
+	  thatReturnsFalse: makeEmptyFunction(false),
+	  thatReturnsTrue: makeEmptyFunction(true),
+	  thatReturnsNull: makeEmptyFunction(null),
+	  thatReturnsThis: function() { return this; },
+	  thatReturnsArgument: function(arg) { return arg; }
+	});
+
+	module.exports = emptyFunction;
+
+
+/***/ },
+/* 219 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -47475,191 +47763,6 @@
 
 
 /***/ },
-/* 219 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Duration = (function () {
-
-	    var millisecond = 1,
-	        second      = 1000 * millisecond,
-	        minute      = 60   * second,
-	        hour        = 60   * minute,
-	        day         = 24   * hour,
-	        week        = 7    * day;
-
-	    var unitMap = {
-	        "ms" : millisecond,
-	        "s"  : second,
-	        "m"  : minute,
-	        "h"  : hour,
-	        "d"  : day,
-	        "w"  : week
-	    };
-
-	    var Duration = function (value) {
-	        if (value instanceof Duration) {
-	          return value;
-	        }
-	        switch (typeof value) {
-	            case "number":
-	                this._milliseconds = value;
-	                break;
-	            case "string":
-	                this._milliseconds = Duration.parse(value).valueOf();
-	                break;
-	            case "undefined":
-	                this._milliseconds = 0;
-	                break;
-	            default:
-	                throw new Error("invalid duration: " + value);
-	        }
-	    };
-
-	    Duration.millisecond = new Duration(millisecond);
-	    Duration.second      = new Duration(second);
-	    Duration.minute      = new Duration(minute);
-	    Duration.hour        = new Duration(hour);
-	    Duration.day         = new Duration(day);
-	    Duration.week        = new Duration(week);
-
-	    Duration.prototype.nanoseconds = function () {
-	        return this._milliseconds * 1000000;
-	    };
-
-	    Duration.prototype.microseconds = function () {
-	        return this._milliseconds * 1000;
-	    };
-
-	    Duration.prototype.milliseconds = function () {
-	        return this._milliseconds;
-	    };
-
-	    Duration.prototype.seconds = function () {
-	        return Math.floor(this._milliseconds / second);
-	    };
-
-	    Duration.prototype.minutes = function () {
-	        return Math.floor(this._milliseconds / minute);
-	    };
-
-	    Duration.prototype.hours = function () {
-	        return Math.floor(this._milliseconds / hour);
-	    };
-
-	    Duration.prototype.days = function () {
-	      return Math.floor(this._milliseconds / day);
-	    };
-
-	    Duration.prototype.weeks = function () {
-	      return Math.floor(this._milliseconds / week);
-	    };
-
-	    Duration.prototype.toString = function () {
-	      var str          = "",
-	          milliseconds = Math.abs(this._milliseconds),
-	          sign         = this._milliseconds < 0 ? "-" : "";
-
-	      // no units for 0 duration
-	      if (milliseconds === 0) {
-	        return "0";
-	      }
-
-	      // days
-	      var days = Math.floor(milliseconds / day);
-	      if (days !== 0) {
-	        milliseconds -= day * days;
-	        str += days.toString() + "d";
-	      }
-
-	      // hours
-	      var hours = Math.floor(milliseconds / hour);
-	      if (hours !== 0) {
-	        milliseconds -= hour * hours;
-	        str += hours.toString() + "h";
-	      }
-
-	      // minutes
-	      var minutes = Math.floor(milliseconds / minute);
-	      if (minutes !== 0) {
-	        milliseconds -= minute * minutes;
-	        str += minutes.toString() + "m";
-	      }
-
-	      // seconds
-	      var seconds = Math.floor(milliseconds / second);
-	      if (seconds !== 0) {
-	        milliseconds -= second * seconds;
-	        str += seconds.toString() + "s";
-	      }
-
-	      // milliseconds
-	      if (milliseconds !== 0) {
-	        str += milliseconds.toString() + "ms";
-	      }
-
-	      return sign + str;
-	    };
-
-	    Duration.prototype.valueOf = function () {
-	      return this._milliseconds;
-	    };
-
-	    Duration.parse = function (duration) {
-
-	        if (duration === "0" || duration === "+0" || duration === "-0") {
-	          return new Duration(0);
-	        }
-
-	        var regex = /([\-\+\d\.]+)([a-z]+)/g,
-	            total = 0,
-	            count = 0,
-	            sign  = duration[0] === '-' ? -1 : 1,
-	            unit, value, match;
-
-	        while (match = regex.exec(duration)) {
-
-	            unit  = match[2];
-	            value = Math.abs(parseFloat(match[1]));
-	            count++;
-
-	            if (isNaN(value)) {
-	              throw new Error("invalid duration");
-	            }
-
-	            if (typeof unitMap[unit] === "undefined") {
-	              throw new Error("invalid unit: " + unit);
-	            }
-
-	            total += value * unitMap[unit];
-	        }
-
-	        if (count === 0) {
-	          throw new Error("invalid duration");
-	        }
-
-	        return new Duration(total * sign);
-	    };
-
-	    Duration.fromMicroseconds = function (us) {
-	        var ms = Math.floor(us / 1000);
-	        return new Duration(ms);
-	    };
-
-	    Duration.fromNanoseconds = function (ns) {
-	        var ms = Math.floor(ns / 1000000);
-	        return new Duration(ms);
-	    };
-
-	    return Duration;
-
-	}).call(this);
-
-	if (true) {
-	   module.exports = Duration;
-	}
-
-
-/***/ },
 /* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -47755,9 +47858,9 @@
 	/* global __DEV__ */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var legend = __webpack_require__(247);
+	var legend = __webpack_require__(246);
 
 	var log = __webpack_require__(8)('Pool');
 
@@ -47799,7 +47902,7 @@
 	    this.updateAxes();
 	    if (false) {
 	      var that = this;
-	      setTimeout(function() { that.drawLabel(); that.drawLegend(); }, 450);
+	      setTimeout(function() { that.drawLabel(); that.drawLegend(); }, 250);
 	    }
 	    else {
 	      this.drawLabel();
@@ -48071,12 +48174,12 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var Pool = __webpack_require__(232);
-	var annotation = __webpack_require__(253);
+	var annotation = __webpack_require__(254);
 	var Tooltips = __webpack_require__(257);
-	var dt = __webpack_require__(26);
+	var dt = __webpack_require__(7);
 
 	var log = __webpack_require__(8)('One Day');
 
@@ -48584,8 +48687,8 @@
 
 	  container.renderedData = function(a) {
 	    if (!arguments.length) return renderedData;
-	    var start = new Date(dt.addDays(a[0], -buffer));
-	    var end = new Date(dt.addDays(a[1], buffer));
+	    var start = new Date(dt.addDays(a[0], -buffer)).toISOString();
+	    var end = new Date(dt.addDays(a[1], buffer)).toISOString();
 	    var filtered = tidelineData.dataByDate.filter([start, end]);
 	    renderedData = filtered.top(Infinity).reverse();
 
@@ -48618,12 +48721,13 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var Pool = __webpack_require__(232);
-	var annotation = __webpack_require__(253);
+	var annotation = __webpack_require__(254);
+	var dt = __webpack_require__(7);
 	var Tooltips = __webpack_require__(257);
-	var legend = __webpack_require__(247);
+	var legend = __webpack_require__(246);
 
 	var log = __webpack_require__(8)('Two Week');
 
@@ -48940,8 +49044,12 @@
 	    return nav.navGutter;
 	  };
 
-	  container.getCurrentDay = function() {
-	    return new Date(yScale.domain()[0].toISOString().slice(0,10) + 'T12:00:00.000Z');
+	  container.getCurrentDay = function(timePrefs) {
+	    var current = new Date(yScale.domain()[0]).toISOString();
+	    if (timePrefs && timePrefs.timezoneAware) {
+	      current = dt.applyOffset(current, dt.getOffset(current, timePrefs.timezoneName));
+	    }
+	    return new Date(current);
 	  };
 
 	  // chainable methods
@@ -49160,9 +49268,6 @@
 
 	        xPos = 2 * nav.navGutter / 3;
 
-	        var start = new Date(dataStartNoon);
-	        start.setUTCDate(start.getUTCDate() - 1);
-
 	        scrollNav.attr('transform', 'translate(' + (width - nav.navGutter) + ',0)')
 	          .append('line')
 	          .attr({
@@ -49318,64 +49423,30 @@
 	  };
 
 	  // data getters and setters
-	  container.data = function(a, viewEndDate) {
+	  container.data = function(a, timezoneAware, viewEndDate) {
 	    if (!arguments.length) return data;
 
 	    data = a;
 
-	    var first;
 	    var last;
-	    if (!(data && data.length)) {
-	      last = new Date();
-	      if (viewEndDate) {
-	        last = new Date(viewEndDate);
-	      }
-	      first = new Date(last);
-	      first.setUTCDate(first.getUTCDate() - 28);
+	    var lastDatum = data[data.length - 1];
+	    last = new Date(lastDatum.normalTime);
+	    if (timezoneAware) {
+	      last = new Date(dt.applyOffset(last, lastDatum.displayOffset));
 	    }
-	    else {
-	      first = new Date(data[0].normalTime);
-	      last = new Date(data[data.length - 1].normalTime);
-	    }
-
-	    endpoints = [first, last];
-	    container.endpoints = endpoints;
 
 	    function createDay(d) {
 	      return new Date(d.toISOString().slice(0,11) + '00:00:00Z');
 	    }
-	    days = [];
-	    var firstDay = createDay(new Date(container.endpoints[0]));
-	    var lastDay = createDay(new Date(container.endpoints[1]));
-	    days.push(firstDay.toISOString().slice(0,10));
-	    var currentDay = firstDay;
-	    while (currentDay < lastDay) {
-	      var newDay = new Date(currentDay);
-	      newDay.setUTCDate(newDay.getUTCDate() + 1);
-	      days.push(newDay.toISOString().slice(0,10));
-	      currentDay = newDay;
-	    }
+	    days = _.uniq(_.pluck(_.where(data, {type: 'fill'}), 'fillDate'));
 
-	    if (days.length < 14) {
-	      var day = new Date(firstDay);
-	      // fill in previous days if less than two weeks data
-	      while (days.length < 14) {
-	        day.setUTCDate(day.getUTCDate() - 1);
-	        days.unshift(day.toISOString().slice(0,10));
-	        currentDay = day;
-	      }
-	      first = days[0];
-	      lessThanTwoWeeks = true;
-	    }
-
-	    dataStartNoon = new Date(first);
+	    dataStartNoon = new Date(days[0]);
 	    dataStartNoon.setUTCHours(12);
 	    dataStartNoon.setUTCMinutes(0);
 	    dataStartNoon.setUTCSeconds(0);
 	    if (!sortReverse) {
 	      dataStartNoon.setUTCDate(dataStartNoon.getUTCDate() - 1);
 	    }
-
 	    var noon = '12:00:00Z';
 
 	    dataEndNoon = new Date(last);
@@ -49391,7 +49462,6 @@
 	    var viewBeginning = new Date(viewEndDate);
 	    viewBeginning.setUTCDate(viewBeginning.getUTCDate() - 14);
 	    var firstDayInView;
-
 	    if (sortReverse) {
 	      this.days = days;
 
@@ -49417,21 +49487,15 @@
 
 	    container.dataPerDay = [];
 
-	    var dayIndex = 0, thisDay = this.days[dayIndex], current = [];
-	    for (var i = 0; i < data.length; ++i) {
-	      var date = data[i].normalTime.slice(0,10);
-	      if (date === thisDay) {
-	        current.push(data[i]);
-	      }
-	      else {
-	        container.dataPerDay.push(current);
-	        current = [data[i]];
-	        dayIndex += 1;
-	        thisDay = this.days[dayIndex];
-	      }
-	    }
-	    container.dataPerDay.push(current);
+	    var groupedByDate = _.groupBy(data, function(d) {
+	      return timezoneAware ? (d.fillDate ? d.fillDate : dt.applyOffset(d.normalTime, d.displayOffset).slice(0,10)) : d.normalTime.slice(0,10);
+	    });
 
+	    var dates = Object.keys(groupedByDate);
+	    for (var i = 0; i < dates.length; ++i) {
+	      var date = dates[i];
+	      container.dataPerDay.push(groupedByDate[date]);
+	    }
 	    return container;
 	  };
 
@@ -49461,9 +49525,9 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var format = __webpack_require__(38);
+	var format = __webpack_require__(28);
 
 	var log = __webpack_require__(8)('Settings');
 
@@ -49767,10 +49831,10 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var dt = __webpack_require__(26);
-	var format = __webpack_require__(38);
+	var dt = __webpack_require__(7);
+	var format = __webpack_require__(28);
 	var log = __webpack_require__(8)('Basal');
 
 	module.exports = function(pool, opts) {
@@ -49780,6 +49844,7 @@
 	    opacity: 0.3,
 	    opacityDelta: 0.1,
 	    pathStroke: 1.5,
+	    timezoneAware: false,
 	    tooltipPadding: 20
 	  };
 
@@ -50018,9 +50083,9 @@
 	      .append('span')
 	      .attr('class', 'secondary')
 	      .html('<span class="fromto">from</span> ' +
-	        format.timestamp(datum.normalTime) +
+	        format.timestamp(datum.normalTime, datum.displayOffset) +
 	        ' <span class="fromto">to</span> ' +
-	        format.timestamp(datum.normalEnd));
+	        format.timestamp(datum.normalEnd, datum.displayOffset));
 	  };
 
 	  basal.addTooltip = function(d) {
@@ -50076,207 +50141,6 @@
 /* 237 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
-
-	var format = __webpack_require__(38);
-	var log = __webpack_require__(8)('Basal');
-
-	module.exports = function(pool, opts) {
-	  opts = opts || {};
-
-	  var defaults = {};
-
-	  function rowHeightFn(numSchedules) {
-	    return function() {
-	      return pool.height() / numSchedules;
-	    };
-	  }
-
-	  opts = _.defaults(opts, defaults);
-
-	  var mainGroup = pool.parent();
-
-	  function basaltab(selection) {
-	    opts.xScale = pool.xScale().copy();
-
-	    if (pool.hidden()) {
-	      return;
-	    }
-
-	    selection.each(function(currentData) {
-	      var data = _.groupBy(currentData, 'schedule');
-	      var numSchedules = Object.keys(data).length;
-	      opts.rowHeight = rowHeightFn(numSchedules)();
-	      var index = 0;
-	      var schedules = Object.keys(data);
-	      // remove 'Standard' from array if present and put it at the beginning instead
-	      var standardIndex = _.findIndex(schedules, basaltab.isStandard);
-	      if (standardIndex !== -1) {
-	        var standard = schedules[standardIndex];
-	        schedules.splice(standardIndex, 1);
-	        schedules.sort();
-	        schedules.unshift(standard);
-	      }
-	      else {
-	        schedules.sort();
-	      }
-	      var actualSchedules = [];
-	      var getIdStrFn = function(str) {
-	        return function(d) { return str + d.id; };
-	      };
-
-	      for (var i = 0; i < schedules.length; ++i) {
-	        var key = schedules[i];
-	        // must check that schedule actually exists
-	        // schedule names come through for empty schedules
-	        if (data[key] != null) {
-	          actualSchedules.push(key);
-	          var type = data[key][0].type;
-	          var tabsGroup = selection.selectAll('#' + pool.id() + '_' + type + '_' + basaltab.scheduleName(key)).data([key]);
-	          tabsGroup.enter().append('g').attr('id', pool.id() + '_' + type + '_' + basaltab.scheduleName(key))
-	            .attr('transform', selection.attr('transform'));
-	          var tabs = tabsGroup.selectAll('g.d3-cell-group.d3-' + basaltab.scheduleName(key))
-	            .data(data[key], basaltab.id);
-	          var cellGroups = tabs.enter().append('g')
-	            .attr({
-	              'class': 'd3-cell-group d3-' + basaltab.scheduleName(key),
-	              id: getIdStrFn('cell_group_')
-	            });
-
-	          cellGroups.append('rect')
-	            .attr({
-	              x: basaltab.xPosition,
-	              y: index * opts.rowHeight,
-	              width: basaltab.width,
-	              height: opts.rowHeight,
-	              'class': basaltab.matchClass,
-	              id: getIdStrFn('cell_rect_')
-	            })
-	            .classed('d3-cell-rect', true);
-
-	          cellGroups.append('text')
-	            .attr({
-	              x: basaltab.textXPosition,
-	              y: (index * opts.rowHeight) + (opts.rowHeight/2),
-	              'class': basaltab.matchClass,
-	              id: getIdStrFn('cell_label_')
-	            })
-	            .classed('d3-cell-label', true)
-	            .text(basaltab.cellText)
-	            .each(basaltab.hideText);
-
-	          tabs.exit().remove();
-	          index++;
-	        }
-	      }
-	      basaltab.addLabels(actualSchedules);
-	    });
-	  }
-
-	  basaltab.id = function(d) {
-	    return d.id;
-	  };
-
-	  basaltab.scheduleName = function(key) {
-	    return key.replace(' ', '_').toLowerCase();
-	  };
-
-	  basaltab.matchClass = function(d) {
-	    if (d.actualized) {
-	      return 'd3-matched';
-	    }
-	    else {
-	      return 'd3-unmatched';
-	    }
-	  };
-
-	  basaltab.xPosition = function(d) {
-	    return opts.xScale(Date.parse(d.normalTime));
-	  };
-
-	  basaltab.textXPosition = function(d) {
-	    return basaltab.xPosition(d) + (basaltab.width(d) / 2);
-	  };
-
-	  basaltab.cellText = function(d) {
-	    if (String(d.value).indexOf('.') === -1) {
-	      return d.value.toFixed(1);
-	    }
-	    else return d.value;
-	  };
-
-	  basaltab.hideText = function(d) {
-	    if (this.getBoundingClientRect().width > basaltab.width(d)) {
-	      d3.select(this).attr('display', 'none');
-	    }
-	  };
-
-	  basaltab.width = function(d) {
-	    var s = Date.parse(d.normalTime), e = Date.parse(d.normalEnd);
-	    return opts.xScale(e) - opts.xScale(s);
-	  };
-
-	  basaltab.isStandard = function(str) {
-	    str = str.toLowerCase();
-	    if (str === 'standard') {
-	      return true;
-	    }
-	    return false;
-	  };
-
-	  basaltab.addLabels = function(names) {
-	    var printNames = [];
-	    for (var i = 0; i < names.length; ++i) {
-	      if (basaltab.isStandard(names[i])) {
-	        printNames.push('Std-');
-	      }
-	      else if (names[i].toLowerCase().search('program') !== -1) {
-	        printNames.push(names[i].toLowerCase().replace('program', '').trim().toUpperCase() + '-');
-	      }
-	      else if (names[i].toLowerCase().search('pattern') !== -1) {
-	        printNames.push(names[i].toLowerCase().replace('pattern', '').trim().toUpperCase() + '-');
-	      }
-	    }
-	    var labelsGroup = mainGroup.select('#' + pool.id()).selectAll('#' + pool.id() + '_labels').data([names]);
-	    labelsGroup.enter().append('g').attr('id', pool.id() + '_labels');
-	    var labels = labelsGroup.selectAll('text').data(printNames);
-	    labels.enter()
-	      .append('text')
-	      .attr({
-	        // SHAME: this retrieves the container axisGutter...something of a hack
-	        x: mainGroup.select('#mainClipPath').select('rect').attr('x'),
-	        y: function(d, i) { return i * opts.rowHeight + (opts.rowHeight/2); },
-	        'class': 'd3-row-label',
-	        'xml:space': 'preserve'
-	      })
-	      .text(function(d) { return d; });
-	  };
-
-	  return basaltab;
-	};
-
-/***/ },
-/* 238 */
-/***/ function(module, exports, __webpack_require__) {
-
 	/*
 	 * == BSD2 LICENSE ==
 	 * Copyright (c) 2014, Tidepool Project
@@ -50295,13 +50159,13 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Bolus');
 
-	var commonbolus = __webpack_require__(50);
-	var drawbolus = __webpack_require__(245);
-	var format = __webpack_require__(38);
+	var commonbolus = __webpack_require__(38);
+	var drawbolus = __webpack_require__(244);
+	var format = __webpack_require__(28);
 
 	module.exports = function(pool, opts) {
 	  opts = opts || {};
@@ -50388,7 +50252,7 @@
 
 
 /***/ },
-/* 239 */
+/* 238 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -50409,11 +50273,11 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('CBG');
-	var bgBoundaryClass = __webpack_require__(244);
-	var format = __webpack_require__(38);
+	var bgBoundaryClass = __webpack_require__(243);
+	var format = __webpack_require__(28);
 
 	module.exports = function(pool, opts) {
 
@@ -50549,7 +50413,7 @@
 	};
 
 /***/ },
-/* 240 */
+/* 239 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -50570,7 +50434,7 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var postItImage = __webpack_require__(304);
 
@@ -50706,7 +50570,7 @@
 
 
 /***/ },
-/* 241 */
+/* 240 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -50727,12 +50591,12 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Two-Week SMBG');
-	var dt = __webpack_require__(26);
-	var format = __webpack_require__(38);
-	var bgBoundaryClass = __webpack_require__(244);
+	var dt = __webpack_require__(7);
+	var format = __webpack_require__(28);
+	var bgBoundaryClass = __webpack_require__(243);
 
 	function SMBGTime (opts) {
 	  var MS_IN_HOUR = 3600000;
@@ -50752,6 +50616,7 @@
 	    },
 	    size: 16,
 	    rectWidth: 32,
+	    timezoneAware: false,
 	    tooltipPadding: 20
 	  };
 
@@ -50893,13 +50758,11 @@
 	  };
 
 	  this.xPosition = function(d) {
-	    var localTime = new Date(d.normalTime);
-	    var hour = localTime.getUTCHours();
-	    var min = localTime.getUTCMinutes();
-	    var sec = localTime.getUTCSeconds();
-	    var msec = localTime.getUTCMilliseconds();
-	    var t = hour * MS_IN_HOUR + min * MS_IN_MIN + sec * 1000 + msec;
-	    return opts.xScale(t);
+	    var t = d.normalTime;
+	    if (opts.timezoneAware) {
+	      t = dt.applyOffset(d.normalTime, d.displayOffset);
+	    }
+	    return opts.xScale(dt.getMsFromMidnight(t));
 	  };
 
 	  this.yPosition = function(valuesShown) {
@@ -50938,8 +50801,9 @@
 	    group.append('p')
 	      .append('span')
 	      .attr('class', 'secondary')
-	      .html('<span class="fromto">at</span> ' + format.timestamp(datum.normalTime));
+	      .html('<span class="fromto">at</span> ' + format.timestamp(datum.normalTime, datum.displayOffset));
 	    group.append('p')
+
 	      .attr('class', 'value')
 	      .append('span')
 	      .html(format.tooltipBG(datum, opts.bgUnits));
@@ -50979,7 +50843,7 @@
 	        rightEdge: this.orientation(cssClass) === 'normal' ? 'leftAndUp': 'leftAndDown'
 	      },
 	      shape: 'smbg',
-	      edge: dt.smbgEdge(d.normalTime)
+	      edge: dt.smbgEdge(d.normalTime, d.displayOffset)
 	    });
 	  };
 	}
@@ -50988,7 +50852,7 @@
 
 
 /***/ },
-/* 242 */
+/* 241 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -51009,12 +50873,12 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('SMBG');
-	var format = __webpack_require__(38);
-	var scales = __webpack_require__(248)();
-	var bgBoundaryClass = __webpack_require__(244);
+	var format = __webpack_require__(28);
+	var scales = __webpack_require__(247)();
+	var bgBoundaryClass = __webpack_require__(243);
 
 	module.exports = function(pool, opts) {
 
@@ -51030,6 +50894,7 @@
 	      'very-high': {boundary: 300}
 	    },
 	    size: 16,
+	    timezoneAware: false,
 	    tooltipPadding: 20
 	  };
 
@@ -51108,7 +50973,7 @@
 	    group.append('p')
 	      .append('span')
 	      .attr('class', 'secondary')
-	      .html('<span class="fromto">at</span> ' + format.timestamp(datum.normalTime));
+	      .html('<span class="fromto">at</span> ' + format.timestamp(datum.normalTime, datum.displayOffset));
 	    group.append('p')
 	      .attr('class', 'value')
 	      .append('span')
@@ -51170,7 +51035,7 @@
 
 
 /***/ },
-/* 243 */
+/* 242 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -51191,12 +51056,12 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Wizard');
 
-	var commonbolus = __webpack_require__(50);
-	var drawbolus = __webpack_require__(245);
+	var commonbolus = __webpack_require__(38);
+	var drawbolus = __webpack_require__(244);
 
 	module.exports = function(pool, opts) {
 	  opts = opts || {};
@@ -51311,7 +51176,7 @@
 
 
 /***/ },
-/* 244 */
+/* 243 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -51331,7 +51196,7 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	module.exports = function(classes) {
 	  if (Object.keys(classes).length > 3) {
@@ -51370,7 +51235,7 @@
 
 
 /***/ },
-/* 245 */
+/* 244 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -51391,11 +51256,11 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var commonbolus = __webpack_require__(50);
-	var dt = __webpack_require__(26);
-	var format = __webpack_require__(38);
+	var commonbolus = __webpack_require__(38);
+	var dt = __webpack_require__(7);
+	var format = __webpack_require__(28);
 
 	module.exports = function(pool, opts) {
 	  opts = opts || {};
@@ -51410,6 +51275,7 @@
 	    bolusStroke: 2,
 	    triangleSize: 6,
 	    carbPadding: 4,
+	    timezoneAware: false,
 	    tooltipHeightAddition: 3,
 	    tooltipPadding: 20
 	  };
@@ -51770,7 +51636,7 @@
 	        // timestamp goes in title
 	        title.append('p')
 	          .attr('class', 'timestamp left')
-	          .html(format.timestamp(bolus.normalTime));
+	          .html(format.timestamp(bolus.normalTime, bolus.displayOffset));
 	        // interrupted boluses get priority on special headline
 	        if (commonbolus.getProgrammed(d) !== commonbolus.getDelivered(d)) {
 	          title.append('p')
@@ -51887,7 +51753,7 @@
 
 
 /***/ },
-/* 246 */
+/* 245 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -51907,7 +51773,7 @@
 	 * == BSD2 LICENSE ==
 	 */
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Fill');
 
@@ -51928,7 +51794,7 @@
 	      duration: 3,
 	      gutter: 0,
 	      fillClass: '',
-	      x: function(t) { return Date.parse(t); }
+	      x: function(t) { return Date.parse(t.normalTime); }
 	    };
 
 	  _.defaults(opts || {}, defaults);
@@ -51946,10 +51812,12 @@
 	    }
 
 	    selection.each(function(currentData) {
+	      currentData.reverse();
 	      var fills = selection.selectAll('rect.d3-fill')
 	        .data(currentData, function(d) {
 	          return d.id;
 	        });
+
 
 	      fills.enter()
 	        .append('rect')
@@ -51957,7 +51825,7 @@
 	          cursor: opts.cursor ? opts.cursor : 'auto',
 	          x: function(d, i) {
 	            if (opts.dataGutter) {
-	              if (i === 0) {
+	              if (i === currentData.length - 1) {
 	                return fill.xPosition(d) - opts.dataGutter;
 	              }
 	              else {
@@ -52015,7 +51883,7 @@
 	  }
 
 	  fill.xPosition = function(d) {
-	    return opts.xScale(opts.x(d.normalTime));
+	    return opts.xScale(opts.x(d));
 	  };
 
 	  fill.width = function(d) {
@@ -52045,7 +51913,7 @@
 
 
 /***/ },
-/* 247 */
+/* 246 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -52066,7 +51934,7 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Shapes');
 
@@ -52349,7 +52217,7 @@
 	module.exports = legend;
 
 /***/ },
-/* 248 */
+/* 247 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -52370,9 +52238,9 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
-	var commonbolus = __webpack_require__(50);
+	var commonbolus = __webpack_require__(38);
 
 	var scales = function(opts) {
 	  opts = opts || {};
@@ -52380,6 +52248,7 @@
 	  var defaults = {
 	    bgUnits: 'mg/dL',
 	    bolusRatio: 0.35,
+	    MIN_CBG: 39,
 	    MAX_CBG: 401,
 	    carbRadius: 14
 	  };
@@ -52387,10 +52256,11 @@
 	  _.defaults(opts, defaults);
 
 	  return {
+	    MIN_CBG: opts.MIN_CBG,
 	    MAX_CBG: opts.MAX_CBG,
 	    bg: function(data, pool, pad) {
 	      var ext = d3.extent(data, function(d) { return d.value; });
-	      if (ext[1] > this.MAX_CBG) {
+	      if (ext[1] > this.MAX_CBG || ext[0] === ext[1]) {
 	        return d3.scale.linear()
 	          .domain([0, this.MAX_CBG])
 	          .range([pool.height() - pad, pad])
@@ -52410,6 +52280,12 @@
 	          .range([pool.height() - pad, pad])
 	          .clamp(true);
 	      }
+	      else if (ext[0] === ext[1]) {
+	        return d3.scale.log()
+	          .domain([this.MIN_CBG, this.MAX_CBG])
+	          .range([pool.height() - pad, pad])
+	          .clamp(true);
+	      }
 	      else {
 	        return d3.scale.log()
 	          .domain(ext)
@@ -52422,6 +52298,9 @@
 	      }
 	      var defaultTicks = opts.bgUnits === 'mg/dL' ? [40, 80, 120, 180, 300] : [2.0, 4.5, 7.0, 10.0, 16.0];
 	      var ext = d3.extent(data, function(d) { return d.value; });
+	      if (ext[0] === ext[1]) {
+	        return defaultTicks;
+	      }
 	      // if the min of our data is greater than any of the defaultTicks, remove that tick
 	      defaultTicks.forEach(function(tick) {
 	        if (ext[0] > tick) {
@@ -52467,7 +52346,7 @@
 
 
 /***/ },
-/* 249 */
+/* 248 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -52525,7 +52404,7 @@
 
 
 /***/ },
-/* 250 */
+/* 249 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* 
@@ -52546,7 +52425,7 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('ShapeUtil');
 
@@ -52617,6 +52496,599 @@
 	module.exports = shapeutil;
 
 /***/ },
+/* 250 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+		"version": "2014g",
+		"zones": [
+			"Africa/Abidjan|LMT GMT|g.8 0|01|-2ldXH.Q",
+			"Africa/Accra|LMT GMT GHST|.Q 0 -k|012121212121212121212121212121212121212121212121|-26BbX.8 6tzX.8 MnE 1BAk MnE 1BAk MnE 1BAk MnE 1C0k MnE 1BAk MnE 1BAk MnE 1BAk MnE 1C0k MnE 1BAk MnE 1BAk MnE 1BAk MnE 1C0k MnE 1BAk MnE 1BAk MnE 1BAk MnE 1C0k MnE 1BAk MnE 1BAk MnE 1BAk MnE 1C0k MnE 1BAk MnE 1BAk MnE",
+			"Africa/Addis_Ababa|ADMT EAT|-2z.k -30|01|-1lVCz.k",
+			"Africa/Algiers|PMT WET WEST CET CEST|-9.l 0 -10 -10 -20|0121212121212121343431312123431213|-2nco9.l cNb9.l HA0 19A0 1iM0 11c0 1oo0 Wo0 1rc0 QM0 1EM0 UM0 DA0 Imo0 rd0 De0 9Xz0 1fb0 1ap0 16K0 2yo0 mEp0 hwL0 jxA0 11A0 dDd0 17b0 11B0 1cN0 2Dy0 1cN0 1fB0 1cL0",
+			"Africa/Bangui|LMT WAT|-d.A -10|01|-22y0d.A",
+			"Africa/Bissau|LMT WAT GMT|12.k 10 0|012|-2ldWV.E 2xonV.E",
+			"Africa/Blantyre|LMT CAT|-2k -20|01|-2GJek",
+			"Africa/Bujumbura|CAT|-20|0|",
+			"Africa/Cairo|EET EEST|-20 -30|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-1bIO0 vb0 1ip0 11z0 1iN0 1nz0 12p0 1pz0 10N0 1pz0 16p0 1jz0 s3d0 Vz0 1oN0 11b0 1oO0 10N0 1pz0 10N0 1pb0 10N0 1pb0 10N0 1pb0 10N0 1pz0 10N0 1pb0 10N0 1pb0 11d0 1oL0 11d0 1pb0 11d0 1oL0 11d0 1oL0 11d0 1oL0 11d0 1pb0 11d0 1oL0 11d0 1oL0 11d0 1oL0 11d0 1pb0 11d0 1oL0 11d0 1oL0 11d0 1oL0 11d0 1pb0 11d0 1oL0 11d0 1WL0 rd0 1Rz0 wp0 1pb0 11d0 1oL0 11d0 1oL0 11d0 1oL0 11d0 1pb0 11d0 1qL0 Xd0 1oL0 11d0 1oL0 11d0 1pb0 11d0 1oL0 11d0 1oL0 11d0 1ny0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 WL0 1qN0 Rb0 1wp0 On0 1zd0 Lz0 1EN0 Fb0 c10 8n0 8Nd0 gL0 e10 mn0 1o10 jz0 gN0 pb0 1qN0 dX0 e10 xz0 1o10 bb0 e10 An0 1o10 5z0 e10 FX0 1o10 2L0 e10 IL0 1C10 Lz0 1wp0 TX0 1qN0 WL0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0",
+			"Africa/Casablanca|LMT WET WEST CET|u.k 0 -10 -10|012121212121212121312121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2gMnt.E 130Lt.E rb0 Dd0 dVb0 b6p0 TX0 EoB0 LL0 gnd0 rz0 43d0 AL0 1Nd0 XX0 1Cp0 pz0 dEp0 4mn0 SyN0 AL0 1Nd0 wn0 1FB0 Db0 1zd0 Lz0 1Nf0 wM0 co0 go0 1o00 s00 dA0 vc0 11A0 A00 e00 y00 11A0 uo0 e00 DA0 11A0 rA0 e00 Jc0 WM0 m00 gM0 M00 WM0 jc0 e00 RA0 11A0 dA0 e00 Uo0 11A0 800 gM0 Xc0 11A0 5c0 e00 17A0 WM0 2o0 e00 1ao0 19A0 1g00 16M0 1iM0 1400 1lA0 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qo0 1200 1kM0 14M0 1i00",
+			"Africa/Ceuta|WET WEST CET CEST|0 -10 -10 -20|010101010101010101010232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-25KN0 11z0 drd0 18o0 3I00 17c0 1fA0 1a00 1io0 1a00 1y7p0 LL0 gnd0 rz0 43d0 AL0 1Nd0 XX0 1Cp0 pz0 dEp0 4VB0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Africa/Dar_es_Salaam|LMT EAT BEAUT|-2B.8 -30 -2J|0121|-1yW2B.8 FnzB.8 vDAf",
+			"Africa/Djibouti|LMT EAT|-2Q.A -30|01|-2mrCQ.A",
+			"Africa/El_Aaiun|LMT WAT WET WEST|Q.M 10 0 -10|0123232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-1rDz7.c 1GVA7.c 6L0 AL0 1Nd0 XX0 1Cp0 pz0 1cBB0 AL0 1Nd0 wn0 1FB0 Db0 1zd0 Lz0 1Nf0 wM0 co0 go0 1o00 s00 dA0 vc0 11A0 A00 e00 y00 11A0 uo0 e00 DA0 11A0 rA0 e00 Jc0 WM0 m00 gM0 M00 WM0 jc0 e00 RA0 11A0 dA0 e00 Uo0 11A0 800 gM0 Xc0 11A0 5c0 e00 17A0 WM0 2o0 e00 1ao0 19A0 1g00 16M0 1iM0 1400 1lA0 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qo0 1200 1kM0 14M0 1i00",
+			"Africa/Gaborone|SAST CAT CAST|-1u -20 -30|0121|-2GJdu 1CINu 1cL0",
+			"Africa/Harare|LMT CAT|-24.c -20|01|-2GJe4.c",
+			"Africa/Johannesburg|SAST SAST SAST|-1u -20 -30|012121|-2GJdu 1Ajdu 1cL0 1cN0 1cL0",
+			"Africa/Juba|LMT CAT CAST EAT|-2a.8 -20 -30 -30|01212121212121212121212121212121213|-1yW2a.8 1zK0a.8 16L0 1iN0 17b0 1jd0 17b0 1ip0 17z0 1i10 17X0 1hB0 18n0 1hd0 19b0 1gp0 19z0 1iN0 17b0 1ip0 17z0 1i10 18n0 1hd0 18L0 1gN0 19b0 1gp0 19z0 1iN0 17z0 1i10 17X0 yGd0",
+			"Africa/Kampala|LMT EAT BEAT BEAUT|-29.E -30 -2u -2J|01231|-1F3C9.E 3Dz9.E HNAu lTbJ",
+			"Africa/Kigali|LMT CAT|-20.g -20|01|-1ode0.g",
+			"Africa/Lusaka|LMT CAT|-1R.8 -20|01|-2GJdR.8",
+			"Africa/Maputo|LMT CAT|-2a.k -20|01|-2GJea.k",
+			"Africa/Maseru|LMT SAST SAST|-1O -20 -30|0121|-2GJdO 1CINO 1cL0",
+			"Africa/Mbabane|LMT SAST|-24.o -20|01|-2GJe4.o",
+			"Africa/Mogadishu|EAT BEAT|-30 -2u|010|-1yW30 13iMu",
+			"Africa/Monrovia|MMT LRT GMT|H.8 I.u 0|012|-23Lzg.Q 29s01.m",
+			"Africa/Nairobi|LMT EAT BEAT BEAUT|-2r.g -30 -2u -2J|01231|-1F3Cr.g 3Dzr.g okMu MFXJ",
+			"Africa/Ndjamena|LMT WAT WAST|-10.c -10 -20|0121|-2le10.c 2J3c0.c Wn0",
+			"Africa/Tripoli|LMT CET CEST EET|-Q.I -10 -20 -20|012121213121212121212121213123123|-21JcQ.I 1hnBQ.I vx0 4iP0 xx0 4eN0 Bb0 7ip0 U0n0 A10 1db0 1cN0 1db0 1dd0 1db0 1eN0 1bb0 1e10 1cL0 1c10 1db0 1dd0 1db0 1cN0 1db0 1q10 fAn0 1ep0 1db0 AKq0 TA0 1o00",
+			"Africa/Tunis|PMT CET CEST|-9.l -10 -20|0121212121212121212121212121212121|-2nco9.l 18pa9.l 1qM0 DA0 3Tc0 11B0 1ze0 WM0 7z0 3d0 14L0 1cN0 1f90 1ar0 16J0 1gXB0 WM0 1rA0 11c0 nwo0 Ko0 1cM0 1cM0 1rA0 10M0 zuM0 10N0 1aN0 1qM0 WM0 1qM0 11A0 1o00",
+			"Africa/Windhoek|SWAT SAST SAST CAT WAT WAST|-1u -20 -30 -20 -10 -20|012134545454545454545454545454545454545454545454545454545454545454545454545454545454545454545|-2GJdu 1Ajdu 1cL0 1SqL0 9NA0 11D0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 11B0 1nX0 11B0",
+			"America/Adak|NST NWT NPT BST BDT AHST HAST HADT|b0 a0 a0 b0 a0 a0 a0 90|012034343434343434343434343434343456767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676|-17SX0 8wW0 iB0 Qlb0 52O0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 cm0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Anchorage|CAT CAWT CAPT AHST AHDT YST AKST AKDT|a0 90 90 a0 90 90 90 80|012034343434343434343434343434343456767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676|-17T00 8wX0 iA0 Qlb0 52O0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 cm0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Anguilla|LMT AST|46.4 40|01|-2kNvR.U",
+			"America/Antigua|LMT EST AST|47.c 50 40|012|-2kNvQ.M 1yxAQ.M",
+			"America/Araguaina|LMT BRT BRST|3c.M 30 20|0121212121212121212121212121212121212121212121212121|-2glwL.c HdKL.c 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 dMN0 Lz0 1zd0 Rb0 1wN0 Wn0 1tB0 Rb0 1tB0 WL0 1tB0 Rb0 1zd0 On0 1HB0 FX0 ny10 Lz0",
+			"America/Argentina/Buenos_Aires|CMT ART ARST ART ARST|4g.M 40 30 30 20|0121212121212121212121212121212121212121213434343434343234343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wp0 Rb0 1wp0 TX0 g0p0 10M0 j3c0 uL0 1qN0 WL0",
+			"America/Argentina/Catamarca|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|0121212121212121212121212121212121212121213434343454343235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wq0 Ra0 1wp0 TX0 g0p0 10M0 ako0 7B0 8zb0 uL0",
+			"America/Argentina/Cordoba|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|0121212121212121212121212121212121212121213434343454343234343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wq0 Ra0 1wp0 TX0 g0p0 10M0 j3c0 uL0 1qN0 WL0",
+			"America/Argentina/Jujuy|CMT ART ARST ART ARST WART WARST|4g.M 40 30 30 20 40 30|01212121212121212121212121212121212121212134343456543432343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1ze0 TX0 1ld0 WK0 1wp0 TX0 g0p0 10M0 j3c0 uL0",
+			"America/Argentina/La_Rioja|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|01212121212121212121212121212121212121212134343434534343235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Qn0 qO0 16n0 Rb0 1wp0 TX0 g0p0 10M0 ako0 7B0 8zb0 uL0",
+			"America/Argentina/Mendoza|CMT ART ARST ART ARST WART WARST|4g.M 40 30 30 20 40 30|0121212121212121212121212121212121212121213434345656543235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1u20 SL0 1vd0 Tb0 1wp0 TW0 g0p0 10M0 agM0 Op0 7TX0 uL0",
+			"America/Argentina/Rio_Gallegos|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|0121212121212121212121212121212121212121213434343434343235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wp0 Rb0 1wp0 TX0 g0p0 10M0 ako0 7B0 8zb0 uL0",
+			"America/Argentina/Salta|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|01212121212121212121212121212121212121212134343434543432343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wq0 Ra0 1wp0 TX0 g0p0 10M0 j3c0 uL0",
+			"America/Argentina/San_Juan|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|01212121212121212121212121212121212121212134343434534343235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Qn0 qO0 16n0 Rb0 1wp0 TX0 g0p0 10M0 ak00 m10 8lb0 uL0",
+			"America/Argentina/San_Luis|CMT ART ARST ART ARST WART WARST|4g.M 40 30 30 20 40 30|01212121212121212121212121212121212121212134343456536353465653|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 XX0 1q20 SL0 AN0 kin0 10M0 ak00 m10 8lb0 8L0 jd0 1qN0 WL0 1qN0",
+			"America/Argentina/Tucuman|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|012121212121212121212121212121212121212121343434345434323534343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wq0 Ra0 1wp0 TX0 g0p0 10M0 ako0 4N0 8BX0 uL0 1qN0 WL0",
+			"America/Argentina/Ushuaia|CMT ART ARST ART ARST WART|4g.M 40 30 30 20 40|0121212121212121212121212121212121212121213434343434343235343|-20UHH.c pKnH.c Mn0 1iN0 Tb0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 1C10 LX0 1C10 LX0 1C10 LX0 1C10 Mn0 MN0 2jz0 MN0 4lX0 u10 5Lb0 1pB0 Fnz0 u10 uL0 1vd0 SL0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 zvd0 Bz0 1tB0 TX0 1wp0 Rb0 1wp0 Rb0 1wp0 TX0 g0p0 10M0 ajA0 8p0 8zb0 uL0",
+			"America/Aruba|LMT ANT AST|4z.L 4u 40|012|-2kV7o.d 28KLS.d",
+			"America/Asuncion|AMT PYT PYT PYST|3O.E 40 30 30|012131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313|-1x589.k 1DKM9.k 3CL0 3Dd0 10L0 1pB0 10n0 1pB0 10n0 1pB0 1cL0 1dd0 1db0 1dd0 1cL0 1dd0 1cL0 1dd0 1cL0 1dd0 1db0 1dd0 1cL0 1dd0 1cL0 1dd0 1cL0 1dd0 1db0 1dd0 1cL0 1lB0 14n0 1dd0 1cL0 1fd0 WL0 1rd0 1aL0 1dB0 Xz0 1qp0 Xb0 1qN0 10L0 1rB0 TX0 1tB0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 1cL0 WN0 1qL0 11B0 1nX0 1ip0 WL0 1qN0 WL0 1qN0 WL0 1tB0 TX0 1tB0 TX0 1tB0 19X0 1a10 1fz0 1a10 1fz0 1cN0 17b0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1fB0 19X0 1fB0 19X0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1fB0 19X0 1fB0 19X0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1ip0 17b0 1ip0 17b0 1ip0",
+			"America/Atikokan|CST CDT CWT CPT EST|60 50 50 50 50|0101234|-25TQ0 1in0 Rnb0 3je0 8x30 iw0",
+			"America/Bahia|LMT BRT BRST|2y.4 30 20|01212121212121212121212121212121212121212121212121212121212121|-2glxp.U HdLp.U 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 1EN0 Lz0 1C10 IL0 1HB0 Db0 1HB0 On0 1zd0 On0 1zd0 Lz0 1zd0 Rb0 1wN0 Wn0 1tB0 Rb0 1tB0 WL0 1tB0 Rb0 1zd0 On0 1HB0 FX0 l5B0 Rb0",
+			"America/Bahia_Banderas|LMT MST CST PST MDT CDT|71 70 60 80 60 50|0121212131414141414141414141414141414152525252525252525252525252525252525252525252525252525252|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 otX0 gmN0 P2N0 13Vd0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nW0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Barbados|LMT BMT AST ADT|3W.t 3W.t 40 30|01232323232|-1Q0I1.v jsM0 1ODC1.v IL0 1ip0 17b0 1ip0 17b0 1ld0 13b0",
+			"America/Belem|LMT BRT BRST|3d.U 30 20|012121212121212121212121212121|-2glwK.4 HdKK.4 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0",
+			"America/Belize|LMT CST CHDT CDT|5Q.M 60 5u 50|01212121212121212121212121212121212121212121212121213131|-2kBu7.c fPA7.c Onu 1zcu Rbu 1wou Rbu 1wou Rbu 1zcu Onu 1zcu Onu 1zcu Rbu 1wou Rbu 1wou Rbu 1wou Rbu 1zcu Onu 1zcu Onu 1zcu Rbu 1wou Rbu 1wou Rbu 1zcu Onu 1zcu Onu 1zcu Onu 1zcu Rbu 1wou Rbu 1wou Rbu 1zcu Onu 1zcu Onu 1zcu Rbu 1wou Rbu 1f0Mu qn0 lxB0 mn0",
+			"America/Blanc-Sablon|AST ADT AWT APT|40 30 30 30|010230|-25TS0 1in0 UGp0 8x50 iu0",
+			"America/Boa_Vista|LMT AMT AMST|42.E 40 30|0121212121212121212121212121212121|-2glvV.k HdKV.k 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 smp0 WL0 1tB0 2L0",
+			"America/Bogota|BMT COT COST|4U.g 50 40|0121|-2eb73.I 38yo3.I 2en0",
+			"America/Boise|PST PDT MST MWT MPT MDT|80 70 70 60 60 60|0101023425252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252|-261q0 1nX0 11B0 1nX0 8C10 JCL0 8x20 ix0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 Dd0 1Kn0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Cambridge_Bay|zzz MST MWT MPT MDDT MDT CST CDT EST|0 70 60 60 50 60 60 50 50|0123141515151515151515151515151515151515151515678651515151515151515151515151515151515151515151515151515151515151515151515151|-21Jc0 RO90 8x20 ix0 LCL0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11A0 1nX0 2K0 WQ0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Campo_Grande|LMT AMT AMST|3C.s 40 30|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212|-2glwl.w HdLl.w 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 1EN0 Lz0 1C10 IL0 1HB0 Db0 1HB0 On0 1zd0 On0 1zd0 Lz0 1zd0 Rb0 1wN0 Wn0 1tB0 Rb0 1tB0 WL0 1tB0 Rb0 1zd0 On0 1HB0 FX0 1C10 Lz0 1Ip0 HX0 1zd0 On0 1HB0 IL0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1zd0 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0",
+			"America/Cancun|LMT CST EST EDT CDT|5L.4 60 50 40 50|0123232341414141414141414141414141414141414141414141414141414141414141414141414141414141|-1UQG0 2q2o0 yLB0 1lb0 14p0 1lb0 14p0 Lz0 xB0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Caracas|CMT VET VET|4r.E 4u 40|0121|-2kV7w.k 28KM2.k 1IwOu",
+			"America/Cayenne|LMT GFT GFT|3t.k 40 30|012|-2mrwu.E 2gWou.E",
+			"America/Cayman|KMT EST|57.b 50|01|-2l1uQ.N",
+			"America/Chicago|CST CDT EST CWT CPT|60 50 50 50 50|01010101010101010101010101010101010102010101010103401010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261s0 1nX0 11B0 1nX0 1wp0 TX0 WN0 1qL0 1cN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 11B0 1Hz0 14p0 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 RB0 8x30 iw0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Chihuahua|LMT MST CST CDT MDT|74.k 70 60 50 60|0121212323241414141414141414141414141414141414141414141414141414141414141414141414141414141|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 2zQN0 1lb0 14p0 1lb0 14q0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Costa_Rica|SJMT CST CDT|5A.d 60 50|0121212121|-1Xd6n.L 2lu0n.L Db0 1Kp0 Db0 pRB0 15b0 1kp0 mL0",
+			"America/Creston|MST PST|70 80|010|-29DR0 43B0",
+			"America/Cuiaba|LMT AMT AMST|3I.k 40 30|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212|-2glwf.E HdLf.E 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 1EN0 Lz0 1C10 IL0 1HB0 Db0 1HB0 On0 1zd0 On0 1zd0 Lz0 1zd0 Rb0 1wN0 Wn0 1tB0 Rb0 1tB0 WL0 1tB0 Rb0 1zd0 On0 1HB0 FX0 4a10 HX0 1zd0 On0 1HB0 IL0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1zd0 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0",
+			"America/Danmarkshavn|LMT WGT WGST GMT|1e.E 30 20 0|01212121212121212121212121212121213|-2a5WJ.k 2z5fJ.k 19U0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 DC0",
+			"America/Dawson|YST YDT YWT YPT YDDT PST PDT|90 80 80 80 70 80 70|0101023040565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565|-25TN0 1in0 1o10 13V0 Ser0 8x00 iz0 LCL0 1fA0 jrA0 fNd0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Dawson_Creek|PST PDT PWT PPT MST|80 70 70 70 70|0102301010101010101010101010101010101010101010101010101014|-25TO0 1in0 UGp0 8x10 iy0 3NB0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 ML0",
+			"America/Denver|MST MDT MWT MPT|70 60 60 60|01010101023010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261r0 1nX0 11B0 1nX0 11B0 1qL0 WN0 mn0 Ord0 8x20 ix0 LCN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Detroit|LMT CST EST EWT EPT EDT|5w.b 60 50 40 40 40|01234252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252|-2Cgir.N peqr.N 156L0 8x40 iv0 6fd0 11z0 Jy10 SL0 dnB0 1cL0 s10 1Vz0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Edmonton|LMT MST MDT MWT MPT|7x.Q 70 60 60 60|01212121212121341212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2yd4q.8 shdq.8 1in0 17d0 hz0 2dB0 1fz0 1a10 11z0 1qN0 WL0 1qN0 11z0 IGN0 8x20 ix0 3NB0 11z0 LFB0 1cL0 3Cp0 1cL0 66N0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Eirunepe|LMT ACT ACST AMT|4D.s 50 40 40|0121212121212121212121212121212131|-2glvk.w HdLk.w 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 dPB0 On0 yTd0 d5X0",
+			"America/El_Salvador|LMT CST CDT|5U.M 60 50|012121|-1XiG3.c 2Fvc3.c WL0 1qN0 WL0",
+			"America/Ensenada|LMT MST PST PDT PWT PPT|7M.4 70 80 70 70 70|012123245232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-1UQE0 4PX0 8mM0 8lc0 SN0 1cL0 pHB0 83r0 zI0 5O10 1Rz0 cOP0 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 BUp0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 U10 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Fort_Wayne|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|010101023010101010101010101040454545454545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 QI10 Db0 RB0 8x30 iw0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 5Tz0 1o10 qLb0 1cL0 1cN0 1cL0 1qhd0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Fortaleza|LMT BRT BRST|2y 30 20|0121212121212121212121212121212121212121|-2glxq HdLq 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 nsp0 WL0 1tB0 5z0 2mN0 On0",
+			"America/Glace_Bay|LMT AST ADT AWT APT|3X.M 40 30 30 30|012134121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2IsI0.c CwO0.c 1in0 UGp0 8x50 iu0 iq10 11z0 Jg10 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Godthab|LMT WGT WGST|3q.U 30 20|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2a5Ux.4 2z5dx.4 19U0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"America/Goose_Bay|NST NDT NST NDT NWT NPT AST ADT ADDT|3u.Q 2u.Q 3u 2u 2u 2u 40 30 20|010232323232323245232323232323232323232323232323232323232326767676767676767676767676767676767676767676768676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676|-25TSt.8 1in0 DXb0 2HbX.8 WL0 1qN0 WL0 1qN0 WL0 1tB0 TX0 1tB0 WL0 1qN0 WL0 1qN0 7UHu itu 1tB0 WL0 1qN0 WL0 1qN0 WL0 1qN0 WL0 1tB0 WL0 1ld0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 S10 g0u 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14n1 1lb0 14p0 1nW0 11C0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zcX Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Grand_Turk|KMT EST EDT AST|57.b 50 40 40|01212121212121212121212121212121212121212121212121212121212121212121212123|-2l1uQ.N 2HHBQ.N 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Guatemala|LMT CST CDT|62.4 60 50|0121212121|-24KhV.U 2efXV.U An0 mtd0 Nz0 ifB0 17b0 zDB0 11z0",
+			"America/Guayaquil|QMT ECT|5e 50|01|-1yVSK",
+			"America/Guyana|LMT GBGT GYT GYT GYT|3Q.E 3J 3J 30 40|01234|-2dvU7.k 24JzQ.k mlc0 Bxbf",
+			"America/Halifax|LMT AST ADT AWT APT|4e.o 40 30 30 30|0121212121212121212121212121212121212121212121212134121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2IsHJ.A xzzJ.A 1db0 3I30 1in0 3HX0 IL0 1E10 ML0 1yN0 Pb0 1Bd0 Mn0 1Bd0 Rz0 1w10 Xb0 1w10 LX0 1w10 Xb0 1w10 Lz0 1C10 Jz0 1E10 OL0 1yN0 Un0 1qp0 Xb0 1qp0 11X0 1w10 Lz0 1HB0 LX0 1C10 FX0 1w10 Xb0 1qp0 Xb0 1BB0 LX0 1td0 Xb0 1qp0 Xb0 Rf0 8x50 iu0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 3Qp0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 3Qp0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 6i10 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Havana|HMT CST CDT|5t.A 50 40|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1Meuu.o 72zu.o ML0 sld0 An0 1Nd0 Db0 1Nd0 An0 6Ep0 An0 1Nd0 An0 JDd0 Mn0 1Ap0 On0 1fd0 11X0 1qN0 WL0 1wp0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 14n0 1ld0 14L0 1kN0 15b0 1kp0 1cL0 1cN0 1fz0 1a10 1fz0 1fB0 11z0 14p0 1nX0 11B0 1nX0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 1a10 1in0 1a10 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 17c0 1o00 11A0 1qM0 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 11A0 6i00 Rc0 1wo0 U00 1tA0 Rc0 1wo0 U00 1wo0 U00 1zc0 U00 1qM0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0",
+			"America/Hermosillo|LMT MST CST PST MDT|7n.Q 70 60 80 60|0121212131414141|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 otX0 gmN0 P2N0 13Vd0 1lb0 14p0 1lb0 14p0 1lb0",
+			"America/Indiana/Knox|CST CDT CWT CPT EST|60 50 50 50 50|0101023010101010101010101010101010101040101010101010101010101010101010101010101010101010141010101010101010101010101010101010101010101010101010101010101010|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 3NB0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 11z0 1o10 11z0 1o10 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 3Cn0 8wp0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 z8o0 1o00 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Marengo|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|0101023010101010101010104545454545414545454545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 dyN0 11z0 6fd0 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 jrz0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1VA0 LA0 1BX0 1e6p0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Petersburg|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|01010230101010101010101010104010101010101010101010141014545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 njX0 WN0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 3Fb0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 19co0 1o00 Rd0 1zb0 Oo0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Tell_City|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|01010230101010101010101010101010454541010101010101010101010101010101010101010101010101010101010101010|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 1o10 11z0 g0p0 11z0 1o10 11z0 1qL0 WN0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 WL0 1qN0 1cL0 1cN0 1cL0 1cN0 caL0 1cL0 1cN0 1cL0 1qhd0 1o00 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Vevay|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|010102304545454545454545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 kPB0 Awn0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1lnd0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Vincennes|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|01010230101010101010101010101010454541014545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 1o10 11z0 g0p0 11z0 1o10 11z0 1qL0 WN0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 WL0 1qN0 1cL0 1cN0 1cL0 1cN0 caL0 1cL0 1cN0 1cL0 1qhd0 1o00 Rd0 1zb0 Oo0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Indiana/Winamac|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|01010230101010101010101010101010101010454541054545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 jrz0 1cL0 1cN0 1cL0 1qhd0 1o00 Rd0 1za0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Inuvik|zzz PST PDDT MST MDT|0 80 60 70 60|0121343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343|-FnA0 tWU0 1fA0 wPe0 2pz0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Iqaluit|zzz EWT EPT EST EDDT EDT CST CDT|0 40 40 50 30 40 60 50|01234353535353535353535353535353535353535353567353535353535353535353535353535353535353535353535353535353535353535353535353|-16K00 7nX0 iv0 LCL0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11C0 1nX0 11A0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Jamaica|KMT EST EDT|57.b 50 40|0121212121212121212121|-2l1uQ.N 2vwNQ.N 1cL0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0",
+			"America/Juneau|PST PWT PPT PDT YDT YST AKST AKDT|80 70 70 70 80 90 90 80|01203030303030303030303030403030356767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676|-17T20 8x10 iy0 Vo10 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cM0 1cM0 1cL0 1cN0 1fz0 1a10 1fz0 co0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Kentucky/Louisville|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|0101010102301010101010101010101010101454545454545414545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 3Fd0 Nb0 LPd0 11z0 RB0 8x30 iw0 Bb0 10N0 2bB0 8in0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 xz0 gso0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1VA0 LA0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Kentucky/Monticello|CST CDT CWT CPT EST EDT|60 50 50 50 50 40|0101023010101010101010101010101010101010101010101010101010101010101010101454545454545454545454545454545454545454545454545454545454545454545454545454|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 SWp0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11A0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/La_Paz|CMT BOST BOT|4w.A 3w.A 40|012|-1x37r.o 13b0",
+			"America/Lima|LMT PET PEST|58.A 50 40|0121212121212121|-2tyGP.o 1bDzP.o zX0 1aN0 1cL0 1cN0 1cL0 1PrB0 zX0 1O10 zX0 6Gp0 zX0 98p0 zX0",
+			"America/Los_Angeles|PST PDT PWT PPT|80 70 70 70|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261q0 1nX0 11B0 1nX0 SgN0 8x10 iy0 5Wp0 1Vb0 3dB0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Maceio|LMT BRT BRST|2m.Q 30 20|012121212121212121212121212121212121212121|-2glxB.8 HdLB.8 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 dMN0 Lz0 8Q10 WL0 1tB0 5z0 2mN0 On0",
+			"America/Managua|MMT CST EST CDT|5J.c 60 50 50|0121313121213131|-1quie.M 1yAMe.M 4mn0 9Up0 Dz0 1K10 Dz0 s3F0 1KH0 DB0 9In0 k8p0 19X0 1o30 11y0",
+			"America/Manaus|LMT AMT AMST|40.4 40 30|01212121212121212121212121212121|-2glvX.U HdKX.U 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 dPB0 On0",
+			"America/Martinique|FFMT AST ADT|44.k 40 30|0121|-2mPTT.E 2LPbT.E 19X0",
+			"America/Matamoros|LMT CST CDT|6E 60 50|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1UQG0 2FjC0 1nX0 i6p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 U10 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Mazatlan|LMT MST CST PST MDT|75.E 70 60 80 60|0121212131414141414141414141414141414141414141414141414141414141414141414141414141414141414141|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 otX0 gmN0 P2N0 13Vd0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Menominee|CST CDT CWT CPT EST|60 50 50 50 50|01010230101041010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 1o10 11z0 LCN0 1fz0 6410 9Jb0 1cM0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Merida|LMT CST EST CDT|5W.s 60 50 50|0121313131313131313131313131313131313131313131313131313131313131313131313131313131313131|-1UQG0 2q2o0 2hz0 wu30 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Metlakatla|PST PWT PPT PDT|80 70 70 70|0120303030303030303030303030303030|-17T20 8x10 iy0 Vo10 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0",
+			"America/Mexico_City|LMT MST CST CDT CWT|6A.A 70 60 50 50|012121232324232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 gEn0 TX0 3xd0 Jb0 6zB0 SL0 e5d0 17b0 1Pff0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Miquelon|LMT AST PMST PMDT|3I.E 40 30 20|012323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-2mKkf.k 2LTAf.k gQ10 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Moncton|EST AST ADT AWT APT|50 40 30 30 30|012121212121212121212134121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2IsH0 CwN0 1in0 zAo0 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1K10 Lz0 1zB0 NX0 1u10 Wn0 S20 8x50 iu0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 3Cp0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14n1 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 ReX 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Monterrey|LMT CST CDT|6F.g 60 50|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1UQG0 2FjC0 1nX0 i6p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Montevideo|MMT UYT UYHST UYST UYT UYHST|3I.I 3u 30 20 30 2u|012121212121212121212121213434343434345454543453434343434343434343434343434343434343434343434343434343434343434343434343434343434343|-20UIf.g 8jzJ.g 1cLu 1dcu 1cLu 1dcu 1cLu ircu 11zu 1o0u 11zu 1o0u 11zu 1qMu WLu 1qMu WLu 1qMu WLu 1qMu 11zu 1o0u 11zu NAu 11bu 2iMu zWu Dq10 19X0 pd0 jz0 cm10 19X0 1fB0 1on0 11d0 1oL0 1nB0 1fzu 1aou 1fzu 1aou 1fzu 3nAu Jb0 3MN0 1SLu 4jzu 2PB0 Lb0 3Dd0 1pb0 ixd0 An0 1MN0 An0 1wp0 On0 1wp0 Rb0 1zd0 On0 1wp0 Rb0 s8p0 1fB0 1ip0 11z0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 1ld0 14n0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10 14n0 1ld0 14n0 1ld0 14n0 1ld0 14n0 1o10 11z0 1o10 11z0 1o10",
+			"America/Montreal|EST EDT EWT EPT|50 40 40 40|01010101010101010101010101010101010101010101012301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-28tR0 bV0 2m30 1in0 121u 1nb0 1g10 11z0 1o0u 11zu 1o0u 11zu 3VAu Rzu 1qMu WLu 1qMu WLu 1qKu WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 4kO0 8x40 iv0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Nassau|LMT EST EDT|59.u 50 40|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2kNuO.u 26XdO.u 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/New_York|EST EDT EWT EPT|50 40 40 40|01010101010101010101010101010101010101010101010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261t0 1nX0 11B0 1nX0 11B0 1qL0 1a10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 RB0 8x40 iv0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Nipigon|EST EDT EWT EPT|50 40 40 40|010123010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-25TR0 1in0 Rnb0 3je0 8x40 iv0 19yN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Nome|NST NWT NPT BST BDT YST AKST AKDT|b0 a0 a0 b0 a0 90 90 80|012034343434343434343434343434343456767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676|-17SX0 8wW0 iB0 Qlb0 52O0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 cl0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Noronha|LMT FNT FNST|29.E 20 10|0121212121212121212121212121212121212121|-2glxO.k HdKO.k 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 nsp0 WL0 1tB0 2L0 2pB0 On0",
+			"America/North_Dakota/Beulah|MST MDT MWT MPT CST CDT|70 60 60 60 60 50|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101014545454545454545454545454545454545454545454545454545454|-261r0 1nX0 11B0 1nX0 SgN0 8x20 ix0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Oo0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/North_Dakota/Center|MST MDT MWT MPT CST CDT|70 60 60 60 60 50|010102301010101010101010101010101010101010101010101010101014545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-261r0 1nX0 11B0 1nX0 SgN0 8x20 ix0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14o0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/North_Dakota/New_Salem|MST MDT MWT MPT CST CDT|70 60 60 60 60 50|010102301010101010101010101010101010101010101010101010101010101010101010101010101454545454545454545454545454545454545454545454545454545454545454545454|-261r0 1nX0 11B0 1nX0 SgN0 8x20 ix0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14o0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Ojinaga|LMT MST CST CDT MDT|6V.E 70 60 50 60|0121212323241414141414141414141414141414141414141414141414141414141414141414141414141414141|-1UQF0 deL0 8lc0 17c0 10M0 1dd0 2zQN0 1lb0 14p0 1lb0 14q0 1lb0 14p0 1nX0 11B0 1nX0 1fB0 WL0 1fB0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 U10 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Panama|CMT EST|5j.A 50|01|-2uduE.o",
+			"America/Pangnirtung|zzz AST AWT APT ADDT ADT EDT EST CST CDT|0 40 30 30 20 30 40 50 60 50|012314151515151515151515151515151515167676767689767676767676767676767676767676767676767676767676767676767676767676767676767|-1XiM0 PnG0 8x50 iu0 LCL0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1o00 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11C0 1nX0 11A0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Paramaribo|LMT PMT PMT NEGT SRT SRT|3E.E 3E.Q 3E.A 3u 3u 30|012345|-2nDUj.k Wqo0.c qanX.I 1dmLN.o lzc0",
+			"America/Phoenix|MST MDT MWT|70 60 60|01010202010|-261r0 1nX0 11B0 1nX0 SgN0 4Al1 Ap0 1db0 SWqX 1cL0",
+			"America/Port-au-Prince|PPMT EST EDT|4N 50 40|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-28RHb 2FnMb 19X0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14q0 1o00 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 14o0 1o00 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 i6n0 1nX0 11B0 1nX0 d430 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Porto_Acre|LMT ACT ACST AMT|4v.c 50 40 40|01212121212121212121212121212131|-2glvs.M HdLs.M 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 NBd0 d5X0",
+			"America/Porto_Velho|LMT AMT AMST|4f.A 40 30|012121212121212121212121212121|-2glvI.o HdKI.o 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0",
+			"America/Puerto_Rico|AST AWT APT|40 30 30|0120|-17lU0 7XT0 iu0",
+			"America/Rainy_River|CST CDT CWT CPT|60 50 50 50|010123010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-25TQ0 1in0 Rnb0 3je0 8x30 iw0 19yN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Rankin_Inlet|zzz CST CDDT CDT EST|0 60 40 50 50|012131313131313131313131313131313131313131313431313131313131313131313131313131313131313131313131313131313131313131313131|-vDc0 keu0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Recife|LMT BRT BRST|2j.A 30 20|0121212121212121212121212121212121212121|-2glxE.o HdLE.o 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 nsp0 WL0 1tB0 2L0 2pB0 On0",
+			"America/Regina|LMT MST MDT MWT MPT CST|6W.A 70 60 60 60 60|012121212121212121212121341212121212121212121212121215|-2AD51.o uHe1.o 1in0 s2L0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 66N0 1cL0 1cN0 19X0 1fB0 1cL0 1fB0 1cL0 1cN0 1cL0 M30 8x20 ix0 1ip0 1cL0 1ip0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 3NB0 1cL0 1cN0",
+			"America/Resolute|zzz CST CDDT CDT EST|0 60 40 50 50|012131313131313131313131313131313131313131313431313131313431313131313131313131313131313131313131313131313131313131313131|-SnA0 GWS0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Santa_Isabel|LMT MST PST PDT PWT PPT|7D.s 70 80 70 70 70|012123245232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-1UQE0 4PX0 8mM0 8lc0 SN0 1cL0 pHB0 83r0 zI0 5O10 1Rz0 cOP0 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 BUp0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0",
+			"America/Santarem|LMT AMT AMST BRT|3C.M 40 30 30|0121212121212121212121212121213|-2glwl.c HdLl.c 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 qe10 xb0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 NBd0",
+			"America/Santiago|SMT CLT CLT CLST CLST|4G.K 50 40 40 30|010203131313131313124242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424|-2q5Th.e fNch.e 5gLG.K 21bh.e jRAG.K 1pbh.e 11d0 1oL0 11d0 1oL0 11d0 1oL0 11d0 1pb0 11d0 nHX0 op0 9UK0 1Je0 Qen0 WL0 1zd0 On0 1ip0 11z0 1o10 11z0 1qN0 WL0 1ld0 14n0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 WL0 1qN0 1cL0 1cN0 11z0 1ld0 14n0 1qN0 11z0 1cN0 19X0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1ip0 1fz0 1fB0 11z0 1qN0 WL0 1qN0 WL0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1o10 19X0 1fB0 1nX0 G10 1EL0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0",
+			"America/Santo_Domingo|SDMT EST EDT EHDT AST|4E 50 40 4u 40|01213131313131414|-1ttjk 1lJMk Mn0 6sp0 Lbu 1Cou yLu 1RAu wLu 1QMu xzu 1Q0u xXu 1PAu 13jB0 e00",
+			"America/Sao_Paulo|LMT BRT BRST|36.s 30 20|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212|-2glwR.w HdKR.w 1cc0 1e10 1bX0 Ezd0 So0 1vA0 Mn0 1BB0 ML0 1BB0 zX0 pTd0 PX0 2ep0 nz0 1C10 zX0 1C10 LX0 1C10 Mn0 H210 Rb0 1tB0 IL0 1Fd0 FX0 1EN0 FX0 1HB0 Lz0 1EN0 Lz0 1C10 IL0 1HB0 Db0 1HB0 On0 1zd0 On0 1zd0 Lz0 1zd0 Rb0 1wN0 Wn0 1tB0 Rb0 1tB0 WL0 1tB0 Rb0 1zd0 On0 1HB0 FX0 1C10 Lz0 1Ip0 HX0 1zd0 On0 1HB0 IL0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1zd0 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0 On0 1zd0 On0 1zd0 On0 1C10 Lz0 1C10 Lz0 1C10 Lz0 1C10 On0 1zd0 Rb0 1wp0 On0 1C10 Lz0 1C10 On0 1zd0",
+			"America/Scoresbysund|LMT CGT CGST EGST EGT|1r.Q 20 10 0 10|0121343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434|-2a5Ww.8 2z5ew.8 1a00 1cK0 1cL0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"America/Sitka|PST PWT PPT PDT YST AKST AKDT|80 70 70 70 90 90 80|01203030303030303030303030303030345656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565|-17T20 8x10 iy0 Vo10 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 co0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/St_Johns|NST NDT NST NDT NWT NPT NDDT|3u.Q 2u.Q 3u 2u 2u 2u 1u|01010101010101010101010101010101010102323232323232324523232323232323232323232323232323232323232323232323232323232323232323232323232323232326232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-28oit.8 14L0 1nB0 1in0 1gm0 Dz0 1JB0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1fB0 19X0 1fB0 19X0 10O0 eKX.8 19X0 1iq0 WL0 1qN0 WL0 1qN0 WL0 1tB0 TX0 1tB0 WL0 1qN0 WL0 1qN0 7UHu itu 1tB0 WL0 1qN0 WL0 1qN0 WL0 1qN0 WL0 1tB0 WL0 1ld0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14n1 1lb0 14p0 1nW0 11C0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zcX Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Swift_Current|LMT MST MDT MWT MPT CST|7b.k 70 60 60 60 60|012134121212121212121215|-2AD4M.E uHdM.E 1in0 UGp0 8x20 ix0 1o10 17b0 1ip0 11z0 1o10 11z0 1o10 11z0 isN0 1cL0 3Cp0 1cL0 1cN0 11z0 1qN0 WL0 pMp0",
+			"America/Tegucigalpa|LMT CST CDT|5M.Q 60 50|01212121|-1WGGb.8 2ETcb.8 WL0 1qN0 WL0 GRd0 AL0",
+			"America/Thule|LMT AST ADT|4z.8 40 30|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2a5To.Q 31NBo.Q 1cL0 1cN0 1cL0 1fB0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Thunder_Bay|CST EST EWT EPT EDT|60 50 40 40 40|0123141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141414141|-2q5S0 1iaN0 8x40 iv0 XNB0 1cL0 1cN0 1fz0 1cN0 1cL0 3Cp0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Toronto|EST EDT EWT EPT|50 40 40 40|01010101010101010101010101010101010101010101012301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-25TR0 1in0 11Wu 1nzu 1fD0 WJ0 1wr0 Nb0 1Ap0 On0 1zd0 On0 1wp0 TX0 1tB0 TX0 1tB0 TX0 1tB0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 4kM0 8x40 iv0 1o10 11z0 1nX0 11z0 1o10 11z0 1o10 1qL0 11D0 1nX0 11B0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Vancouver|PST PDT PWT PPT|80 70 70 70|0102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-25TO0 1in0 UGp0 8x10 iy0 1o10 17b0 1ip0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Whitehorse|YST YDT YWT YPT YDDT PST PDT|90 80 80 80 70 80 70|0101023040565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565|-25TN0 1in0 1o10 13V0 Ser0 8x00 iz0 LCL0 1fA0 1Be0 xDz0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Winnipeg|CST CDT CWT CPT|60 50 50 50|010101023010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aIi0 WL0 3ND0 1in0 Jap0 Rb0 aCN0 8x30 iw0 1tB0 11z0 1ip0 11z0 1o10 11z0 1o10 11z0 1rd0 10L0 1op0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 1cL0 1cN0 11z0 6i10 WL0 6i10 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1a00 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1a00 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 14o0 1lc0 14o0 1o00 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 14o0 1o00 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1o00 11A0 1o00 11A0 1o00 14o0 1lc0 14o0 1lc0 14o0 1o00 11A0 1o00 11A0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Yakutat|YST YWT YPT YDT AKST AKDT|90 80 80 80 90 80|01203030303030303030303030303030304545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-17T10 8x00 iz0 Vo10 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 cn0 10q0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"America/Yellowknife|zzz MST MWT MPT MDDT MDT|0 70 60 60 50 60|012314151515151515151515151515151515151515151515151515151515151515151515151515151515151515151515151515151515151515151515151|-1pdA0 hix0 8x20 ix0 LCL0 1fA0 zgO0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"Antarctica/Casey|zzz AWST CAST|0 -80 -b0|012121|-2q00 1DjS0 T90 40P0 KL0",
+			"Antarctica/Davis|zzz DAVT DAVT|0 -70 -50|01012121|-vyo0 iXt0 alj0 1D7v0 VB0 3Wn0 KN0",
+			"Antarctica/DumontDUrville|zzz PMT DDUT|0 -a0 -a0|0102|-U0o0 cfq0 bFm0",
+			"Antarctica/Macquarie|AEST AEDT zzz MIST|-a0 -b0 0 -b0|0102010101010101010101010101010101010101010101010101010101010101010101010101010101010101013|-29E80 19X0 4SL0 1ayy0 Lvs0 1cM0 1o00 Rc0 1wo0 Rc0 1wo0 U00 1wo0 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 11A0 1qM0 WM0 1qM0 Oo0 1zc0 Oo0 1zc0 Oo0 1wo0 WM0 1tA0 WM0 1tA0 U00 1tA0 U00 1tA0 11A0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 11A0 1o00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1cM0 1cM0 1cM0",
+			"Antarctica/Mawson|zzz MAWT MAWT|0 -60 -50|012|-CEo0 2fyk0",
+			"Antarctica/McMurdo|NZMT NZST NZST NZDT|-bu -cu -c0 -d0|01020202020202020202020202023232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323|-1GCVu Lz0 1tB0 11zu 1o0u 11zu 1o0u 11zu 1o0u 14nu 1lcu 14nu 1lcu 1lbu 11Au 1nXu 11Au 1nXu 11Au 1nXu 11Au 1nXu 11Au 1qLu WMu 1qLu 11Au 1n1bu IM0 1C00 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1qM0 14o0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1io0 17c0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1io0 17c0 1io0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00",
+			"Antarctica/Palmer|zzz ARST ART ART ARST CLT CLST|0 30 40 30 20 40 30|012121212123435656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656565656|-cao0 nD0 1vd0 SL0 1vd0 17z0 1cN0 1fz0 1cN0 1cL0 1cN0 asn0 Db0 jsN0 14N0 11z0 1o10 11z0 1qN0 WL0 1qN0 WL0 1qN0 1cL0 1cN0 11z0 1ld0 14n0 1qN0 11z0 1cN0 19X0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1ip0 1fz0 1fB0 11z0 1qN0 WL0 1qN0 WL0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1o10 19X0 1fB0 1nX0 G10 1EL0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0",
+			"Antarctica/Rothera|zzz ROTT|0 30|01|gOo0",
+			"Antarctica/Syowa|zzz SYOT|0 -30|01|-vs00",
+			"Antarctica/Troll|zzz UTC CEST|0 0 -20|01212121212121212121212121212121212121212121212121212121212121212121|1puo0 hd0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Antarctica/Vostok|zzz VOST|0 -60|01|-tjA0",
+			"Arctic/Longyearbyen|CET CEST|-10 -20|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2awM0 Qm0 W6o0 5pf0 WM0 1fA0 1cM0 1cM0 1cM0 1cM0 wJc0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1qM0 WM0 zpc0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Asia/Aden|LMT AST|-2X.S -30|01|-MG2X.S",
+			"Asia/Almaty|LMT ALMT ALMT ALMST|-57.M -50 -60 -70|0123232323232323232323232323232323232323232323232|-1Pc57.M eUo7.M 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 3Cl0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0",
+			"Asia/Amman|LMT EET EEST|-2n.I -20 -30|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1yW2n.I 1HiMn.I KL0 1oN0 11b0 1oN0 11b0 1pd0 1dz0 1cp0 11b0 1op0 11b0 fO10 1db0 1e10 1cL0 1cN0 1cL0 1cN0 1fz0 1pd0 10n0 1ld0 14n0 1hB0 15b0 1ip0 19X0 1cN0 1cL0 1cN0 17b0 1ld0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1So0 y00 1fc0 1dc0 1co0 1dc0 1cM0 1cM0 1cM0 1o00 11A0 1lc0 17c0 1cM0 1cM0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 4bX0 Dd0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0",
+			"Asia/Anadyr|LMT ANAT ANAT ANAST ANAST ANAST ANAT|-bN.U -c0 -d0 -e0 -d0 -c0 -b0|01232414141414141414141561414141414141414141414141414141414141561|-1PcbN.U eUnN.U 23CL0 1db0 1cN0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qN0 WM0",
+			"Asia/Aqtau|LMT FORT FORT SHET SHET SHEST AQTT AQTST AQTST AQTT|-3l.4 -40 -50 -50 -60 -60 -50 -60 -50 -40|012345353535353535353536767676898989898989898989896|-1Pc3l.4 eUnl.4 1jcL0 JDc0 1cL0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 2UK0 Fz0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cN0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 RW0",
+			"Asia/Aqtobe|LMT AKTT AKTT AKTST AKTT AQTT AQTST|-3M.E -40 -50 -60 -60 -50 -60|01234323232323232323232565656565656565656565656565|-1Pc3M.E eUnM.E 23CL0 1db0 1cM0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 2UK0 Fz0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0",
+			"Asia/Ashgabat|LMT ASHT ASHT ASHST ASHST TMT TMT|-3R.w -40 -50 -60 -50 -40 -50|012323232323232323232324156|-1Pc3R.w eUnR.w 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 ba0 xC0",
+			"Asia/Baghdad|BMT AST ADT|-2V.A -30 -40|012121212121212121212121212121212121212121212121212121|-26BeV.A 2ACnV.A 11b0 1cp0 1dz0 1dd0 1db0 1cN0 1cp0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1de0 1dc0 1dc0 1dc0 1cM0 1dc0 1cM0 1dc0 1cM0 1dc0 1dc0 1dc0 1cM0 1dc0 1cM0 1dc0 1cM0 1dc0 1dc0 1dc0 1cM0 1dc0 1cM0 1dc0 1cM0 1dc0 1dc0 1dc0 1cM0 1dc0 1cM0 1dc0 1cM0 1dc0",
+			"Asia/Bahrain|LMT GST AST|-3m.k -40 -30|012|-21Jfm.k 27BXm.k",
+			"Asia/Baku|LMT BAKT BAKT BAKST BAKST AZST AZT AZT AZST|-3j.o -30 -40 -50 -40 -40 -30 -40 -50|0123232323232323232323245657878787878787878787878787878787878787878787878787878787878787878787878787878787878787|-1Pc3j.o 1jUoj.o WCL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 10K0 c30 1cJ0 1cL0 8wu0 1o00 11z0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Asia/Bangkok|BMT ICT|-6G.4 -70|01|-218SG.4",
+			"Asia/Beirut|EET EEST|-20 -30|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-21aq0 1on0 1410 1db0 19B0 1in0 1ip0 WL0 1lQp0 11b0 1oN0 11b0 1oN0 11b0 1pd0 11b0 1oN0 11b0 q6N0 En0 1oN0 11b0 1oN0 11b0 1oN0 11b0 1pd0 11b0 1oN0 11b0 1op0 11b0 dA10 17b0 1iN0 17b0 1iN0 17b0 1iN0 17b0 1vB0 SL0 1mp0 13z0 1iN0 17b0 1iN0 17b0 1jd0 12n0 1a10 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0",
+			"Asia/Bishkek|LMT FRUT FRUT FRUST FRUST KGT KGST KGT|-4W.o -50 -60 -70 -60 -50 -60 -60|01232323232323232323232456565656565656565656565656567|-1Pc4W.o eUnW.o 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 11c0 1tX0 17b0 1ip0 17b0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1cPu 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 T8u",
+			"Asia/Brunei|LMT BNT BNT|-7D.E -7u -80|012|-1KITD.E gDc9.E",
+			"Asia/Calcutta|HMT BURT IST IST|-5R.k -6u -5u -6u|01232|-18LFR.k 1unn.k HB0 7zX0",
+			"Asia/Chita|LMT YAKT YAKT YAKST YAKST YAKT IRKT|-7x.Q -80 -90 -a0 -90 -a0 -80|012323232323232323232324123232323232323232323232323232323232323256|-21Q7x.Q pAnx.Q 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Choibalsan|LMT ULAT ULAT CHOST CHOT CHOT|-7C -70 -80 -a0 -90 -80|012343434343434343434343434343434343434343434345|-2APHC 2UkoC cKn0 1da0 1dd0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 6hD0 11z0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 3Db0",
+			"Asia/Chongqing|CST CDT|-80 -90|01010101010101010|-1c1I0 LX0 16p0 1jz0 1Myp0 Rb0 1o10 11z0 1o10 11z0 1qN0 11z0 1o10 11z0 1o10 11z0",
+			"Asia/Colombo|MMT IST IHST IST LKT LKT|-5j.w -5u -60 -6u -6u -60|01231451|-2zOtj.w 1rFbN.w 1zzu 7Apu 23dz0 11zu n3cu",
+			"Asia/Dacca|HMT BURT IST DACT BDT BDST|-5R.k -6u -5u -60 -60 -70|01213454|-18LFR.k 1unn.k HB0 m6n0 LqMu 1x6n0 1i00",
+			"Asia/Damascus|LMT EET EEST|-2p.c -20 -30|01212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-21Jep.c Hep.c 17b0 1ip0 17b0 1ip0 17b0 1ip0 19X0 1xRB0 11X0 1oN0 10L0 1pB0 11b0 1oN0 10L0 1mp0 13X0 1oN0 11b0 1pd0 11b0 1oN0 11b0 1oN0 11b0 1oN0 11b0 1pd0 11b0 1oN0 11b0 1oN0 11b0 1oN0 11b0 1pd0 11b0 1oN0 Nb0 1AN0 Nb0 bcp0 19X0 1gp0 19X0 3ld0 1xX0 Vd0 1Bz0 Sp0 1vX0 10p0 1dz0 1cN0 1cL0 1db0 1db0 1g10 1an0 1ap0 1db0 1fd0 1db0 1cN0 1db0 1dd0 1db0 1cp0 1dz0 1c10 1dX0 1cN0 1db0 1dd0 1db0 1cN0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1db0 1cN0 1db0 1cN0 19z0 1fB0 1qL0 11B0 1on0 Wp0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 1qL0 WN0 1qL0",
+			"Asia/Dili|LMT TLT JST TLT WITA|-8m.k -80 -90 -90 -80|012343|-2le8m.k 1dnXm.k 8HA0 1ew00 Xld0",
+			"Asia/Dubai|LMT GST|-3F.c -40|01|-21JfF.c",
+			"Asia/Dushanbe|LMT DUST DUST DUSST DUSST TJT|-4z.c -50 -60 -70 -60 -50|0123232323232323232323245|-1Pc4z.c eUnz.c 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 14N0",
+			"Asia/Gaza|EET EET EEST IST IDT|-20 -30 -30 -20 -30|010101010102020202020202020202023434343434343434343434343430202020202020202020202020202020202020202020202020202020202020202020202020202020202020|-1c2q0 5Rb0 10r0 1px0 10N0 1pz0 16p0 1jB0 16p0 1jx0 pBd0 Vz0 1oN0 11b0 1oO0 10N0 1pz0 10N0 1pb0 10N0 1pb0 10N0 1pb0 10N0 1pz0 10N0 1pb0 10N0 1pb0 11d0 1oL0 dW0 hfB0 Db0 1fB0 Rb0 npB0 11z0 1C10 IL0 1s10 10n0 1o10 WL0 1zd0 On0 1ld0 11z0 1o10 14n0 1o10 14n0 1nd0 12n0 1nd0 Xz0 1q10 12n0 M10 C00 17c0 1io0 17c0 1io0 17c0 1o00 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 17c0 1io0 18N0 1bz0 19z0 1gp0 1610 1iL0 11z0 1o10 14o0 1lA1 SKX 1xd1 MKX 1AN0 1a00 1fA0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0",
+			"Asia/Hebron|EET EET EEST IST IDT|-20 -30 -30 -20 -30|01010101010202020202020202020202343434343434343434343434343020202020202020202020202020202020202020202020202020202020202020202020202020202020202020|-1c2q0 5Rb0 10r0 1px0 10N0 1pz0 16p0 1jB0 16p0 1jx0 pBd0 Vz0 1oN0 11b0 1oO0 10N0 1pz0 10N0 1pb0 10N0 1pb0 10N0 1pb0 10N0 1pz0 10N0 1pb0 10N0 1pb0 11d0 1oL0 dW0 hfB0 Db0 1fB0 Rb0 npB0 11z0 1C10 IL0 1s10 10n0 1o10 WL0 1zd0 On0 1ld0 11z0 1o10 14n0 1o10 14n0 1nd0 12n0 1nd0 Xz0 1q10 12n0 M10 C00 17c0 1io0 17c0 1io0 17c0 1o00 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 17c0 1io0 18N0 1bz0 19z0 1gp0 1610 1iL0 12L0 1mN0 14o0 1lc0 Tb0 1xd1 MKX bB0 cn0 1cN0 1a00 1fA0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 19X0 1fB0 19X0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0",
+			"Asia/Ho_Chi_Minh|LMT SMT ICT ICT|-76.E -76.k -70 -80|01232|-2yKT6.E byo1.k 2KM5.k Kfz0",
+			"Asia/Hong_Kong|LMT HKT HKST JST|-7A.G -80 -90 -90|0121312121212121212121212121212121212121212121212121212121212121212121|-2CFHA.G 1sEP6.G 1cL0 ylu 93X0 1qQu 1tX0 Rd0 1In0 NB0 1cL0 11B0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1kL0 14N0 1nX0 U10 1tz0 U10 1wn0 Rd0 1wn0 U10 1tz0 U10 1tz0 U10 1tz0 U10 1wn0 Rd0 1wn0 Rd0 1wn0 U10 1tz0 U10 1tz0 17d0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 s10 1Vz0 1cN0 1cL0 1cN0 1cL0 6fd0 14n0",
+			"Asia/Hovd|LMT HOVT HOVT HOVST|-66.A -60 -70 -80|01232323232323232323232323232323232323232323232|-2APG6.A 2Uko6.A cKn0 1db0 1dd0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 6hD0 11z0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0",
+			"Asia/Irkutsk|IMT IRKT IRKT IRKST IRKST IRKT|-6V.5 -70 -80 -90 -80 -90|012323232323232323232324123232323232323232323232323232323232323252|-21zGV.5 pjXV.5 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Istanbul|IMT EET EEST TRST TRT|-1U.U -20 -30 -40 -30|012121212121212121212121212121212121212121212121212121234343434342121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2ogNU.U dzzU.U 11b0 8tB0 1on0 1410 1db0 19B0 1in0 3Rd0 Un0 1oN0 11b0 zSp0 CL0 mN0 1Vz0 1gN0 1pz0 5Rd0 1fz0 1yp0 ML0 1kp0 17b0 1ip0 17b0 1fB0 19X0 1jB0 18L0 1ip0 17z0 qdd0 xX0 3S10 Tz0 dA10 11z0 1o10 11z0 1qN0 11z0 1ze0 11B0 WM0 1qO0 WI0 1nX0 1rB0 10L0 11B0 1in0 17d0 1in0 2pX0 19E0 1fU0 16Q0 1iI0 16Q0 1iI0 1Vd0 pb0 3Kp0 14o0 1df0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cL0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WO0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 Xc0 1qo0 WM0 1qM0 11A0 1o00 1200 1nA0 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Asia/Jakarta|BMT JAVT WIB JST WIB WIB|-77.c -7k -7u -90 -80 -70|01232425|-1Q0Tk luM0 mPzO 8vWu 6kpu 4PXu xhcu",
+			"Asia/Jayapura|LMT WIT ACST|-9m.M -90 -9u|0121|-1uu9m.M sMMm.M L4nu",
+			"Asia/Jerusalem|JMT IST IDT IDDT|-2k.E -20 -30 -40|01212121212132121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-26Bek.E SyMk.E 5Rb0 10r0 1px0 10N0 1pz0 16p0 1jB0 16p0 1jx0 3LB0 Em0 or0 1cn0 1dB0 16n0 10O0 1ja0 1tC0 14o0 1cM0 1a00 11A0 1Na0 An0 1MP0 AJ0 1Kp0 LC0 1oo0 Wl0 EQN0 Db0 1fB0 Rb0 npB0 11z0 1C10 IL0 1s10 10n0 1o10 WL0 1zd0 On0 1ld0 11z0 1o10 14n0 1o10 14n0 1nd0 12n0 1nd0 Xz0 1q10 12n0 1hB0 1dX0 1ep0 1aL0 1eN0 17X0 1nf0 11z0 1tB0 19W0 1e10 17b0 1ep0 1gL0 18N0 1fz0 1eN0 17b0 1gq0 1gn0 19d0 1dz0 1c10 17X0 1hB0 1gn0 19d0 1dz0 1c10 17X0 1kp0 1dz0 1c10 1aL0 1eN0 1oL0 10N0 1oL0 10N0 1oL0 10N0 1rz0 W10 1rz0 W10 1rz0 10N0 1oL0 10N0 1oL0 10N0 1rz0 W10 1rz0 W10 1rz0 10N0 1oL0 10N0 1oL0 10N0 1oL0 10N0 1rz0 W10 1rz0 W10 1rz0 10N0 1oL0 10N0 1oL0 10N0 1rz0 W10 1rz0 W10 1rz0 W10 1rz0 10N0 1oL0 10N0 1oL0",
+			"Asia/Kabul|AFT AFT|-40 -4u|01|-10Qs0",
+			"Asia/Kamchatka|LMT PETT PETT PETST PETST|-ay.A -b0 -c0 -d0 -c0|01232323232323232323232412323232323232323232323232323232323232412|-1SLKy.A ivXy.A 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qN0 WM0",
+			"Asia/Karachi|LMT IST IST KART PKT PKST|-4s.c -5u -6u -50 -50 -60|012134545454|-2xoss.c 1qOKW.c 7zX0 eup0 LqMu 1fy01 1cL0 dK0X 11b0 1610 1jX0",
+			"Asia/Kashgar|LMT XJT|-5O.k -60|01|-1GgtO.k",
+			"Asia/Kathmandu|LMT IST NPT|-5F.g -5u -5J|012|-21JhF.g 2EGMb.g",
+			"Asia/Khandyga|LMT YAKT YAKT YAKST YAKST VLAT VLAST VLAT YAKT|-92.d -80 -90 -a0 -90 -a0 -b0 -b0 -a0|01232323232323232323232412323232323232323232323232565656565656565782|-21Q92.d pAp2.d 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 qK0 yN0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 17V0 7zD0",
+			"Asia/Krasnoyarsk|LMT KRAT KRAT KRAST KRAST KRAT|-6b.q -60 -70 -80 -70 -80|012323232323232323232324123232323232323232323232323232323232323252|-21Hib.q prAb.q 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Kuala_Lumpur|SMT MALT MALST MALT MALT JST MYT|-6T.p -70 -7k -7k -7u -90 -80|01234546|-2Bg6T.p 17anT.p 7hXE dM00 17bO 8Fyu 1so1u",
+			"Asia/Kuching|LMT BORT BORT BORTST JST MYT|-7l.k -7u -80 -8k -90 -80|01232323232323232425|-1KITl.k gDbP.k 6ynu AnE 1O0k AnE 1NAk AnE 1NAk AnE 1NAk AnE 1O0k AnE 1NAk AnE pAk 8Fz0 1so10",
+			"Asia/Kuwait|LMT AST|-3b.U -30|01|-MG3b.U",
+			"Asia/Macao|LMT MOT MOST CST|-7y.k -80 -90 -80|0121212121212121212121212121212121212121213|-2le7y.k 1XO34.k 1wn0 Rd0 1wn0 R9u 1wqu U10 1tz0 TVu 1tz0 17gu 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cJu 1cL0 1cN0 1fz0 1cN0 1cOu 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cJu 1cL0 1cN0 1fz0 1cN0 1cL0 KEp0",
+			"Asia/Magadan|LMT MAGT MAGT MAGST MAGST MAGT|-a3.c -a0 -b0 -c0 -b0 -c0|012323232323232323232324123232323232323232323232323232323232323251|-1Pca3.c eUo3.c 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Makassar|LMT MMT WITA JST|-7V.A -7V.A -80 -90|01232|-21JjV.A vfc0 myLV.A 8ML0",
+			"Asia/Manila|PHT PHST JST|-80 -90 -90|010201010|-1kJI0 AL0 cK10 65X0 mXB0 vX0 VK10 1db0",
+			"Asia/Muscat|LMT GST|-3S.o -40|01|-21JfS.o",
+			"Asia/Nicosia|LMT EET EEST|-2d.s -20 -30|01212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1Vc2d.s 2a3cd.s 1cL0 1qp0 Xz0 19B0 19X0 1fB0 1db0 1cp0 1cL0 1fB0 19X0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1o30 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Asia/Novokuznetsk|NMT KRAT KRAT KRAST KRAST NOVST NOVT NOVT|-5M.M -60 -70 -80 -70 -70 -60 -70|012323232323232323232324123232323232323232323232323232323232325672|-21HhM.M przM.M 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qN0 WM0 8Hz0",
+			"Asia/Novosibirsk|LMT NOVT NOVT NOVST NOVST|-5v.E -60 -70 -80 -70|0123232323232323232323241232341414141414141414141414141414141414121|-21Qnv.E pAFv.E 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 ml0 Os0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Omsk|LMT OMST OMST OMSST OMSST OMST|-4R.u -50 -60 -70 -60 -70|012323232323232323232324123232323232323232323232323232323232323252|-224sR.u pMLR.u 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Oral|LMT URAT URAT URAST URAT URAST ORAT ORAST ORAT|-3p.o -40 -50 -60 -60 -50 -40 -50 -50|012343232323232323251516767676767676767676767676768|-1Pc3p.o eUnp.o 23CL0 1db0 1cM0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1fA0 2UK0 Fz0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 RW0",
+			"Asia/Phnom_Penh|LMT SMT ICT ICT|-6X.E -76.k -70 -80|01232|-2yKSX.E bynS.k 2KM5.k Kfz0",
+			"Asia/Pontianak|LMT PMT WIB JST WIB WITA WIB|-7h.k -7h.k -7u -90 -80 -80 -70|012324256|-2ua7h.k XE00 munL.k 8Rau 6kpu 4PXu xhcu Wqnu",
+			"Asia/Pyongyang|KST JCST JST KST KST|-8u -90 -90 -90 -80|01012343|-2CsUu Ucnu 9Iou dXXu jdA0 kQo0 hXB0",
+			"Asia/Qatar|LMT GST AST|-3q.8 -40 -30|012|-21Jfq.8 27BXq.8",
+			"Asia/Qyzylorda|LMT KIZT KIZT KIZST KIZT QYZT QYZT QYZST|-4l.Q -40 -50 -60 -60 -50 -60 -70|012343232323232323232325676767676767676767676767676|-1Pc4l.Q eUol.Q 23CL0 1db0 1cM0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 2UK0 dC0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0",
+			"Asia/Rangoon|RMT BURT JST MMT|-6o.E -6u -90 -6u|0123|-21Jio.E SmnS.E 7j9u",
+			"Asia/Riyadh|LMT AST|-36.Q -30|01|-TvD6.Q",
+			"Asia/Sakhalin|LMT JCST JST SAKT SAKST SAKST SAKT|-9u.M -90 -90 -b0 -c0 -b0 -a0|0123434343434343434343435634343434343565656565656565656565656565636|-2AGVu.M 1iaMu.M je00 1qFa0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o10 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Samarkand|LMT SAMT SAMT SAMST TAST UZST UZT|-4r.R -40 -50 -60 -60 -60 -50|01234323232323232323232356|-1Pc4r.R eUor.R 23CL0 1db0 1cM0 1dc0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 11x0 bf0",
+			"Asia/Seoul|KST JCST JST KST KST KDT KDT|-8u -90 -90 -90 -80 -90 -a0|010123454036363|-2CsUu Ucnu 9Iou dXXu jjA0 kKo0 eWN0 Mn0 2cp0 hnzu JhXu 11z0 1o10 11z0",
+			"Asia/Singapore|SMT MALT MALST MALT MALT JST SGT SGT|-6T.p -70 -7k -7k -7u -90 -7u -80|012345467|-2Bg6T.p 17anT.p 7hXE dM00 17bO 8Fyu Mspu DTA0",
+			"Asia/Srednekolymsk|LMT MAGT MAGT MAGST MAGST MAGT SRET|-ae.Q -a0 -b0 -c0 -b0 -c0 -b0|012323232323232323232324123232323232323232323232323232323232323256|-1Pcae.Q eUoe.Q 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Taipei|JWST JST CST CDT|-80 -90 -80 -90|01232323232323232323232323232323232323232|-1iw80 joM0 1yo0 Tz0 1ip0 1jX0 1cN0 11b0 1oN0 11b0 1oN0 11b0 1oN0 11b0 10N0 1BX0 10p0 1pz0 10p0 1pz0 10p0 1db0 1dd0 1db0 1cN0 1db0 1cN0 1db0 1cN0 1db0 1BB0 ML0 1Bd0 ML0 uq10 1db0 1cN0 1db0 97B0 AL0",
+			"Asia/Tashkent|LMT TAST TAST TASST TASST UZST UZT|-4B.b -50 -60 -70 -60 -60 -50|01232323232323232323232456|-1Pc4B.b eUnB.b 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 11y0 bf0",
+			"Asia/Tbilisi|TBMT TBIT TBIT TBIST TBIST GEST GET GET GEST|-2X.b -30 -40 -50 -40 -40 -30 -40 -50|0123232323232323232323245656565787878787878787878567|-1Pc2X.b 1jUnX.b WCL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 3y0 19f0 1cK0 1cL0 1cN0 1cL0 1cN0 1cL0 1cM0 1cL0 1fB0 3Nz0 11B0 1nX0 11B0 1qL0 WN0 1qL0 WN0 1qL0 11B0 1nX0 11B0 1nX0 11B0 An0 Os0 WM0",
+			"Asia/Tehran|LMT TMT IRST IRST IRDT IRDT|-3p.I -3p.I -3u -40 -50 -4u|01234325252525252525252525252525252525252525252525252525252525252525252525252525252525252525252525252|-2btDp.I 1d3c0 1huLT.I TXu 1pz0 sN0 vAu 1cL0 1dB0 1en0 pNB0 UL0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 64p0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0 1cN0 1dz0 1cp0 1dz0 1cp0 1dz0 1cp0 1dz0",
+			"Asia/Thimbu|LMT IST BTT|-5W.A -5u -60|012|-Su5W.A 1BGMs.A",
+			"Asia/Tokyo|JCST JST JDT|-90 -90 -a0|0121212121|-1iw90 pKq0 QL0 1lB0 13X0 1zB0 NX0 1zB0 NX0",
+			"Asia/Ulaanbaatar|LMT ULAT ULAT ULAST|-77.w -70 -80 -90|01232323232323232323232323232323232323232323232|-2APH7.w 2Uko7.w cKn0 1db0 1dd0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 6hD0 11z0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0",
+			"Asia/Ust-Nera|LMT YAKT YAKT MAGST MAGT MAGST MAGT MAGT VLAT VLAT|-9w.S -80 -90 -c0 -b0 -b0 -a0 -c0 -b0 -a0|0123434343434343434343456434343434343434343434343434343434343434789|-21Q9w.S pApw.S 23CL0 1d90 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 17V0 7zD0",
+			"Asia/Vientiane|LMT SMT ICT ICT|-6O.o -76.k -70 -80|01232|-2yKSO.o bynJ.4 2KM5.k Kfz0",
+			"Asia/Vladivostok|LMT VLAT VLAT VLAST VLAST VLAT|-8L.v -90 -a0 -b0 -a0 -b0|012323232323232323232324123232323232323232323232323232323232323252|-1SJIL.v itXL.v 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Yakutsk|LMT YAKT YAKT YAKST YAKST YAKT|-8C.W -80 -90 -a0 -90 -a0|012323232323232323232324123232323232323232323232323232323232323252|-21Q8C.W pAoC.W 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Yekaterinburg|LMT PMT SVET SVET SVEST SVEST YEKT YEKST YEKT|-42.x -3J.5 -40 -50 -60 -50 -50 -60 -60|0123434343434343434343435267676767676767676767676767676767676767686|-2ag42.x 7mQh.s qBvJ.5 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Asia/Yerevan|LMT YERT YERT YERST YERST AMST AMT AMT AMST|-2W -30 -40 -50 -40 -40 -30 -40 -50|0123232323232323232323245656565657878787878787878787878787878787|-1Pc2W 1jUnW WCL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1am0 2r0 1cJ0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 3Fb0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0",
+			"Atlantic/Azores|HMT AZOT AZOST AZOMT AZOT AZOST WET|1S.w 20 10 0 10 0 0|01212121212121212121212121212121212121212121232123212321232121212121212121212121212121212121212121454545454545454545454545454545456545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-2ldW5.s aPX5.s Sp0 LX0 1vc0 Tc0 1uM0 SM0 1vc0 Tc0 1vc0 SM0 1vc0 6600 1co0 3E00 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 3I00 17c0 1cM0 1cM0 3Fc0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Dc0 1tA0 1cM0 1dc0 1400 gL0 IM0 s10 U00 dX0 Rc0 pd0 Rc0 gL0 Oo0 pd0 Rc0 gL0 Oo0 pd0 14o0 1cM0 1cP0 1cM0 1cM0 1cM0 1cM0 1cM0 3Co0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 qIl0 1cM0 1fA0 1cM0 1cM0 1cN0 1cL0 1cN0 1cM0 1cM0 1cM0 1cM0 1cN0 1cL0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cL0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Atlantic/Bermuda|LMT AST ADT|4j.i 40 30|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1BnRE.G 1LTbE.G 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"Atlantic/Canary|LMT CANT WET WEST|11.A 10 0 -10|01232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-1UtaW.o XPAW.o 1lAK0 1a10 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Atlantic/Cape_Verde|LMT CVT CVST CVT|1y.4 20 10 10|01213|-2xomp.U 1qOMp.U 7zX0 1djf0",
+			"Atlantic/Faeroe|LMT WET WEST|r.4 0 -10|01212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2uSnw.U 2Wgow.U 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Atlantic/Madeira|FMT MADT MADST MADMT WET WEST|17.A 10 0 -10 0 -10|01212121212121212121212121212121212121212121232123212321232121212121212121212121212121212121212121454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-2ldWQ.o aPWQ.o Sp0 LX0 1vc0 Tc0 1uM0 SM0 1vc0 Tc0 1vc0 SM0 1vc0 6600 1co0 3E00 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 3I00 17c0 1cM0 1cM0 3Fc0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Dc0 1tA0 1cM0 1dc0 1400 gL0 IM0 s10 U00 dX0 Rc0 pd0 Rc0 gL0 Oo0 pd0 Rc0 gL0 Oo0 pd0 14o0 1cM0 1cP0 1cM0 1cM0 1cM0 1cM0 1cM0 3Co0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 qIl0 1cM0 1fA0 1cM0 1cM0 1cN0 1cL0 1cN0 1cM0 1cM0 1cM0 1cM0 1cN0 1cL0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Atlantic/Reykjavik|RMT IST ISST GMT|1r.M 10 0 0|01212121212121212121212121212121212121212121212121212121212121213|-2uWmw.c mfaw.c 1Bd0 ML0 1LB0 NLX0 1pe0 zd0 1EL0 LA0 1C00 Oo0 1wo0 Rc0 1wo0 Rc0 1wo0 Rc0 1zc0 Oo0 1zc0 14o0 1lc0 14o0 1lc0 14o0 1o00 11A0 1lc0 14o0 1o00 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1o00 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1o00 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1lc0 14o0 1o00 14o0",
+			"Atlantic/South_Georgia|GST|20|0|",
+			"Atlantic/Stanley|SMT FKT FKST FKT FKST|3P.o 40 30 30 20|0121212121212134343212121212121212121212121212121212121212121212121212|-2kJw8.A 12bA8.A 19X0 1fB0 19X0 1ip0 19X0 1fB0 19X0 1fB0 19X0 1fB0 Cn0 1Cc10 WL0 1qL0 U10 1tz0 U10 1qM0 WN0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1tz0 U10 1tz0 WN0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1tz0 WN0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1qL0 WN0 1qN0 U10 1wn0 Rd0 1wn0 U10 1tz0 U10 1tz0 U10 1tz0 U10 1tz0 U10 1wn0 U10 1tz0 U10 1tz0 U10",
+			"Australia/ACT|AEST AEDT|-a0 -b0|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-293lX xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 14o0 1o00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 U00 1qM0 WM0 1tA0 WM0 1tA0 U00 1tA0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 11A0 1o00 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 14o0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/Adelaide|ACST ACDT|-9u -au|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-293lt xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 U00 1qM0 WM0 1tA0 WM0 1tA0 U00 1tA0 U00 1tA0 Oo0 1zc0 WM0 1qM0 Rc0 1zc0 U00 1tA0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 14o0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/Brisbane|AEST AEDT|-a0 -b0|01010101010101010|-293lX xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 H1A0 Oo0 1zc0 Oo0 1zc0 Oo0",
+			"Australia/Broken_Hill|ACST ACDT|-9u -au|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-293lt xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 14o0 1o00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 U00 1qM0 WM0 1tA0 WM0 1tA0 U00 1tA0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 14o0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/Currie|AEST AEDT|-a0 -b0|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-29E80 19X0 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 11A0 1qM0 WM0 1qM0 Oo0 1zc0 Oo0 1zc0 Oo0 1wo0 WM0 1tA0 WM0 1tA0 U00 1tA0 U00 1tA0 11A0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 11A0 1o00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/Darwin|ACST ACDT|-9u -au|010101010|-293lt xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0",
+			"Australia/Eucla|ACWST ACWDT|-8J -9J|0101010101010101010|-293kI xcX 10jd0 yL0 1cN0 1cL0 1gSp0 Oo0 l5A0 Oo0 iJA0 G00 zU00 IM0 1qM0 11A0 1o00 11A0",
+			"Australia/Hobart|AEST AEDT|-a0 -b0|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-29E80 19X0 10jd0 yL0 1cN0 1cL0 1fB0 19X0 VfB0 1cM0 1o00 Rc0 1wo0 Rc0 1wo0 U00 1wo0 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 11A0 1qM0 WM0 1qM0 Oo0 1zc0 Oo0 1zc0 Oo0 1wo0 WM0 1tA0 WM0 1tA0 U00 1tA0 U00 1tA0 11A0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 11A0 1o00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/LHI|AEST LHST LHDT LHDT|-a0 -au -bu -b0|0121212121313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313|raC0 1zdu Rb0 1zd0 On0 1zd0 On0 1zd0 On0 1zd0 TXu 1qMu WLu 1tAu WLu 1tAu TXu 1tAu Onu 1zcu Onu 1zcu Onu 1zcu Rbu 1zcu Onu 1zcu Onu 1zcu 11zu 1o0u 11zu 1o0u 11zu 1o0u 11zu 1qMu WLu 11Au 1nXu 1qMu 11zu 1o0u 11zu 1o0u 11zu 1qMu WLu 1qMu 11zu 1o0u WLu 1qMu 14nu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1fAu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1fAu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1fzu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1fAu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1cMu 1cLu 1fAu 1cLu 1cMu 1cLu 1cMu",
+			"Australia/Lindeman|AEST AEDT|-a0 -b0|010101010101010101010|-293lX xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 H1A0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0",
+			"Australia/Melbourne|AEST AEDT|-a0 -b0|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101|-293lX xcX 10jd0 yL0 1cN0 1cL0 1fB0 19X0 17c10 LA0 1C00 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 U00 1qM0 WM0 1qM0 11A0 1tA0 U00 1tA0 U00 1tA0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 11A0 1o00 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 14o0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0",
+			"Australia/Perth|AWST AWDT|-80 -90|0101010101010101010|-293jX xcX 10jd0 yL0 1cN0 1cL0 1gSp0 Oo0 l5A0 Oo0 iJA0 G00 zU00 IM0 1qM0 11A0 1o00 11A0",
+			"CET|CET CEST|-10 -20|01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1o00 11A0 Qrc0 6i00 WM0 1fA0 1cM0 1cM0 1cM0 16M0 1gMM0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"CST6CDT|CST CDT CWT CPT|60 50 50 50|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261s0 1nX0 11B0 1nX0 SgN0 8x30 iw0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"Chile/EasterIsland|EMT EASST EAST EAST EASST|7h.s 60 70 60 50|012121212121212121212121212121213434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434|-1uSgG.w nHUG.w op0 9UK0 RXB0 WL0 1zd0 On0 1ip0 11z0 1o10 11z0 1qN0 WL0 1ld0 14n0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 WL0 1qN0 1cL0 1cN0 11z0 1ld0 14n0 1qN0 11z0 1cN0 19X0 1qN0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1ip0 1fz0 1fB0 11z0 1qN0 WL0 1qN0 WL0 1qN0 WL0 1qN0 11z0 1o10 11z0 1o10 11z0 1qN0 WL0 1qN0 17b0 1ip0 11z0 1o10 19X0 1fB0 1nX0 G10 1EL0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1wn0 Rd0 1zb0 Op0 1zb0 Rd0 1wn0 Rd0",
+			"EET|EET EEST|-20 -30|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|hDB0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"EST|EST|50|0|",
+			"EST5EDT|EST EDT EWT EPT|50 40 40 40|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261t0 1nX0 11B0 1nX0 SgN0 8x40 iv0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"Eire|DMT IST GMT BST IST|p.l -y.D 0 -10 -10|01232323232324242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242|-2ax9y.D Rc0 1fzy.D 14M0 1fc0 1g00 1co0 1dc0 1co0 1oo0 1400 1dc0 19A0 1io0 1io0 WM0 1o00 14o0 1o00 17c0 1io0 17c0 1fA0 1a00 1lc0 17c0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1cM0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1a00 1io0 1qM0 Dc0 g5X0 14p0 1wn0 17d0 1io0 11A0 1o00 17c0 1fA0 1a00 1fA0 1cM0 1fA0 1a00 17c0 1fA0 1a00 1io0 17c0 1lc0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1a00 1a00 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1tA0 IM0 90o0 U00 1tA0 U00 1tA0 U00 1tA0 U00 1tA0 WM0 1qM0 WM0 1qM0 WM0 1tA0 U00 1tA0 U00 1tA0 11z0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 14o0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Etc/GMT+0|GMT|0|0|",
+			"Etc/GMT+1|GMT+1|10|0|",
+			"Etc/GMT+10|GMT+10|a0|0|",
+			"Etc/GMT+11|GMT+11|b0|0|",
+			"Etc/GMT+12|GMT+12|c0|0|",
+			"Etc/GMT+2|GMT+2|20|0|",
+			"Etc/GMT+3|GMT+3|30|0|",
+			"Etc/GMT+4|GMT+4|40|0|",
+			"Etc/GMT+5|GMT+5|50|0|",
+			"Etc/GMT+6|GMT+6|60|0|",
+			"Etc/GMT+7|GMT+7|70|0|",
+			"Etc/GMT+8|GMT+8|80|0|",
+			"Etc/GMT+9|GMT+9|90|0|",
+			"Etc/GMT-1|GMT-1|-10|0|",
+			"Etc/GMT-10|GMT-10|-a0|0|",
+			"Etc/GMT-11|GMT-11|-b0|0|",
+			"Etc/GMT-12|GMT-12|-c0|0|",
+			"Etc/GMT-13|GMT-13|-d0|0|",
+			"Etc/GMT-14|GMT-14|-e0|0|",
+			"Etc/GMT-2|GMT-2|-20|0|",
+			"Etc/GMT-3|GMT-3|-30|0|",
+			"Etc/GMT-4|GMT-4|-40|0|",
+			"Etc/GMT-5|GMT-5|-50|0|",
+			"Etc/GMT-6|GMT-6|-60|0|",
+			"Etc/GMT-7|GMT-7|-70|0|",
+			"Etc/GMT-8|GMT-8|-80|0|",
+			"Etc/GMT-9|GMT-9|-90|0|",
+			"Etc/UCT|UCT|0|0|",
+			"Etc/UTC|UTC|0|0|",
+			"Europe/Amsterdam|AMT NST NEST NET CEST CET|-j.w -1j.w -1k -k -20 -10|010101010101010101010101010101010101010101012323234545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545|-2aFcj.w 11b0 1iP0 11A0 1io0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1co0 1io0 1yo0 Pc0 1a00 1fA0 1Bc0 Mo0 1tc0 Uo0 1tA0 U00 1uo0 W00 1s00 VA0 1so0 Vc0 1sM0 UM0 1wo0 Rc0 1u00 Wo0 1rA0 W00 1s00 VA0 1sM0 UM0 1w00 fV0 BCX.w 1tA0 U00 1u00 Wo0 1sm0 601k WM0 1fA0 1cM0 1cM0 1cM0 16M0 1gMM0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Andorra|WET CET CEST|0 -10 -20|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-UBA0 1xIN0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Athens|AMT EET EEST CEST CET|-1y.Q -20 -30 -20 -10|012123434121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2a61x.Q CNbx.Q mn0 kU10 9b0 3Es0 Xa0 1fb0 1dd0 k3X0 Nz0 SCp0 1vc0 SO0 1cM0 1a00 1ao0 1fc0 1a10 1fG0 1cg0 1dX0 1bX0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Belfast|GMT BST BDST|0 -10 -20|0101010101010101010101010101010101010101010101010121212121210101210101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2axa0 Rc0 1fA0 14M0 1fc0 1g00 1co0 1dc0 1co0 1oo0 1400 1dc0 19A0 1io0 1io0 WM0 1o00 14o0 1o00 17c0 1io0 17c0 1fA0 1a00 1lc0 17c0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1cM0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1a00 1io0 1qM0 Dc0 2Rz0 Dc0 1zc0 Oo0 1zc0 Rc0 1wo0 17c0 1iM0 FA0 xB0 1fA0 1a00 14o0 bb0 LA0 xB0 Rc0 1wo0 11A0 1o00 17c0 1fA0 1a00 1fA0 1cM0 1fA0 1a00 17c0 1fA0 1a00 1io0 17c0 1lc0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1a00 1a00 1qM0 WM0 1qM0 11A0 1o00 WM0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1tA0 IM0 90o0 U00 1tA0 U00 1tA0 U00 1tA0 U00 1tA0 WM0 1qM0 WM0 1qM0 WM0 1tA0 U00 1tA0 U00 1tA0 11z0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1o00 14o0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Belgrade|CET CEST|-10 -20|01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-19RC0 3IP0 WM0 1fA0 1cM0 1cM0 1rc0 Qo0 1vmo0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Berlin|CET CEST CEMT|-10 -20 -30|01010101010101210101210101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1o00 11A0 Qrc0 6i00 WM0 1fA0 1cM0 1cM0 1cM0 kL0 Nc0 m10 WM0 1ao0 1cp0 dX0 jz0 Dd0 1io0 17c0 1fA0 1a00 1ehA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Bratislava|CET CEST|-10 -20|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1o00 11A0 Qrc0 6i00 WM0 1fA0 1cM0 16M0 1lc0 1tA0 17A0 11c0 1io0 17c0 1io0 17c0 1fc0 1ao0 1bNc0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Brussels|WET CET CEST WEST|0 -10 -20 -10|0121212103030303030303030303030303030303030303030303212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2ehc0 3zX0 11c0 1iO0 11A0 1o00 11A0 my0 Ic0 1qM0 Rc0 1EM0 UM0 1u00 10o0 1io0 1io0 17c0 1a00 1fA0 1cM0 1cM0 1io0 17c0 1fA0 1a00 1io0 1a30 1io0 17c0 1fA0 1a00 1io0 17c0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Dc0 y00 5Wn0 WM0 1fA0 1cM0 16M0 1iM0 16M0 1C00 Uo0 1eeo0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Bucharest|BMT EET EEST|-1I.o -20 -30|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1xApI.o 20LI.o RA0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1Axc0 On0 1fA0 1a10 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cK0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cL0 1cN0 1cL0 1fB0 1nX0 11E0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Budapest|CET CEST|-10 -20|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1ip0 17b0 1op0 1tb0 Q2m0 3Ne0 WM0 1fA0 1cM0 1cM0 1oJ0 1dc0 1030 1fA0 1cM0 1cM0 1cM0 1cM0 1fA0 1a00 1iM0 1fA0 8Ha0 Rb0 1wN0 Rb0 1BB0 Lz0 1C20 LB0 SNX0 1a10 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Busingen|CET CEST|-10 -20|01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-19Lc0 11A0 1o00 11A0 1xG10 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Chisinau|CMT BMT EET EEST CEST CET MSK MSD|-1T -1I.o -20 -30 -20 -10 -30 -40|0123232323232323232345454676767676767676767623232323232323232323232323232323232323232323232323232323232323232323232323232323232323232323232|-26jdT wGMa.A 20LI.o RA0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 27A0 2en0 39g0 WM0 1fA0 1cM0 V90 1t7z0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1ty0 2bD0 1cM0 1cK0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1nX0 11E0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Copenhagen|CET CEST|-10 -20|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2azC0 Tz0 VuO0 60q0 WM0 1fA0 1cM0 1cM0 1cM0 S00 1HA0 Nc0 1C00 Dc0 1Nc0 Ao0 1h5A0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Gibraltar|GMT BST BDST CET CEST|0 -10 -20 -10 -20|010101010101010101010101010101010101010101010101012121212121010121010101010101010101034343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343|-2axa0 Rc0 1fA0 14M0 1fc0 1g00 1co0 1dc0 1co0 1oo0 1400 1dc0 19A0 1io0 1io0 WM0 1o00 14o0 1o00 17c0 1io0 17c0 1fA0 1a00 1lc0 17c0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1cM0 1io0 17c0 1fA0 1a00 1io0 17c0 1io0 17c0 1fA0 1a00 1io0 1qM0 Dc0 2Rz0 Dc0 1zc0 Oo0 1zc0 Rc0 1wo0 17c0 1iM0 FA0 xB0 1fA0 1a00 14o0 bb0 LA0 xB0 Rc0 1wo0 11A0 1o00 17c0 1fA0 1a00 1fA0 1cM0 1fA0 1a00 17c0 1fA0 1a00 1io0 17c0 1lc0 17c0 1fA0 10Jz0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Helsinki|HMT EET EEST|-1D.N -20 -30|0121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-1WuND.N OULD.N 1dA0 1xGq0 1cM0 1cM0 1cM0 1cN0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Kaliningrad|CET CEST CET CEST MSK MSD EEST EET FET|-10 -20 -20 -30 -30 -40 -30 -20 -30|0101010101010232454545454545454545454676767676767676767676767676767676767676787|-2aFe0 11d0 1iO0 11A0 1o00 11A0 Qrc0 6i00 WM0 1fA0 1cM0 1cM0 Am0 Lb0 1en0 op0 1pNz0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 1cJ0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Europe/Kiev|KMT EET MSK CEST CET MSD EEST|-22.4 -20 -30 -20 -10 -40 -30|0123434252525252525252525256161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161|-1Pc22.4 eUo2.4 rnz0 2Hg0 WM0 1fA0 da0 1v4m0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 Db0 3220 1cK0 1cL0 1cN0 1cL0 1cN0 1cL0 1cQ0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Lisbon|LMT WET WEST WEMT CET CEST|A.J 0 -10 -20 -10 -20|012121212121212121212121212121212121212121212321232123212321212121212121212121212121212121212121214121212121212121212121212121212124545454212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2ldXn.f aPWn.f Sp0 LX0 1vc0 Tc0 1uM0 SM0 1vc0 Tc0 1vc0 SM0 1vc0 6600 1co0 3E00 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 3I00 17c0 1cM0 1cM0 3Fc0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Dc0 1tA0 1cM0 1dc0 1400 gL0 IM0 s10 U00 dX0 Rc0 pd0 Rc0 gL0 Oo0 pd0 Rc0 gL0 Oo0 pd0 14o0 1cM0 1cP0 1cM0 1cM0 1cM0 1cM0 1cM0 3Co0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 pvy0 1cM0 1cM0 1fA0 1cM0 1cM0 1cN0 1cL0 1cN0 1cM0 1cM0 1cM0 1cM0 1cN0 1cL0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Luxembourg|LMT CET CEST WET WEST WEST WET|-o.A -10 -20 0 -10 -20 -10|0121212134343434343434343434343434343434343434343434565651212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2DG0o.A t6mo.A TB0 1nX0 Up0 1o20 11A0 rW0 CM0 1qP0 R90 1EO0 UK0 1u20 10m0 1ip0 1in0 17e0 19W0 1fB0 1db0 1cp0 1in0 17d0 1fz0 1a10 1in0 1a10 1in0 17f0 1fA0 1a00 1io0 17c0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Dc0 vA0 60L0 WM0 1fA0 1cM0 17c0 1io0 16M0 1C00 Uo0 1eeo0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Madrid|WET WEST WEMT CET CEST|0 -10 -20 -10 -20|01010101010101010101010121212121234343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343|-28dd0 11A0 1go0 19A0 1co0 1dA0 b1A0 18o0 3I00 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 iyo0 Rc0 18o0 1hc0 1io0 1a00 14o0 5aL0 MM0 1vc0 17A0 1i00 1bc0 1eo0 17d0 1in0 17A0 6hA0 10N0 XIL0 1a10 1in0 17d0 19X0 1cN0 1fz0 1a10 1fX0 1cp0 1cO0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Malta|CET CEST|-10 -20|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2as10 M00 1cM0 1cM0 14o0 1o00 WM0 1qM0 17c0 1cM0 M3A0 5M20 WM0 1fA0 1cM0 1cM0 1cM0 16m0 1de0 1lc0 14m0 1lc0 WO0 1qM0 GTW0 On0 1C10 Lz0 1C10 Lz0 1EN0 Lz0 1C10 Lz0 1zd0 Oo0 1C00 On0 1cp0 1cM0 1lA0 Xc0 1qq0 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1o10 11z0 1iN0 19z0 1fB0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Minsk|MMT EET MSK CEST CET MSD EEST FET|-1O -20 -30 -20 -10 -40 -30 -30|01234343252525252525252525261616161616161616161616161616161616161617|-1Pc1O eUnO qNX0 3gQ0 WM0 1fA0 1cM0 Al0 1tsn0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 3Fc0 1cN0 1cK0 1cM0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0",
+			"Europe/Monaco|PMT WET WEST WEMT CET CEST|-9.l 0 -10 -20 -10 -20|01212121212121212121212121212121212121212121212121232323232345454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-2nco9.l cNb9.l HA0 19A0 1iM0 11c0 1oo0 Wo0 1rc0 QM0 1EM0 UM0 1u00 10o0 1io0 1wo0 Rc0 1a00 1fA0 1cM0 1cM0 1io0 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 1fA0 1a00 1io0 17c0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Df0 2RV0 11z0 11B0 1ze0 WM0 1fA0 1cM0 1fa0 1aq0 16M0 1ekn0 1cL0 1fC0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Moscow|MMT MMT MST MDST MSD MSK MSM EET EEST MSK|-2u.h -2v.j -3v.j -4v.j -40 -30 -50 -20 -30 -40|012132345464575454545454545454545458754545454545454545454545454545454545454595|-2ag2u.h 2pyW.W 1bA0 11X0 GN0 1Hb0 c20 imv.j 3DA0 dz0 15A0 c10 2q10 iM10 23CL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 IM0 rU0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Europe/Paris|PMT WET WEST CEST CET WEMT|-9.l 0 -10 -20 -10 -20|0121212121212121212121212121212121212121212121212123434352543434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434343434|-2nco8.l cNb8.l HA0 19A0 1iM0 11c0 1oo0 Wo0 1rc0 QM0 1EM0 UM0 1u00 10o0 1io0 1wo0 Rc0 1a00 1fA0 1cM0 1cM0 1io0 17c0 1fA0 1a00 1io0 1a00 1io0 17c0 1fA0 1a00 1io0 17c0 1cM0 1cM0 1a00 1io0 1cM0 1cM0 1a00 1fA0 1io0 17c0 1cM0 1cM0 1a00 1fA0 1io0 1qM0 Df0 Ik0 5M30 WM0 1fA0 1cM0 Vx0 hB0 1aq0 16M0 1ekn0 1cL0 1fC0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Riga|RMT LST EET MSK CEST CET MSD EEST|-1A.y -2A.y -20 -30 -20 -10 -40 -30|010102345454536363636363636363727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272|-25TzA.y 11A0 1iM0 ko0 gWm0 yDXA.y 2bX0 3fE0 WM0 1fA0 1cM0 1cM0 4m0 1sLy0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 1o00 11A0 1o00 11A0 1qM0 3oo0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Rome|CET CEST|-10 -20|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2as10 M00 1cM0 1cM0 14o0 1o00 WM0 1qM0 17c0 1cM0 M3A0 5M20 WM0 1fA0 1cM0 16K0 1iO0 16m0 1de0 1lc0 14m0 1lc0 WO0 1qM0 GTW0 On0 1C10 Lz0 1C10 Lz0 1EN0 Lz0 1C10 Lz0 1zd0 Oo0 1C00 On0 1C10 Lz0 1zd0 On0 1C10 LA0 1C00 LA0 1zc0 Oo0 1C00 Oo0 1zc0 Oo0 1fC0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Samara|LMT SAMT SAMT KUYT KUYST MSD MSK EEST KUYT SAMST SAMST|-3k.k -30 -40 -40 -50 -40 -30 -30 -30 -50 -40|012343434343434343435656782929292929292929292929292929292929292a12|-22WNk.k qHak.k bcn0 1Qqo0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1fA0 1cM0 1cN0 8o0 14j0 1cL0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qN0 WM0",
+			"Europe/Simferopol|SMT EET MSK CEST CET MSD EEST MSK|-2g -20 -30 -20 -10 -40 -30 -40|012343432525252525252525252161616525252616161616161616161616161616161616172|-1Pc2g eUog rEn0 2qs0 WM0 1fA0 1cM0 3V0 1u0L0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1Q00 4eL0 1cL0 1cN0 1cL0 1cN0 dX0 WL0 1cN0 1cL0 1fB0 1o30 11B0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11z0 1nW0",
+			"Europe/Sofia|EET CET CEST EEST|-20 -10 -20 -30|01212103030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030|-168L0 WM0 1fA0 1cM0 1cM0 1cN0 1mKH0 1dd0 1fb0 1ap0 1fb0 1a20 1fy0 1a30 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cK0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 1nX0 11E0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Stockholm|CET CEST|-10 -20|01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2azC0 TB0 2yDe0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Tallinn|TMT CET CEST EET MSK MSD EEST|-1D -10 -20 -20 -30 -40 -30|012103421212454545454545454546363636363636363636363636363636363636363636363636363636363636363636363636363636363636363636363|-26oND teD 11A0 1Ta0 4rXl KSLD 2FX0 2Jg0 WM0 1fA0 1cM0 18J0 1sTX0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o10 11A0 1qM0 5QM0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Tirane|LMT CET CEST|-1j.k -10 -20|01212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2glBj.k 14pcj.k 5LC0 WM0 4M0 1fCK0 10n0 1op0 11z0 1pd0 11z0 1qN0 WL0 1qp0 Xb0 1qp0 Xb0 1qp0 11z0 1lB0 11z0 1qN0 11z0 1iN0 16n0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Uzhgorod|CET CEST MSK MSD EET EEST|-10 -20 -30 -40 -20 -30|010101023232323232323232320454545454545454545454545454545454545454545454545454545454545454545454545454545454545454545454|-1cqL0 6i00 WM0 1fA0 1cM0 1ml0 1Cp0 1r3W0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1Q00 1Nf0 2pw0 1cL0 1cN0 1cL0 1cN0 1cL0 1cQ0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Vienna|CET CEST|-10 -20|0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1o00 11A0 3KM0 14o0 LA00 6i00 WM0 1fA0 1cM0 1cM0 1cM0 400 2qM0 1a00 1cM0 1cM0 1io0 17c0 1gHa0 19X0 1cP0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Vilnius|WMT KMT CET EET MSK CEST MSD EEST|-1o -1z.A -10 -20 -30 -20 -40 -30|012324525254646464646464646464647373737373737352537373737373737373737373737373737373737373737373737373737373737373737373|-293do 6ILM.o 1Ooz.A zz0 Mfd0 29W0 3is0 WM0 1fA0 1cM0 LV0 1tgL0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cN0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11B0 1o00 11A0 1qM0 8io0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Volgograd|LMT TSAT STAT STAT VOLT VOLST VOLST VOLT MSK MSK|-2V.E -30 -30 -40 -40 -50 -40 -30 -40 -30|012345454545454545454676748989898989898989898989898989898989898989|-21IqV.E cLXV.E cEM0 1gqn0 Lco0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1fA0 1cM0 2pz0 1cJ0 1cQ0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 8Hz0",
+			"Europe/Warsaw|WMT CET CEST EET EEST|-1o -10 -20 -20 -30|012121234312121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121|-2ctdo 1LXo 11d0 1iO0 11A0 1o00 11A0 1on0 11A0 6zy0 HWP0 5IM0 WM0 1fA0 1cM0 1dz0 1mL0 1en0 15B0 1aq0 1nA0 11A0 1io0 17c0 1fA0 1a00 iDX0 LA0 1cM0 1cM0 1C00 Oo0 1cM0 1cM0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1C00 LA0 uso0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cN0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"Europe/Zaporozhye|CUT EET MSK CEST CET MSD EEST|-2k -20 -30 -20 -10 -40 -30|01234342525252525252525252526161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161|-1Pc2k eUok rdb0 2RE0 WM0 1fA0 8m0 1v9a0 1db0 1cN0 1db0 1cN0 1db0 1dd0 1cO0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cK0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cQ0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"HST|HST|a0|0|",
+			"Indian/Antananarivo|LMT EAT EAST|-3a.4 -30 -40|0121|-2mrDa.4 1HRba.4 Ao0",
+			"Indian/Chagos|LMT IOT IOT|-4N.E -50 -60|012|-2xosN.E 3AGLN.E",
+			"Indian/Christmas|CXT|-70|0|",
+			"Indian/Cocos|CCT|-6u|0|",
+			"Indian/Comoro|LMT EAT|-2R.4 -30|01|-2mrCR.4",
+			"Indian/Kerguelen|zzz TFT|0 -50|01|-MG00",
+			"Indian/Mahe|LMT SCT|-3F.M -40|01|-2yO3F.M",
+			"Indian/Maldives|MMT MVT|-4S -50|01|-olgS",
+			"Indian/Mauritius|LMT MUT MUST|-3O -40 -50|012121|-2xorO 34unO 14L0 12kr0 11z0",
+			"Indian/Mayotte|LMT EAT|-30.U -30|01|-2mrD0.U",
+			"Indian/Reunion|LMT RET|-3F.Q -40|01|-2mDDF.Q",
+			"Kwajalein|MHT KWAT MHT|-b0 c0 -c0|012|-AX0 W9X0",
+			"MET|MET MEST|-10 -20|01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-2aFe0 11d0 1iO0 11A0 1o00 11A0 Qrc0 6i00 WM0 1fA0 1cM0 1cM0 1cM0 16M0 1gMM0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00",
+			"MST|MST|70|0|",
+			"MST7MDT|MST MDT MWT MPT|70 60 60 60|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261r0 1nX0 11B0 1nX0 SgN0 8x20 ix0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"NZ-CHAT|CHAST CHAST CHADT|-cf -cJ -dJ|012121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212121212|-WqAf 1adef IM0 1C00 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Oo0 1zc0 Rc0 1zc0 Oo0 1qM0 14o0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1io0 17c0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1lc0 14o0 1lc0 14o0 1lc0 17c0 1io0 17c0 1io0 17c0 1io0 17c0 1io0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00",
+			"PST8PDT|PST PDT PWT PPT|80 70 70 70|010102301010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|-261q0 1nX0 11B0 1nX0 SgN0 8x10 iy0 QwN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1cN0 1cL0 1cN0 1cL0 s10 1Vz0 LB0 1BX0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1fz0 1a10 1fz0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 14p0 1lb0 14p0 1lb0 14p0 1nX0 11B0 1nX0 11B0 1nX0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Rd0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0 Op0 1zb0",
+			"Pacific/Apia|LMT WSST SST SDT WSDT WSST|bq.U bu b0 a0 -e0 -d0|01232345454545454545454545454545454545454545454545454545454|-2nDMx.4 1yW03.4 2rRbu 1ff0 1a00 CI0 AQ0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1io0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1a00 1fA0 1cM0 1fA0 1a00 1fA0 1a00",
+			"Pacific/Chuuk|CHUT|-a0|0|",
+			"Pacific/Efate|LMT VUT VUST|-bd.g -b0 -c0|0121212121212121212121|-2l9nd.g 2Szcd.g 1cL0 1oN0 10L0 1fB0 19X0 1fB0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1cN0 1cL0 1fB0 Lz0 1Nd0 An0",
+			"Pacific/Enderbury|PHOT PHOT PHOT|c0 b0 -d0|012|nIc0 B8n0",
+			"Pacific/Fakaofo|TKT TKT|b0 -d0|01|1Gfn0",
+			"Pacific/Fiji|LMT FJT FJST|-bT.I -c0 -d0|012121212121212121212121212121212121212121212121212121212121212|-2bUzT.I 3m8NT.I LA0 1EM0 IM0 nJc0 LA0 1o00 Rc0 1wo0 Ao0 1Nc0 Ao0 1Q00 xz0 1Q10 xz0 1Q10 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Q10 xz0 1Q10 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Q10 xz0 1Q10 xz0 1Q10 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Q10 xz0 1Q10 xz0 1Q10 An0 1Nd0 An0 1Nd0 An0 1Nd0 An0 1Q10 xz0 1Q10",
+			"Pacific/Funafuti|TVT|-c0|0|",
+			"Pacific/Galapagos|LMT ECT GALT|5W.o 50 60|012|-1yVS1.A 2dTz1.A",
+			"Pacific/Gambier|LMT GAMT|8X.M 90|01|-2jof0.c",
+			"Pacific/Guadalcanal|LMT SBT|-aD.M -b0|01|-2joyD.M",
+			"Pacific/Guam|GST ChST|-a0 -a0|01|1fpq0",
+			"Pacific/Honolulu|HST HDT HST|au 9u a0|010102|-1thLu 8x0 lef0 8Pz0 46p0",
+			"Pacific/Kiritimati|LINT LINT LINT|aE a0 -e0|012|nIaE B8nk",
+			"Pacific/Kosrae|KOST KOST|-b0 -c0|010|-AX0 1bdz0",
+			"Pacific/Majuro|MHT MHT|-b0 -c0|01|-AX0",
+			"Pacific/Marquesas|LMT MART|9i 9u|01|-2joeG",
+			"Pacific/Midway|NST NDT BST SST|b0 a0 b0 b0|01023|-x3N0 An0 pJd0 EyM0",
+			"Pacific/Nauru|LMT NRT JST NRT|-b7.E -bu -90 -c0|01213|-1Xdn7.E PvzB.E 5RCu 1ouJu",
+			"Pacific/Niue|NUT NUT NUT|bk bu b0|012|-KfME 17y0a",
+			"Pacific/Norfolk|NMT NFT|-bc -bu|01|-Kgbc",
+			"Pacific/Noumea|LMT NCT NCST|-b5.M -b0 -c0|01212121|-2l9n5.M 2EqM5.M xX0 1PB0 yn0 HeP0 Ao0",
+			"Pacific/Pago_Pago|LMT NST BST SST|bm.M b0 b0 b0|0123|-2nDMB.c 2gVzB.c EyM0",
+			"Pacific/Palau|PWT|-90|0|",
+			"Pacific/Pitcairn|PNT PST|8u 80|01|18Vku",
+			"Pacific/Pohnpei|PONT|-b0|0|",
+			"Pacific/Port_Moresby|PGT|-a0|0|",
+			"Pacific/Rarotonga|CKT CKHST CKT|au 9u a0|012121212121212121212121212|lyWu IL0 1zcu Onu 1zcu Onu 1zcu Rbu 1zcu Onu 1zcu Onu 1zcu Onu 1zcu Onu 1zcu Onu 1zcu Rbu 1zcu Onu 1zcu Onu 1zcu Onu",
+			"Pacific/Saipan|MPT MPT ChST|-90 -a0 -a0|012|-AV0 1g2n0",
+			"Pacific/Tahiti|LMT TAHT|9W.g a0|01|-2joe1.I",
+			"Pacific/Tarawa|GILT|-c0|0|",
+			"Pacific/Tongatapu|TOT TOT TOST|-ck -d0 -e0|01212121|-1aB0k 2n5dk 15A0 1wo0 xz0 1Q10 xz0",
+			"Pacific/Wake|WAKT|-c0|0|",
+			"Pacific/Wallis|WFT|-c0|0|",
+			"WET|WET WEST|0 -10|010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010|hDB0 1a00 1fA0 1cM0 1cM0 1cM0 1fA0 1a00 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1cM0 1fA0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00 11A0 1qM0 WM0 1qM0 WM0 1qM0 WM0 1qM0 11A0 1o00 11A0 1o00"
+		],
+		"links": [
+			"Africa/Abidjan|Africa/Bamako",
+			"Africa/Abidjan|Africa/Banjul",
+			"Africa/Abidjan|Africa/Conakry",
+			"Africa/Abidjan|Africa/Dakar",
+			"Africa/Abidjan|Africa/Freetown",
+			"Africa/Abidjan|Africa/Lome",
+			"Africa/Abidjan|Africa/Nouakchott",
+			"Africa/Abidjan|Africa/Ouagadougou",
+			"Africa/Abidjan|Africa/Sao_Tome",
+			"Africa/Abidjan|Africa/Timbuktu",
+			"Africa/Abidjan|Atlantic/St_Helena",
+			"Africa/Addis_Ababa|Africa/Asmara",
+			"Africa/Addis_Ababa|Africa/Asmera",
+			"Africa/Bangui|Africa/Brazzaville",
+			"Africa/Bangui|Africa/Douala",
+			"Africa/Bangui|Africa/Kinshasa",
+			"Africa/Bangui|Africa/Lagos",
+			"Africa/Bangui|Africa/Libreville",
+			"Africa/Bangui|Africa/Luanda",
+			"Africa/Bangui|Africa/Malabo",
+			"Africa/Bangui|Africa/Niamey",
+			"Africa/Bangui|Africa/Porto-Novo",
+			"Africa/Bujumbura|Africa/Lubumbashi",
+			"Africa/Cairo|Egypt",
+			"Africa/Juba|Africa/Khartoum",
+			"Africa/Tripoli|Libya",
+			"America/Adak|America/Atka",
+			"America/Adak|US/Aleutian",
+			"America/Anchorage|US/Alaska",
+			"America/Anguilla|America/Dominica",
+			"America/Anguilla|America/Grenada",
+			"America/Anguilla|America/Guadeloupe",
+			"America/Anguilla|America/Marigot",
+			"America/Anguilla|America/Montserrat",
+			"America/Anguilla|America/Port_of_Spain",
+			"America/Anguilla|America/St_Barthelemy",
+			"America/Anguilla|America/St_Kitts",
+			"America/Anguilla|America/St_Lucia",
+			"America/Anguilla|America/St_Thomas",
+			"America/Anguilla|America/St_Vincent",
+			"America/Anguilla|America/Tortola",
+			"America/Anguilla|America/Virgin",
+			"America/Argentina/Buenos_Aires|America/Buenos_Aires",
+			"America/Argentina/Catamarca|America/Argentina/ComodRivadavia",
+			"America/Argentina/Catamarca|America/Catamarca",
+			"America/Argentina/Cordoba|America/Cordoba",
+			"America/Argentina/Cordoba|America/Rosario",
+			"America/Argentina/Jujuy|America/Jujuy",
+			"America/Argentina/Mendoza|America/Mendoza",
+			"America/Aruba|America/Curacao",
+			"America/Aruba|America/Kralendijk",
+			"America/Aruba|America/Lower_Princes",
+			"America/Atikokan|America/Coral_Harbour",
+			"America/Chicago|US/Central",
+			"America/Denver|America/Shiprock",
+			"America/Denver|Navajo",
+			"America/Denver|US/Mountain",
+			"America/Detroit|US/Michigan",
+			"America/Edmonton|Canada/Mountain",
+			"America/Ensenada|America/Tijuana",
+			"America/Ensenada|Mexico/BajaNorte",
+			"America/Fort_Wayne|America/Indiana/Indianapolis",
+			"America/Fort_Wayne|America/Indianapolis",
+			"America/Fort_Wayne|US/East-Indiana",
+			"America/Halifax|Canada/Atlantic",
+			"America/Havana|Cuba",
+			"America/Indiana/Knox|America/Knox_IN",
+			"America/Indiana/Knox|US/Indiana-Starke",
+			"America/Jamaica|Jamaica",
+			"America/Kentucky/Louisville|America/Louisville",
+			"America/Los_Angeles|US/Pacific",
+			"America/Los_Angeles|US/Pacific-New",
+			"America/Manaus|Brazil/West",
+			"America/Mazatlan|Mexico/BajaSur",
+			"America/Mexico_City|Mexico/General",
+			"America/New_York|US/Eastern",
+			"America/Noronha|Brazil/DeNoronha",
+			"America/Phoenix|US/Arizona",
+			"America/Porto_Acre|America/Rio_Branco",
+			"America/Porto_Acre|Brazil/Acre",
+			"America/Regina|Canada/East-Saskatchewan",
+			"America/Regina|Canada/Saskatchewan",
+			"America/Santiago|Chile/Continental",
+			"America/Sao_Paulo|Brazil/East",
+			"America/St_Johns|Canada/Newfoundland",
+			"America/Toronto|Canada/Eastern",
+			"America/Vancouver|Canada/Pacific",
+			"America/Whitehorse|Canada/Yukon",
+			"America/Winnipeg|Canada/Central",
+			"Antarctica/McMurdo|Antarctica/South_Pole",
+			"Antarctica/McMurdo|NZ",
+			"Antarctica/McMurdo|Pacific/Auckland",
+			"Arctic/Longyearbyen|Atlantic/Jan_Mayen",
+			"Arctic/Longyearbyen|Europe/Oslo",
+			"Asia/Ashgabat|Asia/Ashkhabad",
+			"Asia/Calcutta|Asia/Kolkata",
+			"Asia/Chongqing|Asia/Chungking",
+			"Asia/Chongqing|Asia/Harbin",
+			"Asia/Chongqing|Asia/Shanghai",
+			"Asia/Chongqing|PRC",
+			"Asia/Dacca|Asia/Dhaka",
+			"Asia/Ho_Chi_Minh|Asia/Saigon",
+			"Asia/Hong_Kong|Hongkong",
+			"Asia/Istanbul|Europe/Istanbul",
+			"Asia/Istanbul|Turkey",
+			"Asia/Jerusalem|Asia/Tel_Aviv",
+			"Asia/Jerusalem|Israel",
+			"Asia/Kashgar|Asia/Urumqi",
+			"Asia/Kathmandu|Asia/Katmandu",
+			"Asia/Macao|Asia/Macau",
+			"Asia/Makassar|Asia/Ujung_Pandang",
+			"Asia/Nicosia|Europe/Nicosia",
+			"Asia/Seoul|ROK",
+			"Asia/Singapore|Singapore",
+			"Asia/Taipei|ROC",
+			"Asia/Tehran|Iran",
+			"Asia/Thimbu|Asia/Thimphu",
+			"Asia/Tokyo|Japan",
+			"Asia/Ulaanbaatar|Asia/Ulan_Bator",
+			"Atlantic/Faeroe|Atlantic/Faroe",
+			"Atlantic/Reykjavik|Iceland",
+			"Australia/ACT|Australia/Canberra",
+			"Australia/ACT|Australia/NSW",
+			"Australia/ACT|Australia/Sydney",
+			"Australia/Adelaide|Australia/South",
+			"Australia/Brisbane|Australia/Queensland",
+			"Australia/Broken_Hill|Australia/Yancowinna",
+			"Australia/Darwin|Australia/North",
+			"Australia/Hobart|Australia/Tasmania",
+			"Australia/LHI|Australia/Lord_Howe",
+			"Australia/Melbourne|Australia/Victoria",
+			"Australia/Perth|Australia/West",
+			"Chile/EasterIsland|Pacific/Easter",
+			"Eire|Europe/Dublin",
+			"Etc/GMT+0|Etc/GMT",
+			"Etc/GMT+0|Etc/GMT-0",
+			"Etc/GMT+0|Etc/GMT0",
+			"Etc/GMT+0|Etc/Greenwich",
+			"Etc/GMT+0|GMT",
+			"Etc/GMT+0|GMT+0",
+			"Etc/GMT+0|GMT-0",
+			"Etc/GMT+0|GMT0",
+			"Etc/GMT+0|Greenwich",
+			"Etc/UCT|UCT",
+			"Etc/UTC|Etc/Universal",
+			"Etc/UTC|Etc/Zulu",
+			"Etc/UTC|UTC",
+			"Etc/UTC|Universal",
+			"Etc/UTC|Zulu",
+			"Europe/Belfast|Europe/Guernsey",
+			"Europe/Belfast|Europe/Isle_of_Man",
+			"Europe/Belfast|Europe/Jersey",
+			"Europe/Belfast|Europe/London",
+			"Europe/Belfast|GB",
+			"Europe/Belfast|GB-Eire",
+			"Europe/Belgrade|Europe/Ljubljana",
+			"Europe/Belgrade|Europe/Podgorica",
+			"Europe/Belgrade|Europe/Sarajevo",
+			"Europe/Belgrade|Europe/Skopje",
+			"Europe/Belgrade|Europe/Zagreb",
+			"Europe/Bratislava|Europe/Prague",
+			"Europe/Busingen|Europe/Vaduz",
+			"Europe/Busingen|Europe/Zurich",
+			"Europe/Chisinau|Europe/Tiraspol",
+			"Europe/Helsinki|Europe/Mariehamn",
+			"Europe/Lisbon|Portugal",
+			"Europe/Moscow|W-SU",
+			"Europe/Rome|Europe/San_Marino",
+			"Europe/Rome|Europe/Vatican",
+			"Europe/Warsaw|Poland",
+			"Kwajalein|Pacific/Kwajalein",
+			"NZ-CHAT|Pacific/Chatham",
+			"Pacific/Chuuk|Pacific/Truk",
+			"Pacific/Chuuk|Pacific/Yap",
+			"Pacific/Honolulu|Pacific/Johnston",
+			"Pacific/Honolulu|US/Hawaii",
+			"Pacific/Pago_Pago|Pacific/Samoa",
+			"Pacific/Pago_Pago|US/Samoa",
+			"Pacific/Pohnpei|Pacific/Ponape"
+		]
+	}
+
+/***/ },
 /* 251 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -52637,7 +53109,7 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Puddle');
 
@@ -52769,14 +53241,14 @@
 	 */
 
 	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	var log = __webpack_require__(8)('Stats');
-	var scales = __webpack_require__(248)();
-	var dt = __webpack_require__(26);
-	var format = __webpack_require__(38);
+	var scales = __webpack_require__(247)();
+	var dt = __webpack_require__(7);
+	var format = __webpack_require__(28);
 	var Puddle = __webpack_require__(251);
-	var bgBoundaryClass = __webpack_require__(244);
+	var bgBoundaryClass = __webpack_require__(243);
 
 	module.exports = function(pool, opts) {
 
@@ -53330,13 +53802,187 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var d3 = __webpack_require__(10);
-	var _ = __webpack_require__(11);
+	// You can view the full text of each annotation by running mocha test/annotations_test.js
+	// Current output:
+	//
+	// Main text annotation for carelink/basal/temp-percent-create-scheduled:
+	// We are calculating the temp basal rates here by applying the percentage of the temp basal to your current schedule, but Demo did not directly provide us with these rate changes.
+	//
+	// Main text annotation for carelink/basal/off-schedule-rate:
+	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your basal rate here.
+	//
+	// Main text annotation for carelink/settings/basal-mismatch:
+	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your basal settings here.
+	//
+	// Main text annotation for carelink/settings/wizard-mismatch:
+	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your bolus wizard settings here.
+	//
+	// Main text annotation for carelink/settings/activeSchedule-mismatch:
+	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your active basal pattern here.
+	//
+	// Main text annotation for carelink/device-overlap-boundary:
+	// We are not showing data here because we've received datasets from multiple pumps that are in conflict. Demo did not provide enough information to distinguish the data from each pump.
+	//
+	// Main text annotation for diasend/basal/temp-basal-fabrication:
+	// The Demo .xls file doesn't report temp basals directly, so we have to infer from other evidence where you might have been using a temp basal rate. We think this segment could be a temp basal, but it may not be.
+	//
+	// Main text annotation for diasend/basal/temp-duration-truncated:
+	// Because of how the Demo .xls file reports the data, we've truncated what may have been a temp basal here to a maximum duration of 120 hours.
+	//
+	// Main text annotation for diasend/bolus/extended:
+	// The Demo .xls file doesn't report the split between the intitial and the extended delivery during a combo bolus. All we can display is the duration of the combo bolus and the total dose delivered.
+	//
+	// Main text annotation for basal/intersects-incomplete-suspend
+	// Within this basal segment, we are omitting a suspend event that didn't end. This may have resulted from switching to a new device. As a result, this basal segment may be inaccurate.
+	//
+	// Main text annotation for stats-insufficient-data:
+	// There is not enough data to show this statistic.
+	//
+	// Lead text annotation for stats-insufficient-data:
+	// Why is this grey? 
 
-	var shapeutil = __webpack_require__(250);
+	var format = __webpack_require__(28);
+
+	var definitions = {
+	  LEAD_TEXT: {
+	    'stats-insufficient-data': function() {
+	      return 'Why is this grey?';
+	    },
+	    'stats-how-calculated': function() {
+	      return 'What is this?';
+	    }
+	  },
+	  MAIN_TEXT: {
+	    'carelink/basal/temp-percent-create-scheduled': function(source, defs) {
+	      var a = "We are calculating the temp basal rates here by applying the percentage of the temp basal to your current schedule, but ";
+	      var b = " did not directly provide us with these rate changes.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'carelink/basal/off-schedule-rate': function(source, defs) {
+	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
+	      var b = " reports the data, we can't be 100% certain of your basal rate here.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'carelink/settings/basal-mismatch': function(source, defs) {
+	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
+	      var b = " reports the data, we can't be 100% certain of your basal settings here.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'carelink/settings/wizard-mismatch': function(source, defs) {
+	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
+	      var b = " reports the data, we can't be 100% certain of your bolus wizard settings here.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'carelink/settings/activeSchedule-mismatch': function(source, defs) {
+	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
+	      var b = " reports the data, we can't be 100% certain of your active basal pattern here.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'carelink/device-overlap-boundary': function(source, defs) {
+	      var a = "We are not showing data here because we've received datasets from multiple pumps that are in conflict.";
+	      var b = " did not provide enough information to distinguish the data from each pump.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'diasend/basal/temp-basal-fabrication': function(source, defs) {
+	      var a = "The ";
+	      var b = " .xls file doesn't report temp basals directly, so we have to infer from other evidence where you might have been using a temp basal rate. We think this segment could be a temp basal, but it may not be.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'diasend/basal/temp-duration-truncated': function(source, defs) {
+	      var a = "Because of how the ";
+	      var b = " .xls file reports the data, we've truncated what may have been a temp basal here to a maximum duration of 120 hours.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'diasend/bolus/extended': function(source, defs) {
+	      var a = "The ";
+	      var b = " .xls file doesn't report the split between the intitial and the extended delivery during a combo bolus. All we can display is the duration of the combo bolus and the total dose delivered.";
+	      return defs.stitch(a, b, source);
+	    },
+	    'basal/intersects-incomplete-susppend': function() {
+	      return "Within this basal segment, we are omitting a suspend event that didn't end. This may have resulted from switching to a new device. As a result, this basal segment may be inaccurate.";
+	    },
+	    'stats-insufficient-data': function() {
+	      return 'There is not enough data to show this statistic.';
+	    },
+	    'stats-how-calculated-ratio': function() {
+	      return 'Basal insulin keeps your glucose within your target range when you are not eating.  Bolus insulin is mostly used to cover the carbohydrates you eat or to bring a high glucose back into your target range. This ratio allows you to compare how much of the insulin you are taking is used for each purpose. We will only show numbers if there is enough basal data - 24 hours in the one day view and 7 days in the two week view.';
+	    },
+	    'stats-how-calculated-range-cbg': function() {
+	      return 'With diabetes, any time in range is hard to achieve! This shows the percentage of time your CGM was in range, which can help you see how you are doing overall. We will only show a number if there is enough data - readings for at least 75% of the day in the one day view, and 75% of the day for at least half of the days shown in the two week view.';
+	    },
+	    'stats-how-calculated-range-smbg': function() {
+	      return 'With diabetes, any reading in range is hard to achieve! If you don’t wear a CGM or don’t have enough CGM data, this shows how many of your fingerstick readings were in range, which can help you see how you are doing overall. We will only show a number if there is enough data - at least 4 readings in the one day view, and at least 4 readings for at least half of the days shown in the two week view.';
+	    },
+	    'stats-how-calculated-average-cbg': function() {
+	      return 'To get one number that gives you a rough idea of your glucose level we add together all of the CGM glucose readings you have and then divide them by the number of glucose readings. We will only show a number if there is enough data - readings for at least 75% of the day in the one day view, and readings for at least 75% of the day for at least half of the days shown in the two week view.';
+	    },
+	    'stats-how-calculated-average-smbg': function() {
+	      return 'If you don’t wear a CGM or don’t have enough CGM data, to get one number that gives you a rough idea of your glucose level, we add together all of the fingerstick readings you have and then divide them by the number of readings. We will only show a number if there is enough data - at least 4 readings in the one day view, and at least 4 readings for at least half of the days shown in the two week view.';
+	    }
+	  },
+	  default: function(source) {
+	    if (source == null) {
+	      return "We can't be 100% certain of the data displayed here.";
+	    }
+	    var a = "We can't be 100% certain of the data displayed here because of how ";
+	    var b = " reports the data.";
+	    return this.stitch(a, b, source);
+	  },
+	  main: function(annotation, source) {
+	    var a, b;
+	    if (this.MAIN_TEXT[annotation.code] != null) {
+	      return this.MAIN_TEXT[annotation.code](source, this);
+	    }
+	    else {
+	      return this.default(source);
+	    }
+	  },
+	  stitch: function(a, b, source) {
+	    var sourceText = source === 'carelink' ? ' CareLink' : format.capitalize(source);
+	    return a + sourceText + b;
+	  },
+	  lead: function(code) {
+	    code = code || '';
+	    if (this.LEAD_TEXT[code] != null) {
+	      return this.LEAD_TEXT[code]();
+	    }
+	    else {
+	      return false;
+	    }
+	  }
+	};
+
+	module.exports = definitions;
+
+
+/***/ },
+/* 254 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* 
+	 * == BSD2 LICENSE ==
+	 * Copyright (c) 2014, Tidepool Project
+	 * 
+	 * This program is free software; you can redistribute it and/or modify it under
+	 * the terms of the associated License, which is identical to the BSD 2-Clause
+	 * License as published by the Open Source Initiative at opensource.org.
+	 * 
+	 * This program is distributed in the hope that it will be useful, but WITHOUT
+	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	 * FOR A PARTICULAR PURPOSE. See the License for more details.
+	 * 
+	 * You should have received a copy of the License along with this program; if
+	 * not, you can obtain one from Tidepool Project at tidepool.org.
+	 * == BSD2 LICENSE ==
+	 */
+
+	var d3 = __webpack_require__(10);
+	var _ = __webpack_require__(12);
+
+	var shapeutil = __webpack_require__(249);
 	var shapes = __webpack_require__(303);
-	var defs = __webpack_require__(254);
-	var dt = __webpack_require__(26);
+	var defs = __webpack_require__(253);
+	var dt = __webpack_require__(7);
 
 	var log = __webpack_require__(8)('Annotations');
 
@@ -53522,180 +54168,6 @@
 
 
 /***/ },
-/* 254 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* 
-	 * == BSD2 LICENSE ==
-	 * Copyright (c) 2014, Tidepool Project
-	 * 
-	 * This program is free software; you can redistribute it and/or modify it under
-	 * the terms of the associated License, which is identical to the BSD 2-Clause
-	 * License as published by the Open Source Initiative at opensource.org.
-	 * 
-	 * This program is distributed in the hope that it will be useful, but WITHOUT
-	 * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-	 * FOR A PARTICULAR PURPOSE. See the License for more details.
-	 * 
-	 * You should have received a copy of the License along with this program; if
-	 * not, you can obtain one from Tidepool Project at tidepool.org.
-	 * == BSD2 LICENSE ==
-	 */
-
-	// You can view the full text of each annotation by running mocha test/annotations_test.js
-	// Current output:
-	//
-	// Main text annotation for carelink/basal/temp-percent-create-scheduled:
-	// We are calculating the temp basal rates here by applying the percentage of the temp basal to your current schedule, but Demo did not directly provide us with these rate changes.
-	//
-	// Main text annotation for carelink/basal/off-schedule-rate:
-	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your basal rate here.
-	//
-	// Main text annotation for carelink/settings/basal-mismatch:
-	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your basal settings here.
-	//
-	// Main text annotation for carelink/settings/wizard-mismatch:
-	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your bolus wizard settings here.
-	//
-	// Main text annotation for carelink/settings/activeSchedule-mismatch:
-	// You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how Demo reports the data, we can't be 100% certain of your active basal pattern here.
-	//
-	// Main text annotation for carelink/device-overlap-boundary:
-	// We are not showing data here because we've received datasets from multiple pumps that are in conflict. Demo did not provide enough information to distinguish the data from each pump.
-	//
-	// Main text annotation for diasend/basal/temp-basal-fabrication:
-	// The Demo .xls file doesn't report temp basals directly, so we have to infer from other evidence where you might have been using a temp basal rate. We think this segment could be a temp basal, but it may not be.
-	//
-	// Main text annotation for diasend/basal/temp-duration-truncated:
-	// Because of how the Demo .xls file reports the data, we've truncated what may have been a temp basal here to a maximum duration of 120 hours.
-	//
-	// Main text annotation for diasend/bolus/extended:
-	// The Demo .xls file doesn't report the split between the intitial and the extended delivery during a combo bolus. All we can display is the duration of the combo bolus and the total dose delivered.
-	//
-	// Main text annotation for basal/intersects-incomplete-suspend
-	// Within this basal segment, we are omitting a suspend event that didn't end. This may have resulted from switching to a new device. As a result, this basal segment may be inaccurate.
-	//
-	// Main text annotation for stats-insufficient-data:
-	// There is not enough data to show this statistic.
-	//
-	// Lead text annotation for stats-insufficient-data:
-	// Why is this grey? 
-
-	var format = __webpack_require__(38);
-
-	var definitions = {
-	  LEAD_TEXT: {
-	    'stats-insufficient-data': function() {
-	      return 'Why is this grey?';
-	    },
-	    'stats-how-calculated': function() {
-	      return 'What is this?';
-	    }
-	  },
-	  MAIN_TEXT: {
-	    'carelink/basal/temp-percent-create-scheduled': function(source, defs) {
-	      var a = "We are calculating the temp basal rates here by applying the percentage of the temp basal to your current schedule, but ";
-	      var b = " did not directly provide us with these rate changes.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'carelink/basal/off-schedule-rate': function(source, defs) {
-	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
-	      var b = " reports the data, we can't be 100% certain of your basal rate here.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'carelink/settings/basal-mismatch': function(source, defs) {
-	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
-	      var b = " reports the data, we can't be 100% certain of your basal settings here.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'carelink/settings/wizard-mismatch': function(source, defs) {
-	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
-	      var b = " reports the data, we can't be 100% certain of your bolus wizard settings here.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'carelink/settings/activeSchedule-mismatch': function(source, defs) {
-	      var a = "You may have changed pumps recently - perhaps because you had to have your pump replaced due to malfuction. As a result of how ";
-	      var b = " reports the data, we can't be 100% certain of your active basal pattern here.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'carelink/device-overlap-boundary': function(source, defs) {
-	      var a = "We are not showing data here because we've received datasets from multiple pumps that are in conflict.";
-	      var b = " did not provide enough information to distinguish the data from each pump.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'diasend/basal/temp-basal-fabrication': function(source, defs) {
-	      var a = "The ";
-	      var b = " .xls file doesn't report temp basals directly, so we have to infer from other evidence where you might have been using a temp basal rate. We think this segment could be a temp basal, but it may not be.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'diasend/basal/temp-duration-truncated': function(source, defs) {
-	      var a = "Because of how the ";
-	      var b = " .xls file reports the data, we've truncated what may have been a temp basal here to a maximum duration of 120 hours.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'diasend/bolus/extended': function(source, defs) {
-	      var a = "The ";
-	      var b = " .xls file doesn't report the split between the intitial and the extended delivery during a combo bolus. All we can display is the duration of the combo bolus and the total dose delivered.";
-	      return defs.stitch(a, b, source);
-	    },
-	    'basal/intersects-incomplete-susppend': function() {
-	      return "Within this basal segment, we are omitting a suspend event that didn't end. This may have resulted from switching to a new device. As a result, this basal segment may be inaccurate.";
-	    },
-	    'stats-insufficient-data': function() {
-	      return 'There is not enough data to show this statistic.';
-	    },
-	    'stats-how-calculated-ratio': function() {
-	      return 'This is the balance between basal insulin and bolus insulin. Depending on your age, activity, weight, and doctor, the goal for this ratio will vary. We will only show numbers if there is enough basal data - 24 hours in the one day view and 7 days in the two week view.';
-	    },
-	    'stats-how-calculated-range-cbg': function() {
-	      return 'This shows the percentage of time your CGM was in range. Time in range helps to see how you are doing overall. We will only show a number if there is enough data - readings for at least 75% of the day in the one day view, and 75% of the day for at least half of the days shown in the two week view.';
-	    },
-	    'stats-how-calculated-range-smbg': function() {
-	      return "When there isn't enough CGM data, this shows how many of your fingerstick readings were in range. Readings in range can help to see how you are doing overall. We will only show a number if there is enough data - at least 4 readings in the one day view, and at least 4 readings for at least half of the days shown in the two week view.";
-	    },
-	    'stats-how-calculated-average-cbg': function() {
-	      return 'This shows the average blood glucose from your CGM. We will only show a number if there is enough data - readings for at least 75% of the day in the one day view, and readings for at least 75% of the day for at least half of the days shown in the two week view.';
-	    },
-	    'stats-how-calculated-average-smbg': function() {
-	      return "When there isn't enough CGM data to calculate an average from, this shows the average blood glucose from your fingerstick readings. We will only show a number if there is enough data - at least 4 readings in the one day view, and at least 4 readings for at least half of the days shown in the two week view.";
-	    }
-	  },
-	  default: function(source) {
-	    if (source == null) {
-	      return "We can't be 100% certain of the data displayed here.";
-	    }
-	    var a = "We can't be 100% certain of the data displayed here because of how ";
-	    var b = " reports the data.";
-	    return this.stitch(a, b, source);
-	  },
-	  main: function(annotation, source) {
-	    var a, b;
-	    if (this.MAIN_TEXT[annotation.code] != null) {
-	      return this.MAIN_TEXT[annotation.code](source, this);
-	    }
-	    else {
-	      return this.default(source);
-	    }
-	  },
-	  stitch: function(a, b, source) {
-	    var sourceText = source === 'carelink' ? ' CareLink' : format.capitalize(source);
-	    return a + sourceText + b;
-	  },
-	  lead: function(code) {
-	    code = code || '';
-	    if (this.LEAD_TEXT[code] != null) {
-	      return this.LEAD_TEXT[code]();
-	    }
-	    else {
-	      return false;
-	    }
-	  }
-	};
-
-	module.exports = definitions;
-
-
-/***/ },
 /* 255 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -53716,10 +54188,12 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var d3 = __webpack_require__(10);
+	var moment = __webpack_require__(29);
 
-	var format = __webpack_require__(38);
+	var dt = __webpack_require__(7);
+	var format = __webpack_require__(28);
 
 	var log = __webpack_require__(8)('DailyX');
 
@@ -53729,10 +54203,14 @@
 	    textShiftX: 5,
 	    textShiftY: 5,
 	    tickLength: 15,
-	    longTickMultiplier: 2.5
+	    longTickMultiplier: 2.5,
+	    timePrefs: {
+	      timezoneAware: false,
+	      timezoneName: 'US/Pacific'
+	    }
 	  };
 
-	  opts = _.defaults(opts || {}, defaults);
+	  _.defaults(opts || {}, defaults);
 
 	  var mainGroup = pool.parent();
 
@@ -53757,14 +54235,21 @@
 	  });
 
 	  opts.emitter.on('navigated', function(a) {
-	    var d = a[0].start;
+	    var offset = 0, d;
+	    if (opts.timePrefs.timezoneAware) {
+	      offset = -dt.getOffset(a[0].start, opts.timePrefs.timezoneName);
+	      d = moment(a[0].start).tz(opts.timePrefs.timezoneName);
+	    }
+	    else {
+	      d = moment(a[0].start).utc();
+	    }
 	    // when we're close to midnight (where close = five hours on either side)
 	    // remove the sticky label so it doesn't overlap with the midnight-anchored day label
-	    if ((d.getUTCHours() >= 19) || (d.getUTCHours() <= 4)) {
+	    if ((d.hours() >= 19) || (d.hours() <= 4)) {
 	      stickyLabel.text('');
 	      return;
 	    }
-	    stickyLabel.text(format.xAxisDayText(d.toISOString()));
+	    stickyLabel.text(format.xAxisDayText(d.toISOString(), offset));
 	  });
 
 	  function dailyx(selection) {
@@ -53797,12 +54282,13 @@
 	          y: pool.height() - opts.textShiftY
 	        })
 	        .text(function(d) {
-	          return format.xAxisTickText(d.normalTime);
+	          return format.xAxisTickText(d.normalTime, d.displayOffset);
 	        });
 
 	      tickGroups.filter(function(d) {
-	        var dt = new Date(d.normalTime);
-	        if (dt.getUTCHours() === 0) {
+	        var date = new Date(d.normalTime);
+	        date = new Date(dt.applyOffset(date, d.displayOffset));
+	        if (date.getUTCHours() === 0) {
 	          return d;
 	        }
 	      })
@@ -53813,7 +54299,7 @@
 	          y: dailyx.dayYPosition
 	        })
 	        .text(function(d) {
-	          return format.xAxisDayText(d.normalTime);
+	          return format.xAxisDayText(d.normalTime, d.displayOffset);
 	        });
 
 	      ticks.exit().remove();
@@ -53833,8 +54319,9 @@
 	  };
 
 	  dailyx.tickLength = function(d) {
-	    var dt = new Date(d.normalTime);
-	    if (dt.getUTCHours() === 0) {
+	    var date = new Date(d.normalTime);
+	    date = new Date(dt.applyOffset(date, d.displayOffset));
+	    if (date.getUTCHours() === 0) {
 	      return pool.height() - opts.tickLength * opts.longTickMultiplier;
 	    }
 	    else return pool.height() - opts.tickLength;
@@ -53868,11 +54355,11 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 
 	// when adding a shape from an image supplied by designer
 	// viewBox attribute should be copied exactly from svg image
-	var shapeutil = __webpack_require__(250);
+	var shapeutil = __webpack_require__(249);
 
 	var shapes = {
 	  cbg: {
@@ -54092,11 +54579,11 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var _ = __webpack_require__(11);
+	var _ = __webpack_require__(12);
 	var d3 = __webpack_require__(10);
 
 	var shapes = __webpack_require__(256);
-	var shapeutil = __webpack_require__(250);
+	var shapeutil = __webpack_require__(249);
 
 	function Tooltips(container, tooltipsGroup) {
 
@@ -54450,7 +54937,7 @@
 
 	module.exports = emptyObject;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 259 */
@@ -54476,10 +54963,10 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(163);
+	var PooledClass = __webpack_require__(164);
 
-	var invariant = __webpack_require__(158);
-	var mixInto = __webpack_require__(176);
+	var invariant = __webpack_require__(163);
+	var mixInto = __webpack_require__(177);
 
 	/**
 	 * A specialized pseudo-event module to help keep track of components waiting to
@@ -54560,7 +55047,7 @@
 
 	module.exports = CallbackQueue;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 260 */
@@ -54586,7 +55073,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * `Transaction` creates a black box that is able to wrap any method such that
@@ -54811,7 +55298,7 @@
 
 	module.exports = Transaction;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 261 */
@@ -54865,6 +55352,160 @@
 
 /***/ },
 /* 262 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule mergeHelpers
+	 *
+	 * requiresPolyfills: Array.isArray
+	 */
+
+	"use strict";
+
+	var invariant = __webpack_require__(163);
+	var keyMirror = __webpack_require__(168);
+
+	/**
+	 * Maximum number of levels to traverse. Will catch circular structures.
+	 * @const
+	 */
+	var MAX_MERGE_DEPTH = 36;
+
+	/**
+	 * We won't worry about edge cases like new String('x') or new Boolean(true).
+	 * Functions are considered terminals, and arrays are not.
+	 * @param {*} o The item/object/value to test.
+	 * @return {boolean} true iff the argument is a terminal.
+	 */
+	var isTerminal = function(o) {
+	  return typeof o !== 'object' || o === null;
+	};
+
+	var mergeHelpers = {
+
+	  MAX_MERGE_DEPTH: MAX_MERGE_DEPTH,
+
+	  isTerminal: isTerminal,
+
+	  /**
+	   * Converts null/undefined values into empty object.
+	   *
+	   * @param {?Object=} arg Argument to be normalized (nullable optional)
+	   * @return {!Object}
+	   */
+	  normalizeMergeArg: function(arg) {
+	    return arg === undefined || arg === null ? {} : arg;
+	  },
+
+	  /**
+	   * If merging Arrays, a merge strategy *must* be supplied. If not, it is
+	   * likely the caller's fault. If this function is ever called with anything
+	   * but `one` and `two` being `Array`s, it is the fault of the merge utilities.
+	   *
+	   * @param {*} one Array to merge into.
+	   * @param {*} two Array to merge from.
+	   */
+	  checkMergeArrayArgs: function(one, two) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      Array.isArray(one) && Array.isArray(two),
+	      'Tried to merge arrays, instead got %s and %s.',
+	      one,
+	      two
+	    ) : invariant(Array.isArray(one) && Array.isArray(two)));
+	  },
+
+	  /**
+	   * @param {*} one Object to merge into.
+	   * @param {*} two Object to merge from.
+	   */
+	  checkMergeObjectArgs: function(one, two) {
+	    mergeHelpers.checkMergeObjectArg(one);
+	    mergeHelpers.checkMergeObjectArg(two);
+	  },
+
+	  /**
+	   * @param {*} arg
+	   */
+	  checkMergeObjectArg: function(arg) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      !isTerminal(arg) && !Array.isArray(arg),
+	      'Tried to merge an object, instead got %s.',
+	      arg
+	    ) : invariant(!isTerminal(arg) && !Array.isArray(arg)));
+	  },
+
+	  /**
+	   * @param {*} arg
+	   */
+	  checkMergeIntoObjectArg: function(arg) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      (!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg),
+	      'Tried to merge into an object, instead got %s.',
+	      arg
+	    ) : invariant((!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg)));
+	  },
+
+	  /**
+	   * Checks that a merge was not given a circular object or an object that had
+	   * too great of depth.
+	   *
+	   * @param {number} Level of recursion to validate against maximum.
+	   */
+	  checkMergeLevel: function(level) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      level < MAX_MERGE_DEPTH,
+	      'Maximum deep merge depth exceeded. You may be attempting to merge ' +
+	      'circular structures in an unsupported way.'
+	    ) : invariant(level < MAX_MERGE_DEPTH));
+	  },
+
+	  /**
+	   * Checks that the supplied merge strategy is valid.
+	   *
+	   * @param {string} Array merge strategy.
+	   */
+	  checkArrayStrategy: function(strategy) {
+	    ("production" !== process.env.NODE_ENV ? invariant(
+	      strategy === undefined || strategy in mergeHelpers.ArrayStrategies,
+	      'You must provide an array strategy to deep merge functions to ' +
+	      'instruct the deep merge how to resolve merging two arrays.'
+	    ) : invariant(strategy === undefined || strategy in mergeHelpers.ArrayStrategies));
+	  },
+
+	  /**
+	   * Set of possible behaviors of merge algorithms when encountering two Arrays
+	   * that must be merged together.
+	   * - `clobber`: The left `Array` is ignored.
+	   * - `indexByIndex`: The result is achieved by recursively deep merging at
+	   *   each index. (not yet supported.)
+	   */
+	  ArrayStrategies: keyMirror({
+	    Clobber: true,
+	    IndexByIndex: true
+	  })
+
+	};
+
+	module.exports = mergeHelpers;
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
+
+/***/ },
+/* 263 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -54991,7 +55632,7 @@
 
 
 /***/ },
-/* 263 */
+/* 264 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -55015,7 +55656,7 @@
 
 	"use strict";
 
-	var CSSProperty = __webpack_require__(262);
+	var CSSProperty = __webpack_require__(263);
 
 	var isUnitlessNumber = CSSProperty.isUnitlessNumber;
 
@@ -55060,7 +55701,7 @@
 
 
 /***/ },
-/* 264 */
+/* 265 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -55112,7 +55753,7 @@
 
 
 /***/ },
-/* 265 */
+/* 266 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -55135,14 +55776,14 @@
 
 	"use strict";
 
-	var EventPluginRegistry = __webpack_require__(266);
-	var EventPluginUtils = __webpack_require__(56);
+	var EventPluginRegistry = __webpack_require__(267);
+	var EventPluginUtils = __webpack_require__(55);
 
 	var accumulate = __webpack_require__(306);
 	var forEachAccumulated = __webpack_require__(307);
-	var invariant = __webpack_require__(158);
-	var isEventSupported = __webpack_require__(269);
-	var monitorCodeUse = __webpack_require__(177);
+	var invariant = __webpack_require__(163);
+	var isEventSupported = __webpack_require__(270);
+	var monitorCodeUse = __webpack_require__(178);
 
 	/**
 	 * Internal store for event listeners
@@ -55406,10 +56047,10 @@
 
 	module.exports = EventPluginHub;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 266 */
+/* 267 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -55433,7 +56074,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Injectable ordering of event plugins.
@@ -55696,10 +56337,10 @@
 
 	module.exports = EventPluginRegistry;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 267 */
+/* 268 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -55722,7 +56363,7 @@
 
 	"use strict";
 
-	var EventPluginHub = __webpack_require__(265);
+	var EventPluginHub = __webpack_require__(266);
 
 	function runEventQueueInBatch(events) {
 	  EventPluginHub.enqueueEvents(events);
@@ -55760,7 +56401,7 @@
 
 
 /***/ },
-/* 268 */
+/* 269 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -55803,7 +56444,7 @@
 
 
 /***/ },
-/* 269 */
+/* 270 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -55826,7 +56467,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var useHasFeature;
 	if (ExecutionEnvironment.canUseDOM) {
@@ -55879,160 +56520,6 @@
 
 
 /***/ },
-/* 270 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule mergeHelpers
-	 *
-	 * requiresPolyfills: Array.isArray
-	 */
-
-	"use strict";
-
-	var invariant = __webpack_require__(158);
-	var keyMirror = __webpack_require__(167);
-
-	/**
-	 * Maximum number of levels to traverse. Will catch circular structures.
-	 * @const
-	 */
-	var MAX_MERGE_DEPTH = 36;
-
-	/**
-	 * We won't worry about edge cases like new String('x') or new Boolean(true).
-	 * Functions are considered terminals, and arrays are not.
-	 * @param {*} o The item/object/value to test.
-	 * @return {boolean} true iff the argument is a terminal.
-	 */
-	var isTerminal = function(o) {
-	  return typeof o !== 'object' || o === null;
-	};
-
-	var mergeHelpers = {
-
-	  MAX_MERGE_DEPTH: MAX_MERGE_DEPTH,
-
-	  isTerminal: isTerminal,
-
-	  /**
-	   * Converts null/undefined values into empty object.
-	   *
-	   * @param {?Object=} arg Argument to be normalized (nullable optional)
-	   * @return {!Object}
-	   */
-	  normalizeMergeArg: function(arg) {
-	    return arg === undefined || arg === null ? {} : arg;
-	  },
-
-	  /**
-	   * If merging Arrays, a merge strategy *must* be supplied. If not, it is
-	   * likely the caller's fault. If this function is ever called with anything
-	   * but `one` and `two` being `Array`s, it is the fault of the merge utilities.
-	   *
-	   * @param {*} one Array to merge into.
-	   * @param {*} two Array to merge from.
-	   */
-	  checkMergeArrayArgs: function(one, two) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(one) && Array.isArray(two),
-	      'Tried to merge arrays, instead got %s and %s.',
-	      one,
-	      two
-	    ) : invariant(Array.isArray(one) && Array.isArray(two)));
-	  },
-
-	  /**
-	   * @param {*} one Object to merge into.
-	   * @param {*} two Object to merge from.
-	   */
-	  checkMergeObjectArgs: function(one, two) {
-	    mergeHelpers.checkMergeObjectArg(one);
-	    mergeHelpers.checkMergeObjectArg(two);
-	  },
-
-	  /**
-	   * @param {*} arg
-	   */
-	  checkMergeObjectArg: function(arg) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !isTerminal(arg) && !Array.isArray(arg),
-	      'Tried to merge an object, instead got %s.',
-	      arg
-	    ) : invariant(!isTerminal(arg) && !Array.isArray(arg)));
-	  },
-
-	  /**
-	   * @param {*} arg
-	   */
-	  checkMergeIntoObjectArg: function(arg) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      (!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg),
-	      'Tried to merge into an object, instead got %s.',
-	      arg
-	    ) : invariant((!isTerminal(arg) || typeof arg === 'function') && !Array.isArray(arg)));
-	  },
-
-	  /**
-	   * Checks that a merge was not given a circular object or an object that had
-	   * too great of depth.
-	   *
-	   * @param {number} Level of recursion to validate against maximum.
-	   */
-	  checkMergeLevel: function(level) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      level < MAX_MERGE_DEPTH,
-	      'Maximum deep merge depth exceeded. You may be attempting to merge ' +
-	      'circular structures in an unsupported way.'
-	    ) : invariant(level < MAX_MERGE_DEPTH));
-	  },
-
-	  /**
-	   * Checks that the supplied merge strategy is valid.
-	   *
-	   * @param {string} Array merge strategy.
-	   */
-	  checkArrayStrategy: function(strategy) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      strategy === undefined || strategy in mergeHelpers.ArrayStrategies,
-	      'You must provide an array strategy to deep merge functions to ' +
-	      'instruct the deep merge how to resolve merging two arrays.'
-	    ) : invariant(strategy === undefined || strategy in mergeHelpers.ArrayStrategies));
-	  },
-
-	  /**
-	   * Set of possible behaviors of merge algorithms when encountering two Arrays
-	   * that must be merged together.
-	   * - `clobber`: The left `Array` is ignored.
-	   * - `indexByIndex`: The result is achieved by recursively deep merging at
-	   *   each index. (not yet supported.)
-	   */
-	  ArrayStrategies: keyMirror({
-	    Clobber: true,
-	    IndexByIndex: true
-	  })
-
-	};
-
-	module.exports = mergeHelpers;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
 /* 271 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -56056,8 +56543,8 @@
 
 	"use strict";
 
-	var EventConstants = __webpack_require__(157);
-	var EventPluginHub = __webpack_require__(265);
+	var EventConstants = __webpack_require__(162);
+	var EventPluginHub = __webpack_require__(266);
 
 	var accumulate = __webpack_require__(306);
 	var forEachAccumulated = __webpack_require__(307);
@@ -56180,10 +56667,68 @@
 
 	module.exports = EventPropagators;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 272 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule SyntheticInputEvent
+	 * @typechecks static-only
+	 */
+
+	"use strict";
+
+	var SyntheticEvent = __webpack_require__(273);
+
+	/**
+	 * @interface Event
+	 * @see http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105
+	 *      /#events-inputevents
+	 */
+	var InputEventInterface = {
+	  data: null
+	};
+
+	/**
+	 * @param {object} dispatchConfig Configuration used to dispatch this event.
+	 * @param {string} dispatchMarker Marker identifying the event target.
+	 * @param {object} nativeEvent Native browser event.
+	 * @extends {SyntheticUIEvent}
+	 */
+	function SyntheticInputEvent(
+	  dispatchConfig,
+	  dispatchMarker,
+	  nativeEvent) {
+	  SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
+	}
+
+	SyntheticEvent.augmentClass(
+	  SyntheticInputEvent,
+	  InputEventInterface
+	);
+
+	module.exports = SyntheticInputEvent;
+
+
+
+/***/ },
+/* 273 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56207,12 +56752,12 @@
 
 	"use strict";
 
-	var PooledClass = __webpack_require__(163);
+	var PooledClass = __webpack_require__(164);
 
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 	var getEventTarget = __webpack_require__(286);
-	var merge = __webpack_require__(168);
-	var mergeInto = __webpack_require__(184);
+	var merge = __webpack_require__(169);
+	var mergeInto = __webpack_require__(181);
 
 	/**
 	 * @interface Event
@@ -56353,7 +56898,7 @@
 
 
 /***/ },
-/* 273 */
+/* 274 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56408,7 +56953,7 @@
 
 
 /***/ },
-/* 274 */
+/* 275 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56555,7 +57100,7 @@
 
 
 /***/ },
-/* 275 */
+/* 276 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56579,7 +57124,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(272);
+	var SyntheticEvent = __webpack_require__(273);
 
 	/**
 	 * @interface Event
@@ -56612,7 +57157,7 @@
 
 
 /***/ },
-/* 276 */
+/* 277 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56635,7 +57180,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var contentKey = null;
 
@@ -56660,7 +57205,7 @@
 
 
 /***/ },
-/* 277 */
+/* 278 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56685,7 +57230,7 @@
 	"use strict";
 
 	var SyntheticUIEvent = __webpack_require__(295);
-	var ViewportMetrics = __webpack_require__(268);
+	var ViewportMetrics = __webpack_require__(269);
 
 	var getEventModifierState = __webpack_require__(310);
 
@@ -56754,7 +57299,7 @@
 
 
 /***/ },
-/* 278 */
+/* 279 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
@@ -56780,14 +57325,14 @@
 
 	"use strict";
 
-	var CSSPropertyOperations = __webpack_require__(180);
+	var CSSPropertyOperations = __webpack_require__(182);
 	var DOMChildrenOperations = __webpack_require__(311);
-	var DOMPropertyOperations = __webpack_require__(55);
-	var ReactMount = __webpack_require__(67);
-	var ReactPerf = __webpack_require__(69);
+	var DOMPropertyOperations = __webpack_require__(54);
+	var ReactMount = __webpack_require__(65);
+	var ReactPerf = __webpack_require__(67);
 
-	var invariant = __webpack_require__(158);
-	var setInnerHTML = __webpack_require__(280);
+	var invariant = __webpack_require__(163);
+	var setInnerHTML = __webpack_require__(281);
 
 	/**
 	 * Errors for properties that should not be updated with `updatePropertyById()`.
@@ -56947,10 +57492,10 @@
 
 	module.exports = ReactDOMIDOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
-/* 279 */
+/* 280 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -56975,13 +57520,13 @@
 	"use strict";
 
 	var CallbackQueue = __webpack_require__(259);
-	var PooledClass = __webpack_require__(163);
-	var ReactBrowserEventEmitter = __webpack_require__(182);
-	var ReactInputSelection = __webpack_require__(274);
-	var ReactPutListenerQueue = __webpack_require__(302);
+	var PooledClass = __webpack_require__(164);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
+	var ReactInputSelection = __webpack_require__(275);
+	var ReactPutListenerQueue = __webpack_require__(301);
 	var Transaction = __webpack_require__(260);
 
-	var mixInto = __webpack_require__(176);
+	var mixInto = __webpack_require__(177);
 
 	/**
 	 * Ensures that, when possible, the selection range (currently selected text
@@ -57138,7 +57683,7 @@
 
 
 /***/ },
-/* 280 */
+/* 281 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -57161,7 +57706,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	/**
 	 * Set the innerHTML property of a node, ensuring that whitespace is preserved
@@ -57229,64 +57774,6 @@
 
 
 /***/ },
-/* 281 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule SyntheticInputEvent
-	 * @typechecks static-only
-	 */
-
-	"use strict";
-
-	var SyntheticEvent = __webpack_require__(272);
-
-	/**
-	 * @interface Event
-	 * @see http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105
-	 *      /#events-inputevents
-	 */
-	var InputEventInterface = {
-	  data: null
-	};
-
-	/**
-	 * @param {object} dispatchConfig Configuration used to dispatch this event.
-	 * @param {string} dispatchMarker Marker identifying the event target.
-	 * @param {object} nativeEvent Native browser event.
-	 * @extends {SyntheticUIEvent}
-	 */
-	function SyntheticInputEvent(
-	  dispatchConfig,
-	  dispatchMarker,
-	  nativeEvent) {
-	  SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
-	}
-
-	SyntheticEvent.augmentClass(
-	  SyntheticInputEvent,
-	  InputEventInterface
-	);
-
-	module.exports = SyntheticInputEvent;
-
-
-
-/***/ },
 /* 282 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -57348,11 +57835,11 @@
 
 	"use strict";
 
-	var ReactBrowserEventEmitter = __webpack_require__(182);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
 
 	var accumulate = __webpack_require__(306);
 	var forEachAccumulated = __webpack_require__(307);
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	function remove(event) {
 	  event.remove();
@@ -57381,7 +57868,7 @@
 
 	module.exports = LocalEventTrapMixin;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 284 */
@@ -57408,9 +57895,9 @@
 
 	"use strict";
 
-	var ReactPropTypes = __webpack_require__(70);
+	var ReactPropTypes = __webpack_require__(73);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var hasReadOnlyValue = {
 	  'button': true,
@@ -57547,7 +58034,7 @@
 
 	module.exports = LinkedValueUtils;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 285 */
@@ -57558,7 +58045,7 @@
 	 * @typechecks
 	 */
 
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 
 	/**
 	 * Upstream version of event listener. Does not take into account specific
@@ -57626,7 +58113,7 @@
 
 	module.exports = EventListener;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 286 */
@@ -57841,7 +58328,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(272);
+	var SyntheticEvent = __webpack_require__(273);
 
 	/**
 	 * @interface Event
@@ -58041,7 +58528,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(277);
+	var SyntheticMouseEvent = __webpack_require__(278);
 
 	/**
 	 * @interface DragEvent
@@ -58150,7 +58637,7 @@
 
 	"use strict";
 
-	var SyntheticEvent = __webpack_require__(272);
+	var SyntheticEvent = __webpack_require__(273);
 
 	var getEventTarget = __webpack_require__(286);
 
@@ -58223,7 +58710,7 @@
 
 	"use strict";
 
-	var SyntheticMouseEvent = __webpack_require__(277);
+	var SyntheticMouseEvent = __webpack_require__(278);
 
 	/**
 	 * @interface WheelEvent
@@ -58292,7 +58779,7 @@
 	 * @providesModule ReactDefaultPerfAnalysis
 	 */
 
-	var merge = __webpack_require__(168);
+	var merge = __webpack_require__(169);
 
 	// Don't try to save users less than 1.2ms (a number I made up)
 	var DONT_CARE_THRESHOLD = 1.2;
@@ -58558,6 +59045,118 @@
 /* 300 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule adler32
+	 */
+
+	/* jslint bitwise:true */
+
+	"use strict";
+
+	var MOD = 65521;
+
+	// This is a clean-room implementation of adler32 designed for detecting
+	// if markup is not what we expect it to be. It does not need to be
+	// cryptographically strong, only reasonable good at detecting if markup
+	// generated on the server is different than that on the client.
+	function adler32(data) {
+	  var a = 1;
+	  var b = 0;
+	  for (var i = 0; i < data.length; i++) {
+	    a = (a + data.charCodeAt(i)) % MOD;
+	    b = (b + a) % MOD;
+	  }
+	  return a | (b << 16);
+	}
+
+	module.exports = adler32;
+
+
+/***/ },
+/* 301 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Copyright 2013-2014 Facebook, Inc.
+	 *
+	 * Licensed under the Apache License, Version 2.0 (the "License");
+	 * you may not use this file except in compliance with the License.
+	 * You may obtain a copy of the License at
+	 *
+	 * http://www.apache.org/licenses/LICENSE-2.0
+	 *
+	 * Unless required by applicable law or agreed to in writing, software
+	 * distributed under the License is distributed on an "AS IS" BASIS,
+	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	 * See the License for the specific language governing permissions and
+	 * limitations under the License.
+	 *
+	 * @providesModule ReactPutListenerQueue
+	 */
+
+	"use strict";
+
+	var PooledClass = __webpack_require__(164);
+	var ReactBrowserEventEmitter = __webpack_require__(184);
+
+	var mixInto = __webpack_require__(177);
+
+	function ReactPutListenerQueue() {
+	  this.listenersToPut = [];
+	}
+
+	mixInto(ReactPutListenerQueue, {
+	  enqueuePutListener: function(rootNodeID, propKey, propValue) {
+	    this.listenersToPut.push({
+	      rootNodeID: rootNodeID,
+	      propKey: propKey,
+	      propValue: propValue
+	    });
+	  },
+
+	  putListeners: function() {
+	    for (var i = 0; i < this.listenersToPut.length; i++) {
+	      var listenerToPut = this.listenersToPut[i];
+	      ReactBrowserEventEmitter.putListener(
+	        listenerToPut.rootNodeID,
+	        listenerToPut.propKey,
+	        listenerToPut.propValue
+	      );
+	    }
+	  },
+
+	  reset: function() {
+	    this.listenersToPut.length = 0;
+	  },
+
+	  destructor: function() {
+	    this.reset();
+	  }
+	});
+
+	PooledClass.addPoolingTo(ReactPutListenerQueue);
+
+	module.exports = ReactPutListenerQueue;
+
+
+/***/ },
+/* 302 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(process) {/**
 	 * Copyright 2013-2014 Facebook, Inc.
 	 *
@@ -58613,119 +59212,7 @@
 
 	module.exports = copyProperties;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
-
-/***/ },
-/* 301 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule adler32
-	 */
-
-	/* jslint bitwise:true */
-
-	"use strict";
-
-	var MOD = 65521;
-
-	// This is a clean-room implementation of adler32 designed for detecting
-	// if markup is not what we expect it to be. It does not need to be
-	// cryptographically strong, only reasonable good at detecting if markup
-	// generated on the server is different than that on the client.
-	function adler32(data) {
-	  var a = 1;
-	  var b = 0;
-	  for (var i = 0; i < data.length; i++) {
-	    a = (a + data.charCodeAt(i)) % MOD;
-	    b = (b + a) % MOD;
-	  }
-	  return a | (b << 16);
-	}
-
-	module.exports = adler32;
-
-
-/***/ },
-/* 302 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Copyright 2013-2014 Facebook, Inc.
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 * http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 *
-	 * @providesModule ReactPutListenerQueue
-	 */
-
-	"use strict";
-
-	var PooledClass = __webpack_require__(163);
-	var ReactBrowserEventEmitter = __webpack_require__(182);
-
-	var mixInto = __webpack_require__(176);
-
-	function ReactPutListenerQueue() {
-	  this.listenersToPut = [];
-	}
-
-	mixInto(ReactPutListenerQueue, {
-	  enqueuePutListener: function(rootNodeID, propKey, propValue) {
-	    this.listenersToPut.push({
-	      rootNodeID: rootNodeID,
-	      propKey: propKey,
-	      propValue: propValue
-	    });
-	  },
-
-	  putListeners: function() {
-	    for (var i = 0; i < this.listenersToPut.length; i++) {
-	      var listenerToPut = this.listenersToPut[i];
-	      ReactBrowserEventEmitter.putListener(
-	        listenerToPut.rootNodeID,
-	        listenerToPut.propKey,
-	        listenerToPut.propValue
-	      );
-	    }
-	  },
-
-	  reset: function() {
-	    this.listenersToPut.length = 0;
-	  },
-
-	  destructor: function() {
-	    this.reset();
-	  }
-	});
-
-	PooledClass.addPoolingTo(ReactPutListenerQueue);
-
-	module.exports = ReactPutListenerQueue;
-
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 303 */
@@ -58748,7 +59235,7 @@
 	 * == BSD2 LICENSE ==
 	 */
 
-	var shapeutil = __webpack_require__(250);
+	var shapeutil = __webpack_require__(249);
 	var log = __webpack_require__(8)('AnnotationShapes');
 
 	var shapes = {
@@ -58776,7 +59263,7 @@
 /* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iMzAuNzc5cHgiIGhlaWdodD0iMzAuNzY4cHgiIHZpZXdCb3g9IjAgMCAzMC43NzkgMzAuNzY4IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAzMC43NzkgMzAuNzY4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwb2x5Z29uIG9wYWNpdHk9IjAuNSIgZmlsbD0iIzk0OTM2QyIgcG9pbnRzPSIyMi45MDgsMzAuNzc5IDAuNDkyLDMwLjc3OSAwLjQ5MiwwLjQ5MiAzMC43NzksMC40OTIgMzAuNzc5LDIyLjkxIDMwLjc3OSwzMC43NjggCQ0KCQkiLz4NCgk8cG9seWxpbmUgZmlsbD0iI0ZCRjRBMSIgcG9pbnRzPSIyMS4xOTUsMjkuMTk1IDAsMzAuNzc5IDAsMCAzMC43NzksMCAyOS4xOTUsMjEuMTk3IAkiLz4NCgk8cG9seWxpbmUgZmlsbD0iI0ZGRDE4OCIgcG9pbnRzPSIyMS4zNTEsMjkuMjIxIDIxLjM1MSwyMS4zNTIgMjkuMjIsMjEuMzUyIAkiLz4NCjwvZz4NCjwvc3ZnPg0K"
+	module.exports = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8c3ZnIHdpZHRoPSIzMHB4IiBoZWlnaHQ9IjI5cHgiIHZpZXdCb3g9IjAgMCAzMCAyOSIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpza2V0Y2g9Imh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaC9ucyI+DQoJCTwhLS0gR2VuZXJhdG9yOiBTa2V0Y2ggMy4wLjQgKDgwNTMpIC0gaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoIC0tPg0KCQk8dGl0bGU+Tm90ZTwvdGl0bGU+DQoJCTxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPg0KCQk8ZGVmcz48L2RlZnM+DQoJCTxnIGlkPSJQYWdlLTEiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHNrZXRjaDp0eXBlPSJNU1BhZ2UiPg0KCQkJCTxnIGlkPSJOb3RlIiBza2V0Y2g6dHlwZT0iTVNMYXllckdyb3VwIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxLjAwMDAwMCwgMC4wMDAwMDApIj4NCgkJCQkJCTxwYXRoIGQ9Ik0yOC4xMDUsMC43NDUgTC0wLjExMywwLjc0NSBMLTAuMTEzLDI4Ljk1MiBMNy4yMiwyOC45NjMgTDI4LjEwNSwyOC45NjMgTDI4LjEwNSwwLjc0NSIgaWQ9IkZpbGwtMSIgZmlsbD0iI0NBQzlCNSIgc2tldGNoOnR5cGU9Ik1TU2hhcGVHcm91cCI+PC9wYXRoPg0KCQkJCQkJPHBhdGggZD0iTTguODE1LDI3LjQ4NyBMMjguNTYzLDI4Ljk2MyBMMjguNTYzLDAuMjg2IEwtMC4xMTMsMC4yODYgTDEuMzYyLDIwLjAzNiIgaWQ9IkZpbGwtMiIgZmlsbD0iI0ZCRjM5RSIgc2tldGNoOnR5cGU9Ik1TU2hhcGVHcm91cCI+PC9wYXRoPg0KCQkJCQkJPHBhdGggZD0iTTguNjcxLDI3LjUxMSBMOC42NzEsMjAuMTggTDEuMzM5LDIwLjE4IiBpZD0iRmlsbC0zIiBmaWxsPSIjRkZEMTg3IiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+DQoJCQkJPC9nPg0KCQk8L2c+DQo8L3N2Zz4NCg=="
 
 /***/ },
 /* 305 */
@@ -58846,7 +59333,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Accumulates items that must not be null or undefined.
@@ -58881,7 +59368,7 @@
 
 	module.exports = accumulate;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 307 */
@@ -58949,10 +59436,10 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var getNodeForCharacterOffset = __webpack_require__(315);
-	var getTextContentAccessor = __webpack_require__(276);
+	var getTextContentAccessor = __webpack_require__(277);
 
 	/**
 	 * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -59270,8 +59757,8 @@
 	var Danger = __webpack_require__(316);
 	var ReactMultiChildUpdateTypes = __webpack_require__(213);
 
-	var getTextContentAccessor = __webpack_require__(276);
-	var invariant = __webpack_require__(158);
+	var getTextContentAccessor = __webpack_require__(277);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * The DOM property to use when setting text content.
@@ -59425,7 +59912,7 @@
 
 	module.exports = DOMChildrenOperations;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 312 */
@@ -59452,7 +59939,7 @@
 
 	"use strict";
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Normalization of deprecated HTML5 `key` values
@@ -59547,7 +60034,7 @@
 
 	module.exports = getEventKey;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 313 */
@@ -59574,7 +60061,7 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var performance;
 
@@ -59740,12 +60227,12 @@
 
 	"use strict";
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var createNodesFromMarkup = __webpack_require__(317);
-	var emptyFunction = __webpack_require__(215);
+	var emptyFunction = __webpack_require__(218);
 	var getMarkupWrap = __webpack_require__(318);
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	var OPEN_TAG_NAME_EXP = /^(<[^ \/>]+)/;
 	var RESULT_INDEX_ATTR = 'data-danger-index';
@@ -59905,7 +60392,7 @@
 
 	module.exports = Danger;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 317 */
@@ -59932,11 +60419,11 @@
 
 	/*jslint evil: true, sub: true */
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
 	var createArrayFrom = __webpack_require__(319);
 	var getMarkupWrap = __webpack_require__(318);
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Dummy container used to render all markup.
@@ -60005,7 +60492,7 @@
 
 	module.exports = createNodesFromMarkup;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 318 */
@@ -60029,9 +60516,9 @@
 	 * @providesModule getMarkupWrap
 	 */
 
-	var ExecutionEnvironment = __webpack_require__(74);
+	var ExecutionEnvironment = __webpack_require__(72);
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Dummy container used to detect which wraps are necessary.
@@ -60132,7 +60619,7 @@
 
 	module.exports = getMarkupWrap;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ },
 /* 319 */
@@ -60254,7 +60741,7 @@
 	 * @typechecks
 	 */
 
-	var invariant = __webpack_require__(158);
+	var invariant = __webpack_require__(163);
 
 	/**
 	 * Convert array-like objects to arrays.
@@ -60311,7 +60798,7 @@
 
 	module.exports = toArray;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)))
 
 /***/ }
 /******/ ])
