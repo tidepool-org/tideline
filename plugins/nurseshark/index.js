@@ -135,13 +135,23 @@ var nurseshark = {
       }
     }
   },
-  joinWizardsAndBoluses: function(wizards, bolusesToJoin) {
+  joinWizardsAndBoluses: function(wizards, boluses, collections) {
+    var allBoluses = collections.allBoluses, allWizards = collections.allWizards;
     var numWizards = wizards.length;
     for (var i = 0; i < numWizards; ++i) {
       var wizard = wizards[i];
       if (wizard.joinKey != null) {
-        if (typeof bolusesToJoin[wizard.joinKey] === 'object') {
-          wizard.bolus = bolusesToJoin[wizard.joinKey];
+        if (typeof allBoluses[wizard.joinKey] === 'object') {
+          wizard.bolus = allBoluses[wizard.joinKey];
+        }
+      }
+    }
+    var numBoluses = boluses.length;
+    for (var j = 0; j < numBoluses; ++j) {
+      var bolus = boluses[j];
+      if (bolus.joinKey != null) {
+        if (allWizards[bolus.joinKey] == null) {
+          delete bolus.joinKey;
         }
       }
     }
@@ -167,7 +177,8 @@ var nurseshark = {
     }
     var processedData = [], erroredData = [];
     var collections = {
-      bolusesToJoin: {}
+      allBoluses: {},
+      allWizards: {}
     };
     var typeGroups = {}, overlappingUploads = {};
 
@@ -301,7 +312,7 @@ var nurseshark = {
     }, 'Process');
 
     timeIt(function() {
-      nurseshark.joinWizardsAndBoluses(typeGroups.wizard || [], collections.bolusesToJoin);
+      nurseshark.joinWizardsAndBoluses(typeGroups.wizard || [], typeGroups.bolus || [], collections);
     }, 'joinWizardsAndBoluses');
 
     if (typeGroups.deviceMeta && typeGroups.deviceMeta.length > 0) {
@@ -380,7 +391,7 @@ function getHandlers() {
     bolus: function(d, collections) {
       d = cloneDeep(d);
       if (d.joinKey != null) {
-        collections.bolusesToJoin[d.joinKey] = d;
+        collections.allBoluses[d.joinKey] = d;
       }
       watson(d);
       return d;
@@ -454,8 +465,11 @@ function getHandlers() {
         this.suppressed(d.suppressed);
       }
     },
-    wizard: function(d) {
+    wizard: function(d, collections) {
       d = cloneDeep(d);
+      if (d.joinKey != null) {
+        collections.allWizards[d.joinKey] = d;
+      }
       if (d.units === 'mg/dL') {
         if (d.bgInput) {
           d.bgInput = translateBg(d.bgInput);
