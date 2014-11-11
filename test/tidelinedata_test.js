@@ -288,8 +288,8 @@ describe('TidelineData', function() {
       }});
       var twoWeekFills = _.where(thisTd.twoWeekData, {type: 'fill'});
       var firstFill = twoWeekFills[0], lastFill = twoWeekFills[twoWeekFills.length - 1];
-      expect(firstFill.normalTime).to.equal(moment(end + '.000Z').startOf('day').subtract(12, 'days').tz('US/Pacific').toISOString());
-      expect(lastFill.normalTime).to.equal(moment(end + '.000Z').startOf('day').add(1, 'days').hours(21).tz('US/Pacific').toISOString());
+      expect(firstFill.normalTime).to.equal(moment.utc(end).subtract(12, 'days').tz('US/Pacific').startOf('day').toISOString());
+      expect(lastFill.normalTime).to.equal(moment.utc(end).tz('US/Pacific').startOf('day').add(1, 'days').hours(21).toISOString());
       expect(new Date(lastFill.normalEnd) - new Date(firstFill.normalTime)).to.be.at.least(864e5*14);
     });
   });
@@ -360,7 +360,7 @@ describe('TidelineData', function() {
       var data = [new types.Message(), new types.SMBG()];
       var thisTd = new TidelineData(data);
       var datum = _.findWhere(thisTd.data, {type: 'message'});
-      expect(datum.normalTime).to.equal(moment(datum.time).tz('US/Pacific').format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z');
+      expect(datum.normalTime).to.equal(moment.utc(datum.time).tz('US/Pacific').format('YYYY-MM-DDTHH:mm:ss.SSS') + 'Z');
     });
 
     it('should not re-normalize to new timezone if timezoneAware is still false', function() {
