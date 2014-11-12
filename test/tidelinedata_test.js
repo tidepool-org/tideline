@@ -296,7 +296,7 @@ describe('TidelineData', function() {
         // you get an extra day of fill rectangles in two-week view
         // but nothing is actually broken and the rabbit hole isn't worth it
         expect(firstFill.normalTime).to.be.at.most(moment.utc(end).subtract(13, 'days').tz('US/Pacific').startOf('day').toISOString());
-        expect(lastFill.normalTime).to.equal(moment.utc(end).add(2, 'days').tz('US/Pacific').hours(21).toISOString());
+        expect(lastFill.normalTime).to.equal(moment.utc(end).tz('US/Pacific').hours(21).toISOString());
       }
       else {
         expect(firstFill.normalTime).to.be.at.most(moment.utc(end).subtract(12, 'days').tz('US/Pacific').startOf('day').toISOString());
