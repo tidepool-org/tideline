@@ -288,7 +288,7 @@ describe('TidelineData', function() {
       }});
       var twoWeekFills = _.where(thisTd.twoWeekData, {type: 'fill'});
       var firstFill = twoWeekFills[0], lastFill = twoWeekFills[twoWeekFills.length - 1];
-      expect(firstFill.normalTime).to.equal(moment.utc(end).subtract(12, 'days').tz('US/Pacific').startOf('day').toISOString());
+      expect(firstFill.normalTime).to.be.at.most(moment.utc(end).subtract(12, 'days').tz('US/Pacific').startOf('day').toISOString());
       expect(lastFill.normalTime).to.equal(moment.utc(end).add(1, 'days').tz('US/Pacific').hours(21).toISOString());
       expect(new Date(lastFill.normalEnd) - new Date(firstFill.normalTime)).to.be.at.least(864e5*14);
     });
