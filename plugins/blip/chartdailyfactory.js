@@ -153,6 +153,14 @@ function chartDailyFactory(el, options) {
     chart.annotations().addGroup(chart.svg().select('#' + poolStats.id()), 'stats');
 
     // add tooltips
+    chart.tooltips().addGroup(poolMessages, {
+      type: 'deviceEvent',
+      shape: 'generic'
+    });
+    chart.tooltips().addGroup(poolMessages, {
+      type: 'message',
+      shape: 'generic'
+    });
     chart.tooltips().addGroup(poolBG, {
       type: 'cbg',
       classes: ['d3-bg-low', 'd3-bg-target', 'd3-bg-high']
@@ -311,6 +319,13 @@ function chartDailyFactory(el, options) {
     poolMessages.addPlotType('message', tideline.plot.message(poolMessages, {
       size: 30,
       emitter: emitter
+    }), true, true);
+
+    // add timechange images to messages pool
+    poolMessages.addPlotType('deviceEvent', tideline.plot.timechange(poolMessages, {
+      size: 30,
+      emitter: emitter,
+      timezone: chart.options.timePrefs.timezoneName
     }), true, true);
 
     // stats pool
