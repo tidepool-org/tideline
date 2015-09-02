@@ -163,6 +163,50 @@ describe('format utility', function() {
     });
   });
 
+  describe('timeChangeInfo', function() {
+    it('should be a function', function() {
+      assert.isFunction(fmt.timeChangeInfo);
+    });
+
+    it('should error if 2 arguments are not passed', function() {
+      var err = 'You have not provided two datetime strings';
+      var x = '2014-01-01T01:00:00.000Z';
+      expect(fmt.timeChangeInfo.bind(fmt)).to.throw(err);
+      expect(fmt.timeChangeInfo.bind(fmt, x)).to.throw(err);
+    });
+
+    it('should return an object containing strings of times when both are on same day', function() {
+      var x = '2014-01-01T01:00:00.000Z';
+      var y = '2014-01-01T04:00:00.000Z';
+      var y2 = '2014-01-01T23:00:00.000Z';
+      expect(fmt.timeChangeInfo(x,y)).to.eql({type: 'Time Change', from: '1:00 am', to: '4:00 am', format: 'h:mm a'});
+      expect(fmt.timeChangeInfo(x,y2)).to.eql({type: 'Time Change', from: '1:00 am', to: '11:00 pm', format: 'h:mm a'});
+      expect(fmt.timeChangeInfo(y,y2)).to.eql({type: 'Time Change', from: '4:00 am', to: '11:00 pm', format: 'h:mm a'});
+    });
+
+    it('should label object as type Clock Drift Adjustment if difference is less than 8 minutes', function() {
+      var x = '2014-01-01T01:00:00.000Z';
+      var y = '2014-01-01T01:06:00.000Z';
+      expect(fmt.timeChangeInfo(x,y)).to.eql({type: 'Clock Drift Adjustment', from: '1:00 am', to: '1:06 am', format: 'h:mm a'});
+    });
+
+    it('should return an object containing strings of times and date when values are on different days', function() {
+      var x = '2014-01-01T01:00:00.000Z';
+      var y = '2014-01-02T04:00:00.000Z';
+      var y2 = '2014-01-30T04:00:00.000Z';
+      expect(fmt.timeChangeInfo(x,y)).to.eql({type: 'Time Change', from: 'Jan 1, 1:00 am', to: 'Jan 2, 4:00 am', format: 'MMM D, h:mm a'});
+      expect(fmt.timeChangeInfo(x,y2)).to.eql({type: 'Time Change', from: 'Jan 1, 1:00 am', to: 'Jan 30, 4:00 am', format: 'MMM D, h:mm a'});
+    });
+
+    it('should return an object containing strings of times and date when values are in different years', function() {
+      var x = '2014-12-31T04:00:00.000Z';
+      var y = '2015-01-01T01:00:00.000Z';
+      var y2 = '2015-04-15T04:25:00.000Z';
+      expect(fmt.timeChangeInfo(x,y)).to.eql({type: 'Time Change', from: 'Dec 31, 2014 4:00 am', to: 'Jan 1, 2015 1:00 am', format: 'MMM D, YYYY h:mm a'});
+      expect(fmt.timeChangeInfo(x,y2)).to.eql({type: 'Time Change', from: 'Dec 31, 2014 4:00 am', to: 'Apr 15, 2015 4:25 am', format: 'MMM D, YYYY h:mm a'});
+    });
+  });
+
   describe('xAxisDayText', function() {
     it('should be a function', function() {
       assert.isFunction(fmt.xAxisDayText);
