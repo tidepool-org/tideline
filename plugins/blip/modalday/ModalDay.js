@@ -12,6 +12,7 @@ var smbgDay = require('./SMBGDay');
 var smbgInfo = require('./SMBGInfo');
 
 var THREE_HRS = 10800000;
+var chart;
 
 d3.chart('ModalDay', {
   initialize: function() {
@@ -325,6 +326,7 @@ d3.chart('ModalDay', {
         x: this.xScale(),
         y: this.yScale()
       }, {
+        bgClasses: chart.bgClasses(),
         timezone: this.timezone()
       });
     }
@@ -409,8 +411,6 @@ d3.chart('ModalDay', {
     return _.sortBy(Object.keys(this.data), function(d) { return d; });
   }
 });
-
-var chart;
 
 module.exports = {
   create: function(el, opts) {
