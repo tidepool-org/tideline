@@ -1,6 +1,6 @@
 /* 
  * == BSD2 LICENSE ==
- * Copyright (c) 2014, Tidepool Project
+ * Copyright (c) 2015 Tidepool Project
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
@@ -15,13 +15,25 @@
  * == BSD2 LICENSE ==
  */
 
-module.exports = {
-  basics: require('./basics/chartbasicsfactory'),
-  oneday: require('./chartdailyfactory'),
-  twoweek: require('./chartweeklyfactory'),
-  modalday: {
-    brush: require('./modalday/Brush'),
-    modalDay: require('./modalday/ModalDay')
-  },
-  settings: require('./settingsfactory')
+var _ = require('lodash');
+var bows = require('bows');
+var moment = require('moment-timezone');
+
+var sundial = require('sundial');
+
+var debug = bows('basicsActions');
+
+var basicsActions = {};
+
+basicsActions.bindApp = function(app) {
+  this.app = app;
+  return this;
 };
+
+basicsActions.toggleSection = function(sectionName) {
+  var sections = _.cloneDeep(this.app.state.sections);
+  sections[sectionName].open = !sections[sectionName].open;
+  this.app.setState({sections: sections});
+};
+
+module.exports = basicsActions;
