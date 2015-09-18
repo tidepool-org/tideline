@@ -24,6 +24,7 @@ var React = require('react');
 
 var debug = bows('Calendar');
 var basicsActions = require('../logic/actions');
+var dotUtil = require('../util/dots');
 
 var ADay = require('./day/ADay');
 var HoverDay = require('./day/HoverDay');
@@ -62,14 +63,33 @@ var CalendarContainer = React.createClass({
 
     var days = this.renderDays();
     var dayLabels = this.renderDayLabels();
+    var legend = null;
+    if (this.props.type === 'smbg') {
+      legend = this.renderFingerstickLegend();
+    }
 
     return (
       <div className='Container'>
+        {legend}
         <div className={containerClass} ref='container'>
           <div className='Calendar' ref='content'>
             {dayLabels}
             {days}
           </div>
+        </div>
+      </div>
+    );
+  },
+  renderFingerstickLegend: function() {
+    return (
+      <div className='Calendar-legend'>
+        <div className='Calendar-legend-series'>
+          {dotUtil.drawDot(1,true)}
+          <span>Manual</span>
+        </div>
+        <div className='Calendar-legend-series'>
+          {dotUtil.drawDot(1,false)}
+          <span>Linked</span>
         </div>
       </div>
     );
