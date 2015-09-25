@@ -1,6 +1,8 @@
+var React = require('react');
+
 var dotSize = 16;
 var manualDotRadius = 4.5;
-var pad = 1.5
+var pad = 1.5;
 
 
 /**
