@@ -13,7 +13,8 @@ var ADay = React.createClass({
     mostRecent: React.PropTypes.bool.isRequired,
     isFirst: React.PropTypes.bool.isRequired,
     onHover: React.PropTypes.func.isRequired,
-    type: React.PropTypes.string.isRequired
+    type: React.PropTypes.string.isRequired,
+    legendTypes: React.PropTypes.array
   },
   getDefaultProps: function() {
     return {
@@ -43,7 +44,7 @@ var ADay = React.createClass({
     this.props.onHover(null);
   },
   render: function() {
-    var chart = this.props.chart({data: this.props.data, date: this.props.date});
+    var chart = this.props.chart({data: this.props.data, date: this.props.date, legendTypes: this.props.legendTypes});
     var date = moment(this.props.date);
 
     var containerClass = cx({

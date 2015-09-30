@@ -18,6 +18,8 @@
 
 var _ = require('lodash');
 var React = require('react');
+
+var dotUtil = require('../../util/dots');
 var dotSize = 16;
 var dotPadding = 2;
 var nestedShrinkFactor = 4;
@@ -25,7 +27,8 @@ var nestedShrinkFactor = 4;
 var WrapCount = React.createClass({
   propTypes: {
     data: React.PropTypes.object,
-    date: React.PropTypes.string.isRequired
+    date: React.PropTypes.string.isRequired,
+    legendTypes: React.PropTypes.array
   },
   render: function() {
     var dots = this.renderDots();
@@ -39,13 +42,11 @@ var WrapCount = React.createClass({
     pad = pad || 1.5;
     var dots = [];
     var count = this.getCount();
+    var dotType = 'a';
+    
     for (var i = start; i <= end; ++i) {
       if (i <= count) {
-        dots.push(
-          <svg key={i} width={dotSize} height={dotSize}>
-            <circle cx={dotSize/2} cy={dotSize/2} r={dotSize/2 - pad}/>
-          </svg>
-        );
+        dots.push(dotUtil.drawDot(i, dotType, dotSize, pad));
       }
     }
 

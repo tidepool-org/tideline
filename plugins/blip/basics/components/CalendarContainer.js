@@ -24,9 +24,12 @@ var React = require('react');
 
 var debug = bows('Calendar');
 var basicsActions = require('../logic/actions');
+var dotUtil = require('../util/dots');
 
 var ADay = require('./day/ADay');
 var HoverDay = require('./day/HoverDay');
+
+var Legend = require('./misc/Legend');
 
 var CalendarContainer = React.createClass({
   propTypes: {
@@ -40,6 +43,7 @@ var CalendarContainer = React.createClass({
     timezone: React.PropTypes.string.isRequired,
     title: React.PropTypes.string.isRequired,
     type: React.PropTypes.string.isRequired,
+    legendTypes: React.PropTypes.array
   },
   getInitialState: function() {
     return {
@@ -64,9 +68,14 @@ var CalendarContainer = React.createClass({
 
     var days = this.renderDays();
     var dayLabels = this.renderDayLabels();
+    var legend = null;
+    if (this.props.legendTypes) {
+      legend = this.renderLegend();
+    }
 
     return (
       <div className='Container'>
+        {legend}
         <div className={containerClass} ref='container'>
           <div className='Calendar' ref='content'>
             {dayLabels}
@@ -75,6 +84,9 @@ var CalendarContainer = React.createClass({
         </div>
       </div>
     );
+  },
+  renderLegend: function() {
+    return (<Legend legendTypes={this.props.legendTypes} />);
   },
   renderDayLabels: function() {
     // Take the first day in the set and use this to set the day labels
@@ -110,6 +122,7 @@ var CalendarContainer = React.createClass({
         return (
           <ADay key={day.date}
             chart={self.props.chart}
+            legendTypes={self.props.legendTypes}
             data={self.props.data[self.props.type]}
             date={day.date}
             future={day.type === 'future'}
