@@ -59,6 +59,10 @@ var basicsState = {
           active: true,
           chart: WrapCount,
           container: CalendarContainer,
+          legendTypes: [
+            { key: 'manual', label: 'Manual', dotType: 'a' },
+            { key: 'linked', label: 'Linked', dotType: 'b' },
+          ],
           hasHover: true,
           title: 'BGs',
           type: 'smbg'

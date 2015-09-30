@@ -29,6 +29,8 @@ var dotUtil = require('../util/dots');
 var ADay = require('./day/ADay');
 var HoverDay = require('./day/HoverDay');
 
+var Legend = require('./misc/Legend');
+
 var CalendarContainer = React.createClass({
   propTypes: {
     section: React.PropTypes.string.isRequired,
@@ -41,6 +43,7 @@ var CalendarContainer = React.createClass({
     timezone: React.PropTypes.string.isRequired,
     title: React.PropTypes.string.isRequired,
     type: React.PropTypes.string.isRequired,
+    legendTypes: React.PropTypes.array
   },
   getInitialState: function() {
     return {
@@ -66,8 +69,8 @@ var CalendarContainer = React.createClass({
     var days = this.renderDays();
     var dayLabels = this.renderDayLabels();
     var legend = null;
-    if (this.props.type === 'smbg') {
-      legend = this.renderFingerstickLegend();
+    if (this.props.legendTypes) {
+      legend = this.renderLegend();
     }
 
     return (
@@ -82,19 +85,8 @@ var CalendarContainer = React.createClass({
       </div>
     );
   },
-  renderFingerstickLegend: function() {
-    return (
-      <div className='Calendar-legend'>
-        <div className='Calendar-legend-series'>
-          {dotUtil.drawDot(1,true)}
-          <span>Manual</span>
-        </div>
-        <div className='Calendar-legend-series'>
-          {dotUtil.drawDot(1,false)}
-          <span>Linked</span>
-        </div>
-      </div>
-    );
+  renderLegend: function() {
+    return (<Legend legendTypes={this.props.legendTypes} />);
   },
   renderDayLabels: function() {
     // Take the first day in the set and use this to set the day labels
@@ -130,6 +122,7 @@ var CalendarContainer = React.createClass({
         return (
           <ADay key={day.date}
             chart={self.props.chart}
+            legendTypes={self.props.legendTypes}
             data={self.props.data[self.props.type]}
             date={day.date}
             future={day.type === 'future'}

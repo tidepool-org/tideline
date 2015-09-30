@@ -27,7 +27,8 @@ var nestedShrinkFactor = 4;
 var WrapCount = React.createClass({
   propTypes: {
     data: React.PropTypes.object,
-    date: React.PropTypes.string.isRequired
+    date: React.PropTypes.string.isRequired,
+    legendTypes: React.PropTypes.array
   },
   render: function() {
     var dots = this.renderDots();
@@ -41,10 +42,11 @@ var WrapCount = React.createClass({
     pad = pad || 1.5;
     var dots = [];
     var count = this.getCount();
+    var dotType = 'a';
     
-    for (var i = 1; i <= 9; ++i) {
+    for (var i = start; i <= end; ++i) {
       if (i <= count) {
-        dots.push(dotUtil.drawDot(i, true, dotSize, pad));
+        dots.push(dotUtil.drawDot(i, dotType, dotSize, pad));
       }
     }
 
