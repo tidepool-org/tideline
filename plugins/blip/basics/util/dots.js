@@ -1,8 +1,9 @@
 var React = require('react');
 
-var dotSize = 16;
-var manualDotRadius = 4.5;
-var pad = 1.5;
+var DOT_SIZE = 16;
+var PAD = 1.5;
+
+var MANUAL_DOT_RADIUS = 4.5;
 
 
 /**
@@ -13,11 +14,14 @@ var pad = 1.5;
  * 
  * @return {JSX}
  */
-function drawDot(i, isManual) {
+function drawDot(i, isManual, dotSize, pad) {
   var manual;
 
+  dotsize = dotSize || DOT_SIZE;
+  pad = pad || PAD;
+
   if (isManual) {
-    manual = <circle className="Fingerstick--manual" cx={dotSize/2} cy={dotSize/2} r={manualDotRadius - pad}/>;
+    manual = <circle className="Fingerstick--manual" cx={dotSize/2} cy={dotSize/2} r={MANUAL_DOT_RADIUS - pad}/>;
   }
 
   return (
