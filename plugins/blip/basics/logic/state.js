@@ -20,12 +20,14 @@ var React = require('react');
 
 var BasicContainer = require('../components/BasicContainer');
 var CalendarContainer = require('../components/CalendarContainer');
+var SummaryGroup = React.createFactory(require('../components/misc/SummaryGroup'));
 
 var BasalBolusRatio = React.createFactory(require('../components/chart/BasalBolusRatio'));
 var BGDistribution = React.createFactory(require('../components/chart/BGDistribution'));
 var WrapCount = React.createFactory(require('../components/chart/WrapCount'));
 var SiteChange = React.createFactory(require('../components/chart/SiteChange'));
 var TotalDailyDose = React.createFactory(require('../components/chart/TotalDailyDose'));
+var InfusionHoverDisplay = React.createFactory(require('../components/day/hover/InfusionHoverDisplay'));
 
 var basicsActions = require('./actions');
 
@@ -36,6 +38,7 @@ var basicsState = {
       chart: BasalBolusRatio,
       container: BasicContainer,
       column: 'left',
+      id: 'basalBolusRatio',
       index: 3,
       title: 'Basal : bolus ratio',
       open: true
@@ -45,61 +48,72 @@ var basicsState = {
       chart: BGDistribution,
       container: BasicContainer,
       column: 'left',
+      id: 'bgDistribution',
       index: 1,
       title: 'BG distribution',
       open: true
     },
-    bgTesting: {
+    fingersticks: {
       active: true,
+      chart: WrapCount,
       column: 'right',
+      container: CalendarContainer,
+      hasHover: true,
+      id: 'fingersticks',
       index: 1,
-      title: 'BG readings',
       open: true,
-      components: [{
-          active: true,
-          chart: WrapCount,
-          container: CalendarContainer,
-          hasHover: true,
-          title: 'BGs',
-          type: 'smbg'
-        }]
+      selector: SummaryGroup,
+      selectorOptions: [
+        { path: 'smbg', key: 'total', label: 'All BGs', default: true, primary: true },
+        { path: 'smbg', key: 'meter', label: 'Meter', percentage: true },
+        { path: 'smbg', key: 'manual', label: 'Manual', percentage: true  },
+        { path: 'calibration', key: 'calibration', label: 'Calibrations' }
+      ],
+      title: 'BG readings',
+      type: 'fingerstick'
     },
     boluses: {
       active: true,
+      chart: WrapCount,
       column: 'right',
+      container: CalendarContainer,
+      hasHover: true,
+      id: 'boluses',
       index: 2,
+      open: true,
+      selector: SummaryGroup,
+      selectorOptions: [
+        { key: 'total', label: 'All Boluses', default: true, primary: true },
+        { key: 'wizard', label: 'Calculator', percentage: true  },
+        { key: 'manual', label: 'Manual', percentage: true  },
+        { key: 'extended', label: 'Extended', percentage: true  },
+        { key: 'override', label: 'Override', percentage: true  },
+        { key: 'underride', label: 'Underride', percentage: true  },
+        { key: 'interrupted', label : 'Interrupted', percentage: true  }
+      ],
       title: 'Bolusing',
-      open: true,
-      components: [{
-          active: true,
-          chart: WrapCount,
-          container: CalendarContainer,
-          hasHover: true,
-          title: 'Boluses',
-          type: 'bolus'
-        }]
+      type: 'bolus'
     },
-    general: {
+    siteChanges: {
       active: true,
+      chart: SiteChange,
       column: 'right',
+      container: CalendarContainer,
+      hasHover: true,
+      hoverDisplay: InfusionHoverDisplay,
+      id: 'siteChanges',
       index: 4,
-      title: 'Infusion site changes',
+      noDataMessage: 'Infusion site changes for CareLink data are coming soon.',
       open: true,
-      components: [{
-          active: true,
-          chart: SiteChange,
-          container: CalendarContainer,
-          hasHover: false,
-          noDataMessage: 'Infusion site changes for CareLink data are coming soon.',
-          title: 'Infusion site changes',
-          type: 'deviceEvent'
-        }]
+      title: 'Infusion site changes',
+      type: 'reservoirChange'
     },
-    tdd: {
+    totalDailyDose: {
       active: true,
       chart: TotalDailyDose,
       container: BasicContainer,
       column: 'left',
+      id: 'totalDailyDose',
       index: 2,
       title: 'Avg total daily dose',
       open: true

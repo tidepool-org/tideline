@@ -1,5 +1,26 @@
-var _ = require('lodash');
+/* 
+ * == BSD2 LICENSE ==
+ * Copyright (c) 2015 Tidepool Project
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the associated License, which is identical to the BSD 2-Clause
+ * License as published by the Open Source Initiative at opensource.org.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the License for more details.
+ * 
+ * You should have received a copy of the License along with this program; if
+ * not, you can obtain one from Tidepool Project at tidepool.org.
+ * == BSD2 LICENSE ==
+ */
 
+var _ = require('lodash');
+var crossfilter = require('crossfilter');
+
+var sundial = require('sundial');
+
+var classifiers = require('./classifiers');
 var constants = require('./constants');
 
 module.exports = {
@@ -131,12 +152,12 @@ module.exports = {
     };
   },
   infusionSiteHistory: function(basicsData) {
-    var countInfusionSitesPerDay = basicsData.data.deviceEvent.countByDate;
+    var infusionSitesPerDay = basicsData.data.reservoirChange.dataByDate;
     var allDays = basicsData.days;
     var infusionSiteHistory = {};
     // daysSince does *not* start at zero because we have to look back to the
     // most recent infusion site change prior to the basics-restricted time domain
-    var priorSiteChange = _.findLast(_.keys(countInfusionSitesPerDay), function(date) {
+    var priorSiteChange = _.findLast(_.keys(infusionSitesPerDay), function(date) {
       return date < allDays[0].date;
     });
     var daysSince = (Date.parse(allDays[0].date) - Date.parse(priorSiteChange))/constants.MS_IN_DAY - 1;
@@ -146,8 +167,13 @@ module.exports = {
       }
       else {
         daysSince += 1;
-        if (countInfusionSitesPerDay[day.date] >= 1) {
-          infusionSiteHistory[day.date] = {type: constants.SITE_CHANGE, daysSince: daysSince};
+        if (infusionSitesPerDay[day.date] && infusionSitesPerDay[day.date].count >= 1) {
+          infusionSiteHistory[day.date] = {
+            type: constants.SITE_CHANGE,
+            count: infusionSitesPerDay[day.date].count,
+            data: infusionSitesPerDay[day.date].data,
+            daysSince: daysSince
+          };
           daysSince = 0;
         }
         else {
@@ -156,5 +182,176 @@ module.exports = {
       }
     });
     return infusionSiteHistory;
+  },
+  reduceByDay: function(basicsData) {
+
+    function getLocalDate(d) {
+      return sundial.applyOffset(d.time, d.displayOffset).toISOString().slice(0,10);
+    }
+
+    function reduceAddMaker(classifier) {
+      if (classifier) {
+        return function reduceAdd(p, v) {
+          ++p.total;
+          var tags = classifier(v);
+          _.each(tags, function(tag) {
+            if (p.subtotals[tag]) {
+              p.subtotals[tag] += 1;
+            }
+            else {
+              p.subtotals[tag] = 1;
+            }
+          });
+          p.data.push(v);
+          return p;
+        };
+      }
+      else {
+        return function reduceAdd(p, v) {
+          ++p.count;
+          p.data.push(v);
+          return p;
+        };
+      }
+    }
+
+    function reduceRemoveMaker(classifier) {
+      if (classifier) {
+        return function reduceRemove(p, v) {
+          --p.total;
+          var tags = classifier(v);
+          _.each(tags, function(tag) {
+            p.subtotals[tag] -= 1;
+          });
+          _.remove(p.data, function(d) {
+            return d.id === v.id;
+          });
+          return p;
+        };
+      }
+      else {
+        return function reduceRemove(p, v) {
+          --p.count;
+          _.remove(p.data, function(d) {
+            return d.id === v.id;
+          });
+          return p;
+        };
+      }
+    }
+
+    function reduceInitialMaker(classifier) {
+      if (classifier) {
+        return function reduceInitial() {
+          return {
+            total: 0,
+            subtotals: {},
+            data: []
+          };
+        };
+      }
+      else {
+        return function reduceInitial() {
+          return {
+            count: 0,
+            data: []
+          };
+        };
+      }
+    }
+
+    function findSectionContainingType(type) {
+      return function(section) {
+        if (section.column === 'left') {
+          return false;
+        }
+        return section.type === type;
+      };
+    }
+
+    function reduceTotalByDate(typeObj) {
+      return function(p, date) {
+        return p + typeObj.dataByDate[date].total;
+      };
+    }
+
+    function summarizeTag(typeObj, summary, total) {
+      return function(tag) {
+        summary[tag] = {count: Object.keys(typeObj.dataByDate)
+          .reduce(function(p, date) {
+            return p + (typeObj.dataByDate[date].subtotals[tag] || 0);
+          }, 0)};
+        summary[tag].percentage = summary[tag].count/total;
+      };
+    }
+
+    for (var type in basicsData.data) {
+      var typeObj = basicsData.data[type];
+      if (_.includes(['bolus', 'reservoirChange'], type)) {
+        typeObj.cf = crossfilter(typeObj.data);
+        typeObj.byLocalDate = typeObj.cf.dimension(getLocalDate);
+        var classifier = classifiers[type];
+        var dataByLocalDate = typeObj.byLocalDate.group().reduce(
+          reduceAddMaker(classifier),
+          reduceRemoveMaker(classifier),
+          reduceInitialMaker(classifier)
+        ).all();
+        var dataByDateHash = {};
+        for (var j = 0; j < dataByLocalDate.length; ++j) {
+          var day = dataByLocalDate[j];
+          dataByDateHash[day.key] = day.value;
+        }
+        typeObj.dataByDate = dataByDateHash;
+      }
+      if (_.includes(['calibration', 'smbg'], type)) {
+        if (!basicsData.data.fingerstick) {
+          basicsData.data.fingerstick = {};
+        }
+        basicsData.data.fingerstick[type] = {
+          cf: crossfilter(typeObj.data)
+        };
+        var fsTypeObj = basicsData.data.fingerstick[type];
+        fsTypeObj.byLocalDate = fsTypeObj.cf.dimension(getLocalDate);
+        var fsDataByLocalDate;
+        fsDataByLocalDate = fsTypeObj.byLocalDate.group().reduce(
+          reduceAddMaker(classifiers[type]),
+          reduceRemoveMaker(classifiers[type]),
+          reduceInitialMaker(classifiers[type])
+        ).all();
+        var fsDataByDateHash = {};
+        for (var k = 0; k < fsDataByLocalDate.length; ++k) {
+          var fsDay = fsDataByLocalDate[k];
+          fsDataByDateHash[fsDay.key] = fsDay.value;
+        }
+        fsTypeObj.dataByDate = fsDataByDateHash;
+      }
+
+      if (_.includes(['bolus'], type)) {
+        var section = _.find(basicsData.sections, findSectionContainingType(type));
+        var tags = _.rest(_.pluck(section.selectorOptions, 'key'));
+        var summary = {total: Object.keys(typeObj.dataByDate)
+          .reduce(reduceTotalByDate(typeObj), 0)};
+        _.each(tags, summarizeTag(typeObj, summary, summary.total));
+        summary.avgPerDay = summary.total/Object.keys(typeObj.dataByDate).length;
+        typeObj.summary = summary;
+      }
+    }
+
+    var fsSection = _.find(basicsData.sections, findSectionContainingType('fingerstick'));
+    var fingerstickData = basicsData.data.fingerstick;
+    var fsSummary = {total: 0};
+    _.each(['calibration', 'smbg'], function(fsCategory) {
+      fsSummary[fsCategory] = Object.keys(fingerstickData[fsCategory].dataByDate)
+        .reduce(function(p, date) {
+          var dateData = fingerstickData[fsCategory].dataByDate[date];
+          return p + (dateData.total || dateData.count);
+        }, 0);
+      fsSummary.total += fsSummary[fsCategory];
+    });
+    fingerstickData.summary = fsSummary;
+    var fsTags = _.pluck(_.filter(fsSection.selectorOptions, function(opt) {
+      return opt.path === 'smbg' && !opt.primary;
+    }), 'key');
+    _.each(fsTags, summarizeTag(fingerstickData.smbg, fsSummary, fsSummary.smbg));
   }
 };
