@@ -64,9 +64,9 @@ var basicsState = {
       open: true,
       selector: SummaryGroup,
       selectorOptions: [
-        { path: 'smbg', key: 'total', label: 'All BGs', default: true, primary: true},
-        { path: 'smbg', key: 'meter', label: 'Meter' },
-        { path: 'smbg', key: 'manual', label: 'Manual' },
+        { path: 'smbg', key: 'total', label: 'All BGs', default: true, primary: true },
+        { path: 'smbg', key: 'meter', label: 'Meter', percentage: true },
+        { path: 'smbg', key: 'manual', label: 'Manual', percentage: true  },
         { path: 'calibration', key: 'calibration', label: 'Calibrations' }
       ],
       title: 'BG readings',
@@ -84,12 +84,12 @@ var basicsState = {
       selector: SummaryGroup,
       selectorOptions: [
         { key: 'total', label: 'All Boluses', default: true, primary: true },
-        { key: 'wizard', label: 'Calculator' },
-        { key: 'manual', label: 'Manual' },
-        { key: 'extended', label: 'Extended' },
-        { key: 'override', label: 'Override' },
-        { key: 'underride', label: 'Underride' },
-        { key: 'interrupted', label : 'Interrupted' }
+        { key: 'wizard', label: 'Calculator', percentage: true  },
+        { key: 'manual', label: 'Manual', percentage: true  },
+        { key: 'extended', label: 'Extended', percentage: true  },
+        { key: 'override', label: 'Override', percentage: true  },
+        { key: 'underride', label: 'Underride', percentage: true  },
+        { key: 'interrupted', label : 'Interrupted', percentage: true  }
       ],
       title: 'Bolusing',
       type: 'bolus'
