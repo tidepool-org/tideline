@@ -60,7 +60,7 @@ var basicsState = {
       column: 'left',
       id: 'basalBolusRatio',
       index: 3,
-      title: 'Basal : bolus ratio',
+      title: 'Insulin ratio',
       open: true
     },
     bgDistribution: {

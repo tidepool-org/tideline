@@ -65,9 +65,7 @@ var BasalBolusRatio = React.createClass({
     var percent = d3.format('%');
     return (
       <div className='BasalBolusRatio'>
-        <div ref="pie" className='BasalBolusRatio-inner BasalBolusRatio-pie'>
-        </div>
-        <div className='BasalBolusRatio-inner'>
+        <div className='BasalBolusRatio-basal'>
           <p>
             <span className='BasalBolusRatio-percent BasalBolusRatio-percent--basal'>
               {percent(data.basalBolusRatio.basal)}
@@ -75,6 +73,12 @@ var BasalBolusRatio = React.createClass({
             <span className='BasalBolusRatio-label BasalBolusRatio-label--basal'>
             &nbsp;basal
             </span>
+          </p>
+        </div>
+        <div ref="pie" className='BasalBolusRatio-pie'>
+        </div>
+        <div className='BasalBolusRatio-bolus'>
+          <p>
             <span className='BasalBolusRatio-percent BasalBolusRatio-percent--bolus'>
               {' : ' + percent(data.basalBolusRatio.bolus)}
             </span>
@@ -83,6 +87,7 @@ var BasalBolusRatio = React.createClass({
             </span>
           </p>
         </div>
+        
       </div>
     );
   }
