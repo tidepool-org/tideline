@@ -16,6 +16,7 @@
     height: 90px;
     p {
       text-align: center;
+      margin: 7px 0;
     }
 
     .BasalBolusRatio-percent {
@@ -32,6 +33,16 @@
         color: @basal;
       }
       &.BasalBolusRatio-label--bolus {
+        color: @bolus;
+      }
+    }
+    .BasalBolusRatio-units {
+      font-size: @small-text;
+      font-weight: 100;
+      &.BasalBolusRatio-units--basal {
+        color: @basal;
+      }
+      &.BasalBolusRatio-units--bolus {
         color: @bolus;
       }
     }
