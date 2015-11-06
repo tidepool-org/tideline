@@ -89,6 +89,11 @@ var BasicsChart = React.createClass({
     patientData.basicsData = this.state;
     this.props.updateBasicsData(patientData);
   },
+  addToBasicsData: function(key, value) {
+    var newData = this.state.data;
+    newData[key] = value;
+    this.setState( { data: newData});
+  },
   render: function() {
     var leftColumn = this.renderColumn('left');
     var rightColumn = this.renderColumn('right');
@@ -131,7 +136,8 @@ var BasicsChart = React.createClass({
           open={section.open}
           section={section}
           title={section.title}
-          timezone={tz} />
+          timezone={tz}
+          addToBasicsData={self.addToBasicsData} />
       );
     });
   }
