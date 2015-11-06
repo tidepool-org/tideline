@@ -63,26 +63,43 @@ var BasalBolusRatio = React.createClass({
   render: function() {
     var data = this.props.data;
     var percent = d3.format('%');
+    
+
+    // For mocking purposes
+    if (!data.basalBolusUnits) {
+      data.basalBolusUnits = {
+        basal: 54,
+        bolus: 40
+      };
+    }
+    
     return (
       <div className='BasalBolusRatio'>
-        <div ref="pie" className='BasalBolusRatio-inner BasalBolusRatio-pie'>
-        </div>
-        <div className='BasalBolusRatio-inner'>
-          <p>
-            <span className='BasalBolusRatio-percent BasalBolusRatio-percent--basal'>
+        <div className='BasalBolusRatio-basal'>
+            <p className='BasalBolusRatio-label BasalBolusRatio-label--basal'>
+              Basal
+            </p>
+            <p className='BasalBolusRatio-percent BasalBolusRatio-percent--basal'>
               {percent(data.basalBolusRatio.basal)}
-            </span>
-            <span className='BasalBolusRatio-label BasalBolusRatio-label--basal'>
-            &nbsp;basal
-            </span>
-            <span className='BasalBolusRatio-percent BasalBolusRatio-percent--bolus'>
-              {' : ' + percent(data.basalBolusRatio.bolus)}
-            </span>
-            <span className='BasalBolusRatio-label BasalBolusRatio-label--bolus'>
-            &nbsp;bolus
-            </span>
+            </p>
+            <p className='BasalBolusRatio-units BasalBolusRatio-units--bolus'>
+              {data.basalBolusUnits.basal} U
+            </p>
+        </div>
+        <div ref="pie" className='BasalBolusRatio-pie'>
+        </div>
+        <div className='BasalBolusRatio-bolus'>
+          <p className='BasalBolusRatio-label BasalBolusRatio-label--bolus'>
+            Bolus
+          </p>
+          <p className='BasalBolusRatio-percent BasalBolusRatio-percent--bolus'>
+            {percent(data.basalBolusRatio.bolus)}
+          </p>
+          <p className='BasalBolusRatio-units BasalBolusRatio-units--bolus'>
+            {data.basalBolusUnits.bolus} U
           </p>
         </div>
+        
       </div>
     );
   }
