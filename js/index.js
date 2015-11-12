@@ -43,10 +43,12 @@ module.exports = {
     quickbolus: require('./plot/quickbolus'),
     cbg: require('./plot/cbg'),
     message: require('./plot/message'),
+    physicalActivity: require('./plot/physicalActivity'),
     timechange: require('./plot/timechange'),
     SMBGTime: require('./plot/smbgtime'),
     smbg: require('./plot/smbg'),
     wizard: require('./plot/wizard'),
+
     stats: {
       puddle: require('./plot/stats/puddle'),
       widget: require('./plot/stats/widget')

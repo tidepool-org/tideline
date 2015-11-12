@@ -30,7 +30,8 @@ var schemas = {
   pumpSettings: require('./pumpSettings'),
   smbg: require('./bg'),
   upload: require('./upload'),
-  wizard: require('./wizard')
+  wizard: require('./wizard'),
+  physicalActivity: require ('./physicalActivity')
 };
 
 module.exports = {

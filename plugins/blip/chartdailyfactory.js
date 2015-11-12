@@ -161,6 +161,10 @@ function chartDailyFactory(el, options) {
       type: 'message',
       shape: 'generic'
     });
+    chart.tooltips().addGroup(poolMessages, {
+      type: 'physicalActivity',
+      shape: 'generic'
+    });
     chart.tooltips().addGroup(poolBG, {
       type: 'cbg',
       classes: ['d3-bg-low', 'd3-bg-target', 'd3-bg-high']
@@ -320,6 +324,13 @@ function chartDailyFactory(el, options) {
 
     // add message images to messages pool
     poolMessages.addPlotType('message', tideline.plot.message(poolMessages, {
+      size: 30,
+      emitter: emitter,
+      timezoneAware: chart.options.timePrefs.timezoneAware
+    }), true, true);
+
+    //add physical activity images to pool
+    poolMessages.addPlotType('physicalActivity', tideline.plot.physicalActivity(poolMessages, {
       size: 30,
       emitter: emitter,
       timezoneAware: chart.options.timePrefs.timezoneAware
