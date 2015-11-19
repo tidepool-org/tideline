@@ -212,7 +212,7 @@ module.exports = function(pool, opts) {
     // converts all units to minutes. 
     var duration = math.unit(omhDuration.value, omhDuration.unit); 
     return {
-      value: duration.to('minutes'), 
+      value: duration.to('minutes').format(1), 
       unit: 'minutes'
     }
   };
