@@ -19,6 +19,7 @@ var d3 = require('d3');
 var _ = require('lodash');
 
 var format = require('../data/util/format');
+var math = require('mathjs');
 
 var images = {
   run: require('../../img/physicalactivity/run.png'),
@@ -43,7 +44,6 @@ var NEW_NOTE_Y = 45;
 
 module.exports = function(pool, opts) {
 
-  console.log("in physical activity constructor");
   opts = opts || {};
 
   var defaults = {
@@ -87,10 +87,7 @@ module.exports = function(pool, opts) {
   }
 
   physicalActivity.addActivityToPool = function(selection, image) {
-    console.log("selection:");
-    console.log(selection);
     
-
     opts.xScale = pool.xScale().copy();
 
     selection.append('rect')
@@ -183,23 +180,57 @@ module.exports = function(pool, opts) {
     omhSchema.effective_time_frame = d.datapoint.body.effective_time_frame;
     omhSchema.acquisition_provenance = d.datapoint.header.acquisition_provenance.source_name;
 
-    var noteText = '<span class="value">'+omhSchema.activity+'</span>'+
-          ' for ' + omhSchema.effective_time_frame.time_interval.duration.value + ' ' + omhSchema.effective_time_frame.time_interval.duration.unit;
-    var additionalText = '';
-    if (omhSchema.distance == null) {
-      additionalText = '(Reported intesity level - '+omhSchema.reported_activity_intensity+'). ';
-    } else {
-      additionalText = '('+omhSchema.distance.value+' '+omhSchema.distance.unit+'). ';
+    
+    var noteText = '<span class="value">'+omhSchema.activity+'</span>';
+    if (omhSchema.effective_time_frame.time_interval.duration != null) {
+      var duration = physicalActivity.getDurationForActivity(omhSchema.effective_time_frame.time_interval.duration);
+      noteText = noteText + ' for ' + duration.value;
     }
+
+    var additionalText = '';
+
+    if (omhSchema.distance != null) {
+      var distance = physicalActivity.getDistanceForActivity(omhSchema.distance);
+      additionalText = additionalText + distance.value;
+    }
+    if (omhSchema.reported_activity_intensity != null) {
+      if (additionalText != '') {additionalText = additionalText + '. ';}
+      additionalText = additionalText + 'Reported intensity - '+omhSchema.reported_activity_intensity;
+    }
+
+    if (additionalText != '') {
+      additionalText = '('+additionalText+'). ';
+    }
+    
     additionalText = additionalText+ 'Recorded by '+omhSchema.acquisition_provenance;
 
     noteText = noteText+' '+additionalText;
     return noteText;
   };
 
+  physicalActivity.getDurationForActivity = function(omhDuration) {
+    // converts all units to minutes. 
+    var duration = math.unit(omhDuration.value, omhDuration.unit); 
+    return {
+      value: duration.to('minutes'), 
+      unit: 'minutes'
+    }
+  };
+
+  physicalActivity.getDistanceForActivity = function(omhDistance) {
+    // converts all units to miles. Could be eventually wired into a preferred units settings
+    var distance = math.unit(omhDistance.value, omhDistance.unit); 
+    return {
+      value: distance.to('miles').format(2), 
+      unit: 'miles'
+    }
+  };
+
   physicalActivity._removeTooltip = function(d) {
     var elem = d3.select('#tooltip_' + d.id).remove();
   };
+
+
 
  
   physicalActivity.highlightXPosition = function(d) {
