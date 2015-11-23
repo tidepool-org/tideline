@@ -340,7 +340,7 @@ function TidelineData(data, opts) {
             d.normalTime = dt.addDuration(d.time, d.timezoneOffset * MS_IN_MIN + d.conversionOffset);
             d.displayOffset = 0;
           }
-          else if (d.type === 'message') {
+          else if (d.type === 'message' || d.type === 'physicalActivity') {
             if (dt.isATimestamp(d.time)) {
               var datumDt = new Date(d.time);
               var offsetMinutes = datumDt.getTimezoneOffset();

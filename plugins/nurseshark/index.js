@@ -346,6 +346,9 @@ function getHandlers(bgUnits) {
     message: function(d) {
       return nurseshark.reshapeMessage(d);
     },
+    physicalActivity: function(d) {
+      return d;
+    },
     smbg: function(d) {
       d = cloneDeep(d);
       if (bgUnits === 'mg/dL') {

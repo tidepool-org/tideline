@@ -15,14 +15,13 @@
  * == BSD2 LICENSE ==
  */
 
+var common = require('./common.js');
 var schema = require('./validator/schematron.js');
 
 module.exports = schema(
+  common,
   {
-    displayOffset: schema().number(),
-    id: schema().isId(),
-    normalTime: schema().isISODateTime(),
-    time: schema().isISODateTime(),
-    type: schema().string().in(['basal', 'bolus', 'cbg', 'message', 'smbg', 'pumpSettings', 'wizard', 'physicalActivity'])
+    
+    time: schema().isISODateTime()
   }
 );
