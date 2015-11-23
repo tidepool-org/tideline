@@ -194,11 +194,11 @@ module.exports = function(pool, opts) {
       additionalText = additionalText + distance.value;
     }
     if (omhSchema.reported_activity_intensity != null) {
-      if (additionalText != '') {additionalText = additionalText + '. ';}
+      if (additionalText !== '') {additionalText = additionalText + '. ';}
       additionalText = additionalText + 'Reported intensity - '+omhSchema.reported_activity_intensity;
     }
 
-    if (additionalText != '') {
+    if (additionalText !== '') {
       additionalText = '('+additionalText+'). ';
     }
     
@@ -214,7 +214,7 @@ module.exports = function(pool, opts) {
     return {
       value: duration.to('minutes').format(1), 
       unit: 'minutes'
-    }
+    };
   };
 
   physicalActivity.getDistanceForActivity = function(omhDistance) {
@@ -223,7 +223,7 @@ module.exports = function(pool, opts) {
     return {
       value: distance.to('miles').format(2), 
       unit: 'miles'
-    }
+    };
   };
 
   physicalActivity._removeTooltip = function(d) {
