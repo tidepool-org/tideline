@@ -1,6 +1,10 @@
 {
   "name": "tideline",
+<<<<<<< HEAD
   "version": "0.7.3",
+=======
+  "version": "0.7.2-automated-basal.6",
+>>>>>>> automated-basal
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
