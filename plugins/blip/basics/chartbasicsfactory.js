@@ -153,7 +153,7 @@ var BasicsChart = React.createClass({
   },
 
   componentWillMount: function() {
-    var basicsData = this.props.patientData.basicsData;
+    var basicsData = _.get(this.props, 'patientData', {});
     if (basicsData.sections == null) {
       var dataMunger = dataMungerMkr(this.props.bgClasses, this.props.bgUnits);
       var basalUtil = this.props.patientData.basalUtil;
