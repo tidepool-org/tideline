@@ -56,6 +56,7 @@ var WrapCount = React.createClass({
     return dots;
   },
   renderDots: function() {
+    console.log('this.props.subtotalType', this.props.subtotalType);
     var count = this.getCount(this.props.subtotalType);
     var dots = [];
 

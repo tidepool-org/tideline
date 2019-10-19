@@ -81,7 +81,10 @@ basicsActions.setSiteChangeEvent = function(sectionName, selectedKey, selectedLa
 };
 
 basicsActions.selectSubtotal = function(sectionName, selectedKey, metricsFunc) {
-  var sections = _.cloneDeep(this.app.state.sections);
+  var sections = _.cloneDeep(_.keyBy(this.app.state.sections, 'type'));
+  console.log('sectionName', sectionName);
+  console.log('selectedKey', selectedKey);
+  console.log('sections', sections);
   var selectorOptions = sections[sectionName].selectorOptions;
 
   if (metricsFunc) {

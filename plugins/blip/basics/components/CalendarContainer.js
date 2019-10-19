@@ -18,12 +18,10 @@
  /* jshint esversion:6 */
 
 var _ = require('lodash');
-var bows = require('bows');
 var cx = require('classnames');
 var moment = require('moment-timezone');
 var React = require('react');
 
-var debug = bows('Calendar');
 var basicsActions = require('../logic/actions');
 var BasicsUtils = require('./BasicsUtils');
 
@@ -143,7 +141,8 @@ var CalendarContainer = React.createClass({
     return this.props.selector({
       bgClasses: this.props.bgClasses,
       bgUnits: this.props.bgUnits,
-      data: (this.props.type !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data[this.props.type].summary : null,
+      data: (this.props.source !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data[this.props.type] : null,
+      // data: (this.props.type !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data[this.props.type].summary : null,
       selectedSubtotal: this._getSelectedSubtotal(),
       selectorOptions: this.props.selectorOptions,
       selectorMetaData: this.props.selectorMetaData,

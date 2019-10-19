@@ -16,11 +16,8 @@
  */
 
 var _ = require('lodash');
-var bows = require('bows');
 var cx = require('classnames');
 var React = require('react');
-
-var debug = bows('Section');
 
 var basicsActions = require('../logic/actions');
 var NoDataContainer = require('./NoDataContainer');
@@ -51,47 +48,35 @@ var DashboardSection = React.createClass({
   render: function() {
     var dataDisplay;
     var section = this.props.section;
-    if (section.column === 'right') {
-      if (section.active) {
-        dataDisplay = (
-          <section.container
-            bgClasses={this.props.bgClasses}
-            bgUnits={this.props.bgUnits}
-            chart={section.chart}
-            chartWidth={this.props.chartWidth}
-            data={this.props.data}
-            days={this.props.days}
-            hasHover={section.hasHover}
-            hoverDisplay={section.hoverDisplay}
-            onSelectDay={this.props.onSelectDay}
-            sectionId={section.id}
-            selector={section.selector}
-            selectorOptions={section.selectorOptions}
-            selectorMetaData={section.selectorMetaData}
-            settingsTogglable={this.props.settingsTogglable}
-            timezone={this.props.timezone}
-            type={section.type}
-            trackMetric={this.props.trackMetric}
-            updateBasicsSettings={this.props.updateBasicsSettings}
-            title={section.title} />
-        );
-      }
-      else {
-        dataDisplay = (
-          <NoDataContainer message={section.message} moreInfo={section.noDataMessage || null} />
-        );
-      }
-    }
-    else {
+
+    if (section.active) {
       dataDisplay = (
         <section.container
           bgClasses={this.props.bgClasses}
           bgUnits={this.props.bgUnits}
           chart={section.chart}
+          chartWidth={this.props.chartWidth}
           data={this.props.data}
           days={this.props.days}
-          labels={section.labels || {}}
-          title={this.props.title} />
+          hasHover={section.hasHover}
+          hoverDisplay={section.hoverDisplay}
+          onSelectDay={this.props.onSelectDay}
+          sectionId={section.id}
+          selector={section.selector}
+          selectorOptions={section.selectorOptions}
+          selectorMetaData={section.selectorMetaData}
+          settingsTogglable={this.props.settingsTogglable}
+          source={section.source}
+          timezone={this.props.timezone}
+          type={section.type}
+          trackMetric={this.props.trackMetric}
+          updateBasicsSettings={this.props.updateBasicsSettings}
+          title={section.title} />
+      );
+    }
+    else {
+      dataDisplay = (
+        <NoDataContainer message={section.emptyText} moreInfo={section.noDataMessage || null} />
       );
     }
 
@@ -112,14 +97,15 @@ var DashboardSection = React.createClass({
     });
 
     var titleContainer;
-    if (this.props.title && typeof this.props.title === 'function') {
-      titleContainer = this.props.title({
-        data: this.props.data,
-        iconClass: iconClass,
-        sectionName: this.props.name,
-        trackMetric: this.props.trackMetric
-      });
-    } else if (this.props.title) {
+    // if (this.props.title && typeof this.props.title === 'function') {
+    //   titleContainer = this.props.title({
+    //     data: this.props.data,
+    //     iconClass: iconClass,
+    //     sectionName: this.props.name,
+    //     trackMetric: this.props.trackMetric
+    //   });
+    // } else if (this.props.title) {
+    if (this.props.title) {
       var headerClasses = cx({
         'SectionHeader--nodata': section.noData,
         'selectable': this.props.togglable !== togglableState.off

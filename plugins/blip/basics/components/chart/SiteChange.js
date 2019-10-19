@@ -1,15 +1,15 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  * Copyright (c) 2015 Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -30,9 +30,10 @@ var SiteChange = React.createClass({
   },
   render: function() {
     var type = this.props.subtotalType || constants.SITE_CHANGE_RESERVOIR;
+    console.log('type', type);
     var value = this.getValue();
     value.count = value.count || 1; //default value
-    var siteChangeComponent = 
+    var siteChangeComponent =
       ( value.type === constants.SITE_CHANGE) ?
         <Change daysSince={value.daysSince} count={value.count} type={type} /> :
         <NoChange />;
@@ -43,7 +44,9 @@ var SiteChange = React.createClass({
     );
   },
   getValue: function() {
-    return this.props.data.infusionSiteHistory[this.props.date];
+    console.log('this.props.data', this.props.data);
+    console.log('this.props.date', this.props.date);
+    return this.props.data.byDate[this.props.date];
   }
 });
 
