@@ -30,12 +30,11 @@ var SiteChange = React.createClass({
   },
   render: function() {
     var type = this.props.subtotalType || constants.SITE_CHANGE_RESERVOIR;
-    console.log('type', type);
-    var value = this.getValue();
-    value.count = value.count || 1; //default value
+    var count = _.get(this.props.data, ['subtotals', type], 0);
+    var daysSince = _.get(this.props.data, ['summary', 'daysSince', type])
     var siteChangeComponent =
-      ( value.type === constants.SITE_CHANGE) ?
-        <Change daysSince={value.daysSince} count={value.count} type={type} /> :
+      (count > 0) ?
+        <Change daysSince={daysSince} count={count} type={type} /> :
         <NoChange />;
     return (
       <div className='SiteChange'>
@@ -43,11 +42,6 @@ var SiteChange = React.createClass({
       </div>
     );
   },
-  getValue: function() {
-    console.log('this.props.data', this.props.data);
-    console.log('this.props.date', this.props.date);
-    return this.props.data.byDate[this.props.date];
-  }
 });
 
 module.exports = SiteChange;

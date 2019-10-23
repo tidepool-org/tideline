@@ -95,16 +95,12 @@ var SummaryGroup = React.createClass({
       classes += ' SummaryGroup-info--disabled';
     }
 
-    console.log('value', value);
-
     if (option.primary && option.average) {
       var average = _.get(this.props.data, [...option.path.split('.'), 'avgPerDay']);
 
       if (isNaN(average)) {
         average = 0;
       }
-
-      console.log('average', average);
 
       // currently rounding average to an integer
       var averageElem = (
@@ -134,7 +130,6 @@ var SummaryGroup = React.createClass({
 
       if (option.percentage) {
         var percentage = _.get(this.props.data, [...option.path.split('.'), option.key, 'percentage']);
-        console.log('percentage', percentage);
       }
 
 
