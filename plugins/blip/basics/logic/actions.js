@@ -16,14 +16,8 @@
  */
 
 var _ = require('lodash');
-var bows = require('bows');
-var moment = require('moment-timezone');
-
-var sundial = require('sundial');
 
 var togglableState = require('../TogglableState');
-
-var debug = bows('basicsActions');
 
 var basicsActions = {};
 
@@ -33,7 +27,7 @@ basicsActions.bindApp = function(app) {
 };
 
 basicsActions.toggleSection = function(sectionName, metricsFunc) {
-  var sections = _.cloneDeep(this.app.state.sections);
+  var sections = _.cloneDeep(_.keyBy(this.app.state.sections, 'type'));
   if (sections[sectionName].togglable === togglableState.closed) {
     sections[sectionName].togglable = togglableState.open;
     metricsFunc(sections[sectionName].id + ' was opened');
@@ -45,7 +39,7 @@ basicsActions.toggleSection = function(sectionName, metricsFunc) {
 };
 
 basicsActions.toggleSectionSettings = function(sectionName, metricsFunc) {
-  var sections = _.cloneDeep(this.app.state.sections);
+  var sections = _.cloneDeep(_.keyBy(this.app.state.sections, 'type'));
   if (sections[sectionName].settingsTogglable === togglableState.closed) {
     sections[sectionName].settingsTogglable = togglableState.open;
     metricsFunc(sections[sectionName].id + ' settings was opened');
@@ -58,7 +52,7 @@ basicsActions.toggleSectionSettings = function(sectionName, metricsFunc) {
 };
 
 basicsActions.setSiteChangeEvent = function(sectionName, selectedKey, selectedLabel, metricsFunc, updateBasicsSettingsFunc) {
-  var sections = _.cloneDeep(this.app.state.sections);
+  var sections = _.cloneDeep(_.keyBy(this.app.state.sections, 'type'));
   var selectorOptions = sections[sectionName].selectorOptions;
   selectorOptions = clearSelected(selectorOptions);
   sections[sectionName].selectorOptions = basicsActions.setSelected(selectorOptions, selectedKey);

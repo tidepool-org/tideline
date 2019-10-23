@@ -137,28 +137,57 @@ var BasicsChart = React.createClass({
       let noDataMessage;
       let selector = SummaryGroup;
       let selectorOptions;
+      let selectorMetaData;
       let settingsTogglable = togglableState.off;
 
       if (isSiteChanges) {
+        const {
+          metaData: {
+            latestPump,
+          } = {},
+        } = this.props.data;
+
+        const {
+          profile: {
+            fullName,
+          },
+          settings,
+        } = this.props.patient;
+
+        const permissions = this.props.permsOfLoggedInUser;
+        const canUpdateSettings = permissions.hasOwnProperty('custodian') || permissions.hasOwnProperty('root');
+        const hasSiteChangeSourceSettings = settings && settings.hasOwnProperty('siteChangeSource');
+
         chart = SiteChange;
         hoverDisplay = InfusionHoverDisplay;
         noDataMessage = this._insulinDataAvailable() ? t('Infusion site changes are not yet available for all pumps. Coming soon!') : null;
         selector = SiteChangeSelector;
-        settingsTogglable = togglableState.closed
+        settingsTogglable = togglableState.off
 
-        selectorOptions = {
-          primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
-          rows: [
-            [
-              { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills') },
-              { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes') },
+        if (section.manufacturer !== _.lowerCase(constants.INSULET)) {
+          settingsTogglable = togglableState.closed
+
+          selectorOptions = {
+            primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
+            rows: [
+              [
+                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills') },
+                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes') },
+              ]
             ]
-          ]
-        };
+          };
+
+          selectorMetaData = {
+            latestPump,
+            canUpdateSettings,
+            hasSiteChangeSourceSettings,
+            patientName: fullName,
+          };
+        }
       } else {
         selectorOptions = _.groupBy(section.dimensions, dimension => dimension.primary ? 'primary' : 'rows');
         if (_.isArray(selectorOptions.primary)) selectorOptions.primary = selectorOptions.primary[0] || {};
-        if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(selectorOptions.rows, 3);
+        if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), 3);
       }
 
       _.defaults(section, {
@@ -174,6 +203,7 @@ var BasicsChart = React.createClass({
         togglable: togglableState.off,
         selector,
         selectorOptions,
+        selectorMetaData,
         settingsTogglable,
       })
 
@@ -204,11 +234,6 @@ var BasicsChart = React.createClass({
     const range = _.get(self.props, 'data.data.current.endpoints.range', []);
     const aggregationsByDate = _.get(self.props, 'data.data.current.aggregationsByDate', {});
     const days = dt.findBasicsDays(range, timezoneName);
-
-    console.log('aggregationsByDate', aggregationsByDate);
-    console.log('range', range);
-    console.log('days', days);
-    console.log('self.state.sections', this.state.sections);
 
     return _.map(self.state.sections, function(section) {
       return (
