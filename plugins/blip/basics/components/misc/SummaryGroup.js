@@ -73,8 +73,8 @@ var SummaryGroup = React.createClass({
   },
 
   renderOption: function(option) {
-    if (typeof option.active !== 'undefined' && !option.active) {
-      return null; //(<div key={option.key} className='SummaryGroup-info SummaryGroup-info-blank'></div>);
+    if (option.hideEmpty) {
+      return null;
     }
 
     var classes = classnames({
