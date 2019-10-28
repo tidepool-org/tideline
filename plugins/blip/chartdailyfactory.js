@@ -28,9 +28,8 @@ var EventEmitter = require('events').EventEmitter;
 var tideline = require('../../js/index');
 var fill = tideline.plot.util.fill;
 var scalesutil = tideline.plot.util.scales;
-var { getLatestPumpUpload, isAutomatedBasalDevice } = require('../../js/data/util/device');
 var dt = tideline.data.util.datetime;
-var { MGDL_UNITS, AUTOMATED_BASAL_DEVICE_MODELS } = require('../../js/data/util/constants');
+var { MGDL_UNITS } = require('../../js/data/util/constants');
 
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
@@ -185,12 +184,6 @@ function chartDailyFactory(el, options) {
   chart.load = function(tidelineData) {
     var data = tidelineData.data;
     chart.tidelineData = tidelineData;
-
-    var basalUtil = tidelineData.basalUtil;
-    var bolusUtil = tidelineData.bolusUtil;
-    var cbgUtil = tidelineData.cbgUtil;
-    var settingsUtil = tidelineData.settingsUtil;
-    var smbgUtil = tidelineData.smbgUtil;
 
     // initialize chart with data
     chart.data(tidelineData).setAxes().setNav().setScrollNav();
