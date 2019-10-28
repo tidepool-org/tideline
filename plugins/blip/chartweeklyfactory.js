@@ -29,7 +29,6 @@ var EventEmitter = require('events').EventEmitter;
 var tideline = require('../../js/index');
 var fill = tideline.plot.util.fill;
 var dt = tideline.data.util.datetime;
-var { getLatestPumpUpload, isAutomatedBasalDevice } = require('../../js/data/util/device');
 var { MGDL_UNITS } = require('../../js/data/util/constants');
 
 // Create a 'Two Weeks' chart object that is a wrapper around Tideline components
@@ -76,13 +75,19 @@ function chartWeeklyFactory(el, options) {
     return chart;
   };
 
-  chart.load = function(tidelineData, datetime) {
-    var basalUtil = tidelineData.basalUtil;
-    var bolusUtil = tidelineData.bolusUtil;
-    var cbgUtil = tidelineData.cbgUtil;
-    var smbgUtil = tidelineData.smbgUtil;
+  chart.load = function(data, datetime) {
+    const chartData = _.cloneDeep(data);
 
-    var twoWeekData = tidelineData.twoWeekData || [];
+    let currentData = _.get(chartData, 'data.current.data.smbg', []);
+    if (currentData.length) currentData = currentData.concat(_.get(chartData, 'data.current.data.fill', []));
+
+    let prevData = _.get(chartData, 'data.prev.data.smbg', []);
+    if (prevData.length) prevData = prevData.concat(_.get(chartData, 'data.prev.data.fill', []));
+
+    let nextData = _.get(chartData, 'data.next.data.smbg', []);
+    if (nextData.length) nextData = nextData.concat(_.get(chartData, 'data.next.data.fill', []));
+
+    var twoWeekData = _.sortBy([...prevData, ...currentData, ...nextData], 'normalTime');
 
     if (!datetime) {
       chart.data(twoWeekData, chart.options.timePrefs.timezoneAware);
@@ -91,7 +96,7 @@ function chartWeeklyFactory(el, options) {
       if (twoWeekData.length &&
           Date.parse(datetime) > Date.parse(twoWeekData[twoWeekData.length - 1].normalTime)) {
         datetime = twoWeekData[_.findLastIndex(twoWeekData, function(d) {
-          return d.twoWeekX === 0;
+          return d.msPer24 === 0;
         })].normalTime;
       }
       chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
@@ -135,7 +140,7 @@ function chartWeeklyFactory(el, options) {
         gutter: {'top': 0.5, 'bottom': 0.5},
         dataGutter: chart.dataGutter(),
         fillClass: weekend ? 'd3-pool-weekend' : '',
-        x: function(t) { return t.twoWeekX; }
+        x: function(t) { return t.msPer24; }
       }), true, true);
       pool.addPlotType('smbg', smbgTime.draw(pool), true, true);
       chart.tooltips().addGroup(pool, {

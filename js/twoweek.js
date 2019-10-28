@@ -45,7 +45,7 @@ module.exports = function(emitter, timePrefs) {
     statsHeight = 80,
     pools = [], poolGroup, days, daysGroup,
     xScale = d3.scale.linear(), xAxis, yScale = d3.time.scale.utc(), yAxis,
-    tidelineData, data, endpoints, viewEndpoints, dataStartNoon, dataEndNoon, poolScaleHeight,
+    data, viewEndpoints, dataStartNoon, dataEndNoon, poolScaleHeight,
     lessThanTwoWeeks = false,
     sortReverse = true, viewIndex,
     mainSVG, mainGroup, scrollNav, scrollHandleTrigger = true,
