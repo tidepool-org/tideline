@@ -77,30 +77,21 @@ function chartWeeklyFactory(el, options) {
 
   chart.load = function(data, datetime) {
     const chartData = _.cloneDeep(data);
+    const latestSMBG = _.get(chartData, 'metaData.latestDatumByType.smbg');
 
-    let currentData = _.get(chartData, 'data.current.data.smbg', []);
-    if (currentData.length) currentData = currentData.concat(_.get(chartData, 'data.current.data.fill', []));
+    var twoWeekData = _.reject(
+      _.sortBy([
+        ..._.get(chartData, 'data.prev.data.smbg', []),
+        ..._.get(chartData, 'data.prev.data.fill', []),
+        ..._.get(chartData, 'data.current.data.smbg', []),
+        ..._.get(chartData, 'data.current.data.fill', []),
+        ..._.get(chartData, 'data.next.data.smbg', []),
+        ..._.get(chartData, 'data.next.data.fill', []),
+      ], 'normalTime'),
+      d => (d.normalTime >= dt.getLocalizedCeiling(latestSMBG.normalTime, chart.options.timePrefs.timezoneName))
+    );
 
-    let prevData = _.get(chartData, 'data.prev.data.smbg', []);
-    if (prevData.length) prevData = prevData.concat(_.get(chartData, 'data.prev.data.fill', []));
-
-    let nextData = _.get(chartData, 'data.next.data.smbg', []);
-    if (nextData.length) nextData = nextData.concat(_.get(chartData, 'data.next.data.fill', []));
-
-    var twoWeekData = _.sortBy([...prevData, ...currentData, ...nextData], 'normalTime');
-
-    if (!datetime) {
-      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware);
-    }
-    else {
-      if (twoWeekData.length &&
-          Date.parse(datetime) > Date.parse(twoWeekData[twoWeekData.length - 1].normalTime)) {
-        datetime = twoWeekData[_.findLastIndex(twoWeekData, function(d) {
-          return d.msPer24 === 0;
-        })].normalTime;
-      }
-      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
-    }
+    chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
 
     chart.setup();
     chart.legend({

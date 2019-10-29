@@ -180,6 +180,22 @@ var datetime = {
     return hrsToMs + minToMs + secToMs + ms;
   },
 
+  getLocalizedCeiling: function(utc, timezone) {
+    if (utc instanceof Date) {
+      throw new Error('`utc` must be a ISO-formatted String timestamp or integer hammertime!');
+    }
+
+    const startOfDay = moment.utc(utc)
+      .tz(timezone)
+      .startOf('day');
+
+    const utcHammertime = (typeof utc === 'string') ? Date.parse(utc) : utc;
+    if (startOfDay.valueOf() === utcHammertime) {
+      return startOfDay.toDate();
+    }
+    return startOfDay.add(1, 'day').valueOf();
+  },
+
   getOffset: function(d, timezoneName) {
     return moment.tz.zone(timezoneName).utcOffset(Date.parse(d));
   },
