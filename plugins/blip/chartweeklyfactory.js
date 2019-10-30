@@ -76,20 +76,17 @@ function chartWeeklyFactory(el, options) {
   };
 
   chart.load = function(data, datetime) {
-    const chartData = _.cloneDeep(data);
-    const latestSMBG = _.get(chartData, 'metaData.latestDatumByType.smbg');
+    const latestSMBG = _.get(data, 'metaData.latestDatumByType.smbg');
 
-    var twoWeekData = _.reject(
+    const twoWeekData = _.reject(
       _.sortBy([
-        ..._.get(chartData, 'data.prev.data.smbg', []),
-        ..._.get(chartData, 'data.prev.data.fill', []),
-        ..._.get(chartData, 'data.current.data.smbg', []),
-        ..._.get(chartData, 'data.current.data.fill', []),
-        ..._.get(chartData, 'data.next.data.smbg', []),
-        ..._.get(chartData, 'data.next.data.fill', []),
+        ..._.cloneDeep(_.get(data, 'data.all.smbg', [])),
+        ..._.cloneDeep(_.get(data, 'data.all.fill', [])),
       ], 'normalTime'),
       d => (d.normalTime >= dt.getLocalizedCeiling(latestSMBG.normalTime, chart.options.timePrefs.timezoneName))
     );
+
+    console.log('twoWeekData', twoWeekData);
 
     chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
 
@@ -99,11 +96,11 @@ function chartWeeklyFactory(el, options) {
       light: ' ' + chart.options.bgUnits
     });
 
-    var days = chart.days;
+    const days = chart.days;
 
     // make pools for each day
     days.forEach(function(day, i) {
-      var newPool = chart.newPool()
+      const newPool = chart.newPool()
         .id('poolBG_' + day, chart.daysGroup())
         .index(chart.pools().indexOf(newPool))
         .heightRatio(1.0)
@@ -123,9 +120,9 @@ function chartWeeklyFactory(el, options) {
     });
 
     chart.pools().forEach(function(pool, i) {
-      var d = new Date(pool.id().replace('poolBG_', ''));
-      var dayOfTheWeek = d.getUTCDay();
-      var weekend = ((dayOfTheWeek === 0) || (dayOfTheWeek === 6));
+      const d = new Date(pool.id().replace('poolBG_', ''));
+      const dayOfTheWeek = d.getUTCDay();
+      const weekend = ((dayOfTheWeek === 0) || (dayOfTheWeek === 6));
 
       pool.addPlotType('fill', fill(pool, {
         gutter: {'top': 0.5, 'bottom': 0.5},
