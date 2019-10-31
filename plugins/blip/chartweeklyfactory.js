@@ -79,17 +79,11 @@ function chartWeeklyFactory(el, options) {
     const latestSMBG = _.get(data, 'metaData.latestDatumByType.smbg');
 
     const twoWeekData = _.reject(
-      _.sortBy([
-        ..._.cloneDeep(_.get(data, 'data.all.smbg', [])),
-        ..._.cloneDeep(_.get(data, 'data.all.fill', [])),
-      ], 'normalTime'),
+      _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
       d => (d.normalTime >= dt.getLocalizedCeiling(latestSMBG.normalTime, chart.options.timePrefs.timezoneName))
     );
 
-    console.log('twoWeekData', twoWeekData);
-
     chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
-
     chart.setup();
     chart.legend({
       main: t('Blood Glucose'),
