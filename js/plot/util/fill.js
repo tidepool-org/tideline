@@ -55,13 +55,13 @@ module.exports = function(pool, opts) {
     }
 
     selection.each(function(currentData) {
+      currentData = _.uniqBy(currentData, 'id');
       currentData.reverse();
 
       var fills = selection.selectAll('rect.d3-fill')
         .data(currentData, function(d) {
           return d.id;
         });
-
 
       fills.enter()
         .append('rect')
@@ -105,7 +105,6 @@ module.exports = function(pool, opts) {
             else {
               return fill.width(d);
             }
-            return fill.width(d);
           },
           height: function() {
             if (opts.gutter.top) {
