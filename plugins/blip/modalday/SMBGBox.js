@@ -235,7 +235,7 @@ d3.chart('SMBGBoxOverlay', {
     var timezone = this.timezone();
     var binSize = THREE_HRS;
     var binned = _.groupBy(data, function(d) {
-      var msPer24 = Date.parse(d.normalTime) - moment.utc(d.normalTime).tz(timezone).startOf('day');
+      var msPer24 = d.normalTime - moment.utc(d.normalTime).tz(timezone).startOf('day');
       return Math.ceil(msPer24/binSize) * binSize - (binSize/2);
     });
     var binKeys = Object.keys(binned);

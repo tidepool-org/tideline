@@ -37,7 +37,7 @@ module.exports = function(pool, opts) {
       midnightWidth: 3,
       gutter: 0,
       fillClass: '',
-      x: function(t) { return Date.parse(t.normalTime); }
+      x: function(t) { return t.normalTime; }
     };
 
   _.defaults(opts || {}, defaults);
