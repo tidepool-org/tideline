@@ -194,8 +194,7 @@ function chartDailyFactory(el, options) {
     ];
 
     const latestDatums = _.pick(_.get(data, 'metaData.latestDatumByType'), renderedDataTypes);
-
-    const latestDatumTime = _.maxBy(latestDatums, d => (d.normalEnd || d.normalTime));
+    const latestDatumTime = _.max(_.map(latestDatums, d => (d.normalEnd || d.normalTime)));
 
     const combinedData = _.reject(
       _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
