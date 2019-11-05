@@ -86,7 +86,6 @@ var SummaryGroup = React.createClass({
       'SummaryGroup-no-percentage': (!option.primary && !option.percentage)
     });
 
-    var path = option.path;
     var value = this.getOptionValue(option, this.props.data);
 
     option.disabled = false;
