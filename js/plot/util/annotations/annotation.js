@@ -84,7 +84,7 @@ module.exports = function(container, annotationsGroup) {
             'y': opts.y,
             'class': 'd3-text-data-annotation'
           })
-          .text('?');
+          .text('i');
 
         if (opts.hoverTarget != null) {
           hoverTarget = opts.hoverTarget;
