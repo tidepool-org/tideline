@@ -272,8 +272,8 @@ function chartDailyFactory(el, options) {
     // TODO: when we bring responsiveness in
     // decide number of ticks for these scales based on container height?
     // bolus & carbs pool
-    var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
-    var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
+    var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard || []), poolBolus);
+    var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard || [], poolBolus) : null;
     // set up y-axis for bolus
     poolBolus.yAxis(d3.svg.axis()
       .scale(scaleBolus)
