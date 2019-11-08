@@ -208,10 +208,6 @@ function chartDailyFactory(el, options) {
       if (!groupedData[type]) groupedData[type] = [];
     });
 
-    // NOTE: chart.tidelineData only used for chart.createMessage and chart.editMessage
-    // Likely need to pass handler in from blip
-    // chart.tidelineData = data;
-
     // initialize chart with data
     chart.data(combinedData).setAxes().setNav().setScrollNav();
 
@@ -435,26 +431,6 @@ function chartDailyFactory(el, options) {
 
   chart.getCurrentDay = function() {
     return chart.getCurrentDomain().center;
-  };
-
-  chart.createMessage = function(message) {
-    log('New message created:', message);
-    chart.tidelineData.addData([message]);
-    chart.data(chart.tidelineData);
-    chart.emitter.emit('messageCreated', message);
-    return chart.tidelineData;
-  };
-
-  chart.editMessage = function(message) {
-    log('Message edited:', message);
-    // tideline only cares if the edited message was a top-level note
-    // not a comment
-    if (_.isEmpty(message.parentMessage)) {
-      chart.tidelineData.editDatum(message, 'utcTime');
-      chart.data(chart.tidelineData);
-      chart.emitter.emit('messageEdited', message);
-    }
-    return chart.tidelineData;
   };
 
   chart.closeMessage = function() {
