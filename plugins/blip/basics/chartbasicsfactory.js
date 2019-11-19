@@ -97,9 +97,6 @@ var BasicsChart = React.createClass({
   },
 
   componentWillMount: function() {
-    // var basicsData = _.get(this.props, 'aggregationsData', {});
-    // console.log('basicsData', basicsData);
-    // this.setState(basicsData);
     basicsActions.bindApp(this);
 
     this.setSectionsToState();
