@@ -22,12 +22,6 @@ var _ = require('lodash');
 
 var BasalUtil = require('../js/data/basalutil');
 
-var dt = require('../js/data/util/datetime');
-var patterns = require('../dev/testpage/patterns');
-
-var MS_IN_HOUR = 3600000;
-var MS_IN_DAY = 86400000;
-
 describe('BasalUtil', function() {
   var bu = new BasalUtil([]);
   it('should be a function', function() {

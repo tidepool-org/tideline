@@ -31,7 +31,7 @@ var SiteChange = React.createClass({
   render: function() {
     var type = this.props.subtotalType || constants.SITE_CHANGE_RESERVOIR;
     var count = _.get(this.props.data, ['subtotals', type], 0);
-    var daysSince = _.get(this.props.data, ['summary', 'daysSince', type])
+    var daysSince = _.get(this.props.data, ['summary', 'daysSince', type]);
     var siteChangeComponent =
       (count > 0) ?
         <Change daysSince={daysSince} count={count} type={type} /> :

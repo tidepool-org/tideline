@@ -14,6 +14,9 @@
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
+
+/* jshint esversion:6 */
+
 var i18next = require('i18next');
 var t = i18next.t.bind(i18next);
 
@@ -57,7 +60,7 @@ module.exports = {
    * @return {Number} The value, or 0 if not found
    */
   getOptionValue: function(option, data) {
-    let value = _.get(data, [...option.path.split('.'), option.key], 0);
+    let value = _.get(data, [...option.path.split('.').concat(option.key)], 0);
     return _.get(value, 'count', value);
   },
 

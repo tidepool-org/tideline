@@ -15,6 +15,8 @@
  * == BSD2 LICENSE ==
  */
 
+/* jshint esversion:6 */
+
 var _ = require('lodash');
 var classnames = require('classnames');
 var d3 = require('d3');
@@ -95,7 +97,7 @@ var SummaryGroup = React.createClass({
     }
 
     if (option.primary && option.average) {
-      var average = _.get(this.props.data, [...option.path.split('.'), 'avgPerDay']);
+      var average = _.get(this.props.data, [...option.path.split('.').concat('avgPerDay')]);
 
       if (isNaN(average)) {
         average = 0;
@@ -128,7 +130,7 @@ var SummaryGroup = React.createClass({
       var percentage;
 
       if (option.percentage) {
-        var percentage = _.get(this.props.data, [...option.path.split('.'), option.key, 'percentage']);
+        percentage = _.get(this.props.data, [...option.path.split('.').concat(option.key, 'percentage')]);
       }
 
 

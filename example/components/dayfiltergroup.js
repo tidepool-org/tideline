@@ -1,4 +1,4 @@
-/* 
+/*
  * == BSD2 LICENSE ==
  */
 
@@ -20,7 +20,7 @@ var DayGrouping = React.createClass({
     /* jshint ignore:start */
     return (
       <div className={groupClass} onClick={this.handleDaysGroupClick}>{this.props.days}</div>
-      );
+    );
     /* jshint ignore:end */
   },
   handleDaysGroupClick: function() {

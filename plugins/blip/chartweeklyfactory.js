@@ -92,10 +92,11 @@ function chartWeeklyFactory(el, options) {
     });
 
     const days = chart.days;
+    let newPool;
 
     // make pools for each day
     days.forEach(function(day, i) {
-      const newPool = chart.newPool()
+      newPool = chart.newPool()
         .id('poolBG_' + day, chart.daysGroup())
         .index(chart.pools().indexOf(newPool))
         .heightRatio(1.0)

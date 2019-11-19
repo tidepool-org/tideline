@@ -185,11 +185,11 @@ var datetime = {
       throw new Error('`utc` must be a ISO-formatted String timestamp or integer hammertime!');
     }
 
-    const startOfDay = moment.utc(utc)
+    var startOfDay = moment.utc(utc)
       .tz(timezone)
       .startOf('day');
 
-    const utcHammertime = (typeof utc === 'string') ? Date.parse(utc) : utc;
+    var utcHammertime = (typeof utc === 'string') ? Date.parse(utc) : utc;
     if (startOfDay.valueOf() === utcHammertime) {
       return startOfDay.toDate();
     }

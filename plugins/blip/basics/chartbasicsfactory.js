@@ -59,25 +59,13 @@ var BasicsChart = React.createClass({
   },
 
   _insulinDataAvailable: function() {
-    const {
-      metaData: {
-        latestDatumByType: {
-          basal,
-          bolus,
-          wizard,
-        } = {},
-      } = {},
-    } = this.props.data;
+    const { basal, bolus, wizard } = _.get(this.props, 'data.metaData.latestDatumByType', {});
 
     return (basal || bolus || wizard);
   },
 
   _availableDeviceData: function () {
-    const {
-      metaData: {
-        bgSources,
-      } = {},
-    } = this.props.data;
+    const { bgSources } = _.get(this.props, 'data.metaData', {});
 
     var deviceTypes = [];
 
@@ -122,7 +110,7 @@ var BasicsChart = React.createClass({
       boluses: 1,
       siteChanges: 2,
       basals: 3,
-    }
+    };
 
     const sections = [];
 
@@ -138,11 +126,7 @@ var BasicsChart = React.createClass({
       let settingsTogglable = togglableState.off;
 
       if (isSiteChanges) {
-        const {
-          metaData: {
-            latestPump,
-          } = {},
-        } = this.props.data;
+        const { latestPump } = _.get(this.props, 'data.metaData', {});
 
         const {
           profile: {
@@ -159,10 +143,10 @@ var BasicsChart = React.createClass({
         hoverDisplay = InfusionHoverDisplay;
         noDataMessage = this._insulinDataAvailable() ? t('Infusion site changes are not yet available for all pumps. Coming soon!') : null;
         selector = SiteChangeSelector;
-        settingsTogglable = togglableState.off
+        settingsTogglable = togglableState.off;
 
         if (section.manufacturer !== _.lowerCase(constants.INSULET)) {
-          settingsTogglable = togglableState.closed
+          settingsTogglable = togglableState.closed;
 
           selectorOptions = {
             primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
@@ -202,7 +186,7 @@ var BasicsChart = React.createClass({
         selectorOptions,
         selectorMetaData,
         settingsTogglable,
-      })
+      });
 
       sections.push(section);
     });
