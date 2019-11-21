@@ -23,12 +23,17 @@ var InfusionHoverDisplay = React.createClass({
   propTypes: {
     data: React.PropTypes.object,
     date: React.PropTypes.string.isRequired,
+    type: React.PropTypes.string,
     trackMetric: React.PropTypes.func.isRequired,
   },
   render: function() {
-    var datums = _.get(this.props.data, 'data', []);
+    var type = this.props.type;
+    var datums = _.filter(_.get(this.props.data, 'data', []), function(d) {
+      return _.get(d.tags, type);
+    });
+
     var timesList = datums.slice(0,3).map(function(time) {
-      return (<li key={time.guid}>{format.timestamp(time.normalTime, time.displayOffset)}</li>);
+      return (<li key={time.id}>{format.timestamp(time.normalTime, time.displayOffset)}</li>);
     });
 
     this.props.trackMetric('Hovered over Infusion Site');

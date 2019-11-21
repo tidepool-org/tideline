@@ -52,6 +52,7 @@ var CalendarContainer = React.createClass({
       togglableState.closed,
       togglableState.off,
     ]).isRequired,
+    source: React.PropTypes.string,
     timezone: React.PropTypes.string.isRequired,
     type: React.PropTypes.string.isRequired,
     trackMetric: React.PropTypes.func.isRequired,
@@ -176,6 +177,8 @@ var CalendarContainer = React.createClass({
 
     return this.props.days.map(function(day, id) {
       var dateData = _.get(data, day.date, {});
+      var type = self.props.source || self.props.type;
+
       if (!_.isEmpty(dateData) && self.props.hasHover && self.state.hoverDate === day.date) {
         return (
           <HoverDay
@@ -187,7 +190,7 @@ var CalendarContainer = React.createClass({
             onSelectDay={self.props.onSelectDay}
             subtotalType={self._getSelectedSubtotal()}
             timezone={self.props.timezone}
-            type={self.props.type}
+            type={type}
             title={self.props.title}
             trackMetric={self.props.trackMetric}
           />
@@ -204,7 +207,7 @@ var CalendarContainer = React.createClass({
             mostRecent={day.type === 'mostRecent'}
             onHover={self.onHover}
             subtotalType={self._getSelectedSubtotal()}
-            type={self.props.type} />
+            type={type} />
         );
       }
     });

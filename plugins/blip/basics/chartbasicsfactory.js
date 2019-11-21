@@ -53,7 +53,6 @@ var BasicsChart = React.createClass({
     permsOfLoggedInUser: React.PropTypes.object.isRequired,
     size: React.PropTypes.object.isRequired,
     timePrefs: React.PropTypes.object.isRequired,
-    // updateBasicsData: React.PropTypes.func.isRequired,
     updateBasicsSettings: React.PropTypes.func.isRequired,
     trackMetric: React.PropTypes.func.isRequired,
   },
@@ -92,7 +91,6 @@ var BasicsChart = React.createClass({
 
   componentDidMount: function() {
     var availableDeviceData = this._availableDeviceData();
-    console.log('availableDeviceData', availableDeviceData);
 
     if (availableDeviceData.length > 0) {
       var device = availableDeviceData.sort().join('+');
@@ -118,6 +116,7 @@ var BasicsChart = React.createClass({
       const isSiteChanges = key === 'siteChanges';
       const section = _.cloneDeep(aggregation);
       let chart = WrapCount;
+      let hasHover = true;
       let hoverDisplay;
       let noDataMessage;
       let selector = SummaryGroup;
@@ -126,7 +125,7 @@ var BasicsChart = React.createClass({
       let settingsTogglable = togglableState.off;
 
       if (isSiteChanges) {
-        const { latestPump } = _.get(this.props, 'data.metaData', {});
+        const { latestPumpUpload: latestPump } = _.get(this.props, 'data.metaData', {});
 
         const {
           profile: {
@@ -146,14 +145,15 @@ var BasicsChart = React.createClass({
         settingsTogglable = togglableState.off;
 
         if (section.manufacturer !== _.lowerCase(constants.INSULET)) {
-          settingsTogglable = togglableState.closed;
+          hasHover = hasSiteChangeSourceSettings;
+          settingsTogglable = hasSiteChangeSourceSettings ? togglableState.closed : togglableState.open;
 
           selectorOptions = {
             primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
             rows: [
               [
-                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills') },
-                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes') },
+                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
               ]
             ]
           };
@@ -175,7 +175,7 @@ var BasicsChart = React.createClass({
         active: !section.disabled,
         chart,
         container: CalendarContainer,
-        hasHover: true,
+        hasHover,
         hoverDisplay,
         id: key,
         index: typeSectionIndexMap[key],
@@ -194,10 +194,6 @@ var BasicsChart = React.createClass({
     const sortedSections = _.sortBy(sections, 'index');
     this.setState({ sections: sortedSections });
   },
-
-  // componentWillUnmount: function() {
-  //   this.props.updateBasicsData(this.state);
-  // },
 
   render: function() {
     var aggregations = this.renderAggregations();
