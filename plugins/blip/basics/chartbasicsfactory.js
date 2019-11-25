@@ -60,7 +60,7 @@ var BasicsChart = React.createClass({
   _insulinDataAvailable: function() {
     const { basal, bolus, wizard } = _.get(this.props, 'data.metaData.latestDatumByType', {});
 
-    return (basal || bolus || wizard);
+    return !!(basal || bolus || wizard);
   },
 
   _availableDeviceData: function () {
