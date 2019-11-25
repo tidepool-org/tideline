@@ -75,7 +75,9 @@ var SummaryGroup = React.createClass({
   },
 
   renderOption: function(option) {
-    if (option.hideEmpty) {
+    var value = this.getOptionValue(option, this.props.data);
+
+    if (option.hideEmpty && !value > 0) {
       return null;
     }
 
