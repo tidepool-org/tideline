@@ -25,7 +25,7 @@ var basicsActions = require('../../../../plugins/blip/basics/logic/actions');
 var constants = require('../../../../plugins/blip/basics/logic/constants');
 var togglableState = require('../../../../plugins/blip/basics/TogglableState');
 
-describe('actions', function() {
+describe.only('actions', function() {
   var app = {
     state: {
       sections: {
@@ -86,24 +86,7 @@ describe('actions', function() {
     basicsActions.bindApp(app);
   });
 
-  describe('toggleSection', function() {
-    it('should track opened metric', function() {
-      var trackMetric = sinon.stub();
-      expect(trackMetric.callCount).to.equal(0);
-      basicsActions.toggleSection('tst', trackMetric);
-      expect(trackMetric.callCount).to.equal(1);
-      expect(trackMetric.calledWith('tst section was opened')).to.be.true;
-    });
-    it('should track closed metric', function() {
-      var trackMetric = sinon.stub();
-      expect(trackMetric.callCount).to.equal(0);
-      basicsActions.toggleSection('tst2', trackMetric);
-      expect(trackMetric.callCount).to.equal(1);
-      expect(trackMetric.calledWith('tst2 section was closed')).to.be.true;
-    });
-  });
-
-  describe('toggleSectionSettings', function() {
+  describe.only('toggleSectionSettings', function() {
     it('should track opened metric', function() {
       var trackMetric = sinon.stub();
       expect(trackMetric.callCount).to.equal(0);

@@ -181,7 +181,6 @@ var BasicsChart = React.createClass({
         index: typeSectionIndexMap[key],
         name: key,
         noDataMessage,
-        togglable: togglableState.off,
         selector,
         selectorOptions,
         selectorMetaData,

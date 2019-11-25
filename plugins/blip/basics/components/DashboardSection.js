@@ -33,7 +33,7 @@ var DashboardSection = React.createClass({
     days: React.PropTypes.array.isRequired,
     name: React.PropTypes.string.isRequired,
     onSelectDay: React.PropTypes.func.isRequired,
-    togglable: React.PropTypes.oneOf([
+    settingsTogglable: React.PropTypes.oneOf([
       togglableState.open,
       togglableState.closed,
       togglableState.off,
@@ -87,32 +87,19 @@ var DashboardSection = React.createClass({
       );
     }
 
-    var iconClass = cx({
-      'icon-down': this.props.togglable === togglableState.open,
-      'icon-right': this.props.togglable === togglableState.closed
-    });
-
     var containerClass = cx({
       'DashboardSection-container': true
     });
 
     var titleContainer;
-    // if (this.props.title && typeof this.props.title === 'function') {
-    //   titleContainer = this.props.title({
-    //     data: this.props.data,
-    //     iconClass: iconClass,
-    //     sectionName: this.props.name,
-    //     trackMetric: this.props.trackMetric
-    //   });
-    // } else if (this.props.title) {
+
     if (this.props.title) {
       var headerClasses = cx({
         'SectionHeader--nodata': section.noData,
-        'selectable': this.props.togglable !== togglableState.off
       });
       titleContainer = (
-        <h3 className={headerClasses} onClick={this.handleToggleSection}>{this.props.title}
-          <i className={iconClass}/>
+        <h3 className={headerClasses}>
+          {this.props.title}
           {settingsToggle}
         </h3>
       );
@@ -123,19 +110,11 @@ var DashboardSection = React.createClass({
         {titleContainer}
         <div className={containerClass} ref='container'>
           <div className='DashboardSection-content' ref='content'>
-            {this.props.togglable !== togglableState.closed ? dataDisplay : null}
+            {dataDisplay}
           </div>
         </div>
       </div>
     );
-  },
-  handleToggleSection: function(e) {
-    if (e) {
-      e.preventDefault();
-    }
-    if (this.props.togglable !== togglableState.off) {
-      basicsActions.toggleSection(this.props.name, this.props.trackMetric);
-    }
   },
   handleToggleSettings: function(e) {
     if (e) {

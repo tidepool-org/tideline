@@ -26,21 +26,9 @@ basicsActions.bindApp = function(app) {
   return this;
 };
 
-basicsActions.toggleSection = function(sectionName, metricsFunc) {
-  var sections = _.cloneDeep(this.app.state.sections);
-  var sectionIndex = _.findIndex(sections, { type: sectionName });
-  if (sections[sectionIndex].togglable === togglableState.closed) {
-    sections[sectionIndex].togglable = togglableState.open;
-    metricsFunc(sections[sectionIndex].id + ' was opened');
-  } else {
-    sections[sectionIndex].togglable = togglableState.closed;
-    metricsFunc(sections[sectionIndex].id + ' was closed');
-  }
-  this.app.setState({sections: sections});
-};
-
 basicsActions.toggleSectionSettings = function(sectionName, metricsFunc) {
   var sections = _.cloneDeep(this.app.state.sections);
+  console.log('sections', sections);
   var sectionIndex = _.findIndex(sections, { type: sectionName });
   if (sections[sectionIndex].settingsTogglable === togglableState.closed) {
     sections[sectionIndex].settingsTogglable = togglableState.open;
