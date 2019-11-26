@@ -15,7 +15,7 @@
  * == BSD2 LICENSE ==
  */
 
-/* jshint esversion:6 */
+/* jshint esversion: 9 */
 
 /* global describe */
 /* global it */

@@ -76,8 +76,9 @@ var SummaryGroup = React.createClass({
 
   renderOption: function(option) {
     var value = this.getOptionValue(option, this.props.data);
+    var isEmptyValue = !value || value <= 0;
 
-    if (option.hideEmpty && !value > 0) {
+    if (option.hideEmpty && isEmptyValue) {
       return null;
     }
 
@@ -89,8 +90,6 @@ var SummaryGroup = React.createClass({
       'SummaryGroup-info-tall': (!option.primary && this.props.selectorOptions.length <= 4),
       'SummaryGroup-no-percentage': (!option.primary && !option.percentage)
     });
-
-    var value = this.getOptionValue(option, this.props.data);
 
     option.disabled = false;
     if (value === 0) {

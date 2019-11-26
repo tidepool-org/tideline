@@ -15,7 +15,7 @@
  * == BSD2 LICENSE ==
  */
 
-/* jshint esversion:6 */
+/* jshint esversion:9 */
 /* global sinon */
 
 var _ = require('lodash');
@@ -256,7 +256,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'Pump only'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
@@ -272,7 +272,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM only'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
@@ -288,7 +288,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'CGM only'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
@@ -304,7 +304,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM+CGM'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
@@ -322,7 +322,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM+Pump'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
@@ -340,7 +340,7 @@ describe('BasicsChart', function() {
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'CGM+Pump'});
 
       defaultProps.trackMetric.reset();
-      var elem = React.createElement(BasicsChart.inner, props({
+      elem = React.createElement(BasicsChart.inner, props({
         data: {
           ...defaultData,
           metaData: {
