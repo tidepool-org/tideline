@@ -59,8 +59,10 @@ module.exports = {
    *
    * @return {Number} The value, or 0 if not found
    */
-  getOptionValue: function(option, data) {
-    let value = _.get(data, [...option.path.split('.').concat(option.key)], 0);
+  getOptionValue: function(option = {}, data) {
+    const path = option.path || '';
+    const key = option.key || '';
+    const value = _.get(data, _.compact([...path.split('.').concat(key)]), 0);
     return _.get(value, 'count', value);
   },
 

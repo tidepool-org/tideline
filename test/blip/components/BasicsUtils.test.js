@@ -28,29 +28,27 @@ var expect = chai.expect;
 const BasicsUtils = require('../../../plugins/blip/basics/components/BasicsUtils');
 
 describe('BasicsUtils', () => {
-  let util;
-
-  const optionMatchingPathAndKey = {
-    path: 'smbg',
-    key: 'smbg',
-  };
-
-  const optionTotalKey = {
+  const optionPathAndKey = {
     path: 'smbg',
     key: 'total',
   };
 
-  const optionOther = {
-    key: 'data',
-    path: 'other',
+  const optionInvalidPath = {
+    path: 'foo',
+    key: 'bar',
   };
 
-  const optionOtherNoPath = {
-    key: 'other',
+  const optionNestedPathAndKey = {
+    path: 'other.data',
+    key: 'count',
   };
 
-  const optionTotalNoPath = {
+  const optionNoPath = {
     key: 'total',
+  };
+
+  const optionNoKey = {
+    path: 'total',
   };
 
   const data = {
@@ -66,34 +64,28 @@ describe('BasicsUtils', () => {
   };
 
   describe('getOptionValue', () => {
-    context('no data provided', () => {
-      it('should return 0', () => {
-        expect(BasicsUtils.getOptionValue(optionMatchingPathAndKey)).to.equal(0);
-      });
+    it('should return 0 if no data is provided', () => {
+      expect(BasicsUtils.getOptionValue(optionPathAndKey)).to.equal(0);
     });
 
-    context('option key equals \'total\'', () => {
-      it('should return the total value when path is provided', () => {
-        expect(BasicsUtils.getOptionValue(optionTotalKey, data)).to.equal(8);
-      });
-
-      it('should return the total value when path is not provided', () => {
-        expect(BasicsUtils.getOptionValue(optionTotalNoPath, data)).to.equal(14);
-      });
+    it('should return 0 if data is provided, but path does not resolve', () => {
+      expect(BasicsUtils.getOptionValue(optionInvalidPath)).to.equal(0);
     });
 
-    context('option key does not equal \'total\'', () => {
-      it('should return the correct value when the path and key match', () => {
-        expect(BasicsUtils.getOptionValue(optionMatchingPathAndKey, data)).to.equal(8);
-      });
+    it('should return the correct value when path and key are provided', () => {
+      expect(BasicsUtils.getOptionValue(optionPathAndKey, data)).to.equal(8);
+    });
 
-      it('should return the correct value when path is provided', () => {
-        expect(BasicsUtils.getOptionValue(optionOther, data)).to.equal(6);
-      });
+    it('should return the correct value when nested path and key are provided', () => {
+      expect(BasicsUtils.getOptionValue(optionNestedPathAndKey, data)).to.equal(6);
+    });
 
-      it('should return 0 when no path is provided', () => {
-        expect(BasicsUtils.getOptionValue(optionOtherNoPath, data)).to.equal(0);
-      });
+    it('should return the correct value when only path is provided', () => {
+      expect(BasicsUtils.getOptionValue(optionNoKey, data)).to.equal(14);
+    });
+
+    it('should return the correct value when only key is provided', () => {
+      expect(BasicsUtils.getOptionValue(optionNoPath, data)).to.equal(14);
     });
   });
 });
