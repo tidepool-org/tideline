@@ -38,9 +38,11 @@ const SummaryGroup = require('../../../../plugins/blip/basics/components/misc/Su
 describe('SummaryGroup', () => {
   const data = {
     smbg: {
-      count: 1,
+      summary: {
+        total: 1,
+        avgPerDay: 3,
+      },
     },
-    avgPerDay: 3,
   };
 
   var props = {
@@ -63,12 +65,14 @@ describe('SummaryGroup', () => {
     },
     bgUnits: 'mg/dL',
     data,
-    selectedSubtotal: 'primary',
+    selectedSubtotal: 'total',
     selectorOptions: {
       primary: {
-        key: 'smbg',
-        label: 'SMBG',
+        key: 'total',
+        label: 'Avg per day',
         average: true,
+        path: 'smbg.summary',
+        primary: true,
       },
       rows: [],
     },
@@ -103,7 +107,9 @@ describe('SummaryGroup', () => {
       wrapper.setProps({
         data: _.assign({}, data, {
           smbg: {
-            count: 0,
+            summary: {
+              total: 0,
+            },
           },
         }),
       });
@@ -116,7 +122,11 @@ describe('SummaryGroup', () => {
 
       wrapper.setProps({
         data: _.assign({}, data, {
-          avgPerDay: NaN,
+          smbg: {
+            summary: {
+              avgPerDay: NaN,
+            },
+          },
         }),
       });
 
@@ -139,7 +149,9 @@ describe('SummaryGroup', () => {
       wrapper.setProps({
         data: _.assign({}, data, {
           smbg: {
-            count: 0,
+            summary: {
+              total: 0,
+            },
           },
         }),
       });

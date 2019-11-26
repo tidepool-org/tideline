@@ -28,7 +28,6 @@ basicsActions.bindApp = function(app) {
 
 basicsActions.toggleSectionSettings = function(sectionName, metricsFunc) {
   var sections = _.cloneDeep(this.app.state.sections);
-  console.log('sections', sections);
   var sectionIndex = _.findIndex(sections, { type: sectionName });
   if (sections[sectionIndex].settingsTogglable === togglableState.closed) {
     sections[sectionIndex].settingsTogglable = togglableState.open;

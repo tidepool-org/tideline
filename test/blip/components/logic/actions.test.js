@@ -23,45 +23,12 @@ var _ = require('lodash');
 
 var basicsActions = require('../../../../plugins/blip/basics/logic/actions');
 var constants = require('../../../../plugins/blip/basics/logic/constants');
-var togglableState = require('../../../../plugins/blip/basics/TogglableState');
+var basicsSections = require('../../../fixtures/basicsSections.json');
 
-describe.only('actions', function() {
+describe('actions', function() {
   var app = {
     state: {
-      sections: {
-        'tst': { id: 'tst section', togglable: togglableState.closed },
-        'tst2': { id: 'tst2 section', togglable: togglableState.open },
-        'siteChanges': {
-          id: 'siteChanges',
-          togglable: togglableState.off,
-          settingsTogglable: togglableState.closed,
-          selectorOptions: {
-            primary: { key: constants.SITE_CHANGE_RESERVOIR, label: 'Reservoir Change' },
-            rows: [
-              [
-                { key: constants.SITE_CHANGE_TUBING, label: 'Tube Primes' },
-                { key: constants.SITE_CHANGE_CANNULA, label: 'Cannula Fills' },
-              ],
-            ],
-          },
-          selectorMetaData: {
-            canUpdateSettings: true,
-          },
-        },
-        'fingersticks': {
-          id: 'fingersticks',
-          togglable: togglableState.off,
-          selectorOptions: {
-            primary: { key: 'total', label: 'Total' },
-            rows: [
-              [
-                { key: 'calibrations', label: 'Calibrations' },
-              ],
-            ],
-          },
-        },
-        'siteChangesOpen': { id: 'siteChangesOpen', togglable: togglableState.off, settingsTogglable: togglableState.open },
-      },
+      sections: basicsSections,
     },
     setState: sinon.stub(),
     props: {
@@ -86,7 +53,7 @@ describe.only('actions', function() {
     basicsActions.bindApp(app);
   });
 
-  describe.only('toggleSectionSettings', function() {
+  describe('toggleSectionSettings', function() {
     it('should track opened metric', function() {
       var trackMetric = sinon.stub();
       expect(trackMetric.callCount).to.equal(0);
@@ -95,11 +62,14 @@ describe.only('actions', function() {
       expect(trackMetric.calledWith('siteChanges settings was opened')).to.be.true;
     });
     it('should track closed metric', function() {
+      var settingsOpen = _.cloneDeep(app);
+      settingsOpen.state.sections[2].settingsTogglable = true;
+      basicsActions.bindApp(settingsOpen);
       var trackMetric = sinon.stub();
       expect(trackMetric.callCount).to.equal(0);
-      basicsActions.toggleSectionSettings('siteChangesOpen', trackMetric);
+      basicsActions.toggleSectionSettings('siteChanges', trackMetric);
       expect(trackMetric.callCount).to.equal(1);
-      expect(trackMetric.calledWith('siteChangesOpen settings was closed')).to.be.true;
+      expect(trackMetric.calledWith('siteChanges settings was closed')).to.be.true;
     });
   });
 
@@ -124,7 +94,7 @@ describe.only('actions', function() {
     });
     it('should track metric for a care team member setting the initiatedBy', function() {
       var careTeamApp = _.cloneDeep(app);
-      careTeamApp.state.sections.siteChanges.selectorMetaData.canUpdateSettings = false;
+      careTeamApp.state.sections[2].selectorMetaData.canUpdateSettings = false;
       basicsActions.bindApp(careTeamApp);
       var trackMetric = sinon.stub();
       var updateBasicsSettings = sinon.stub();
@@ -136,7 +106,7 @@ describe.only('actions', function() {
     it('should call updateBasicsSettings function', function() {
       var trackMetric = sinon.stub();
       var updateBasicsSettings = sinon.stub();
-      var canUpdateSettings = app.state.sections.siteChanges.selectorMetaData.canUpdateSettings;
+      var canUpdateSettings = app.state.sections[2].selectorMetaData.canUpdateSettings;
       expect(updateBasicsSettings.callCount).to.equal(0);
       basicsActions.setSiteChangeEvent('siteChanges', constants.SITE_CHANGE_CANNULA, 'Cannula Prime', trackMetric, updateBasicsSettings);
 
