@@ -195,7 +195,7 @@ function chartDailyFactory(el, options) {
 
     const latestDatums = _.pick(_.get(data, 'metaData.latestDatumByType'), renderedDataTypes);
     const latestDatumTime = _.max(_.map(latestDatums, d => (d.normalEnd || d.normalTime)));
-    const datumCeiling = dt.getLocalizedCeiling(latestDatumTime, chart.options.timePrefs.timezoneName);
+    const datumCeiling = dt.getLocalizedCeiling(latestDatumTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
 
     const combinedData = _.reject(
       _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),

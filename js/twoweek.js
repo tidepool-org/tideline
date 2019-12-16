@@ -16,6 +16,7 @@
  */
 
 var d3 = require('d3');
+var moment = require('moment');
 var _ = require('lodash');
 
 var Pool = require('./pool');
@@ -792,7 +793,7 @@ module.exports = function(emitter, timePrefs) {
     container.dataPerDay = [];
 
     var groupedByDate = _.groupBy(data, function(d) {
-      return timezoneAware ? (d.fillDate ? d.fillDate : dt.applyOffset(d.normalTime, d.displayOffset).slice(0,10)) : d.normalTime.slice(0,10);
+      return timezoneAware ? (d.fillDate ? d.fillDate : dt.applyOffset(d.normalTime, d.displayOffset).slice(0,10)) : moment.utc(d.normalTime).toISOString().slice(0,10);
     });
 
     var dates = Object.keys(groupedByDate);

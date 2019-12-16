@@ -77,7 +77,7 @@ function chartWeeklyFactory(el, options) {
 
   chart.load = function(data, datetime) {
     const latestSMBG = _.get(data, 'metaData.latestDatumByType.smbg');
-    const datumCeiling = dt.getLocalizedCeiling(latestSMBG.normalTime, chart.options.timePrefs.timezoneName);
+    const datumCeiling = dt.getLocalizedCeiling(latestSMBG.normalTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
 
     const twoWeekData = _.reject(
       _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
