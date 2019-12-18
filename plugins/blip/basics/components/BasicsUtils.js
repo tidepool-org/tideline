@@ -14,6 +14,9 @@
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
  */
+
+/* jshint esversion:6 */
+
 var i18next = require('i18next');
 var t = i18next.t.bind(i18next);
 
@@ -30,11 +33,10 @@ module.exports = {
    * @return {Number}
    */
   getCount: function(subtotalType) {
-    if (_.isEmpty(this.props.data) ||
-      _.isEmpty(this.props.data.dataByDate[this.props.date])) {
-      return 0;
-    }
-    var dateData = this.props.data.dataByDate[this.props.date];
+    if (_.isEmpty(this.props.data)) return 0;
+
+    var dateData = this.props.data;
+
     if (subtotalType) {
       if (subtotalType === 'total') {
         return dateData.total;
@@ -57,33 +59,11 @@ module.exports = {
    *
    * @return {Number} The value, or 0 if not found
    */
-  getOptionValue: function(option, data) {
-    var path = option.path;
-    var value = 0;
-
-    if (data) {
-      if (option.key === 'total') {
-        if (path) {
-          value = data[path].total;
-        }
-        else {
-          value = data[option.key];
-        }
-      }
-      else {
-        if (path && path === option.key) {
-          value = data[path].total;
-        }
-        else if (path) {
-          value = data[path][option.key].count;
-        }
-        else {
-          value = data[option.key].count || 0;
-        }
-      }
-    }
-
-    return value;
+  getOptionValue: function(option = {}, data = {}) {
+    const path = option.path || '';
+    const key = option.key || '';
+    const value = _.get(data, _.compact([...path.split('.').concat(key)]), 0);
+    return _.get(value, 'count', value);
   },
 
   /**

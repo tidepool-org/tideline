@@ -1,0 +1,504 @@
+[
+  {
+    "active": true,
+    "title": "BG readings",
+    "summaryTitle": "Avg BG readings / day",
+    "type": "fingersticks",
+    "dimensions": [
+      {
+        "path": "smbg.summary",
+        "key": "total",
+        "label": "Avg per day",
+        "average": true,
+        "primary": true,
+        "disabled": false
+      },
+      {
+        "path": "smbg.summary.subtotals",
+        "key": "meter",
+        "label": "Meter",
+        "percentage": true,
+        "disabled": false
+      },
+      {
+        "path": "smbg.summary.subtotals",
+        "key": "manual",
+        "label": "Manual",
+        "percentage": true,
+        "disabled": false
+      },
+      {
+        "path": "calibration.summary",
+        "key": "total",
+        "label": "Calibrations",
+        "hideEmpty": true,
+        "disabled": false
+      },
+      {
+        "path": "smbg.summary.subtotals",
+        "key": "veryLow",
+        "label": "Below 3.0 mmol/L",
+        "percentage": true,
+        "disabled": true
+      },
+      {
+        "path": "smbg.summary.subtotals",
+        "key": "veryHigh",
+        "label": "Above 13.9 mmol/L",
+        "percentage": true,
+        "disabled": false
+      }
+    ],
+    "disabled": false,
+    "hasHover": true,
+    "id": "fingersticks",
+    "index": 0,
+    "name": "fingersticks",
+    "selectorOptions": {
+      "primary": {
+        "path": "smbg.summary",
+        "key": "total",
+        "label": "Avg per day",
+        "average": true,
+        "primary": true,
+        "disabled": false
+      },
+      "rows": [
+        [
+          {
+            "path": "smbg.summary.subtotals",
+            "key": "meter",
+            "label": "Meter",
+            "percentage": true,
+            "disabled": false
+          },
+          {
+            "path": "smbg.summary.subtotals",
+            "key": "manual",
+            "label": "Manual",
+            "percentage": true,
+            "disabled": false
+          },
+          {
+            "path": "calibration.summary",
+            "key": "total",
+            "label": "Calibrations",
+            "hideEmpty": true,
+            "disabled": false
+          }
+        ],
+        [
+          {
+            "path": "smbg.summary.subtotals",
+            "key": "veryLow",
+            "label": "Below 3.0 mmol/L",
+            "percentage": true,
+            "disabled": true
+          },
+          {
+            "path": "smbg.summary.subtotals",
+            "key": "veryHigh",
+            "label": "Above 13.9 mmol/L",
+            "percentage": true,
+            "disabled": false
+          }
+        ]
+      ]
+    },
+    "settingsTogglable": "off"
+  },
+  {
+    "active": true,
+    "title": "Bolusing",
+    "summaryTitle": "Avg boluses / day",
+    "type": "boluses",
+    "dimensions": [
+      {
+        "path": "summary",
+        "key": "total",
+        "label": "Avg per day",
+        "average": true,
+        "primary": true,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "wizard",
+        "label": "Calculator",
+        "percentage": true,
+        "selectorIndex": 0,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "correction",
+        "label": "Correction",
+        "percentage": true,
+        "selectorIndex": 1,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "extended",
+        "label": "Extended",
+        "percentage": true,
+        "selectorIndex": 3,
+        "disabled": true
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "interrupted",
+        "label": "Interrupted",
+        "percentage": true,
+        "selectorIndex": 4,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "override",
+        "label": "Override",
+        "percentage": true,
+        "selectorIndex": 2,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "underride",
+        "label": "Underride",
+        "percentage": true,
+        "selectorIndex": 5,
+        "disabled": false
+      }
+    ],
+    "disabled": false,
+    "hasHover": true,
+    "id": "boluses",
+    "index": 1,
+    "name": "boluses",
+    "selectorOptions": {
+      "primary": {
+        "path": "summary",
+        "key": "total",
+        "label": "Avg per day",
+        "average": true,
+        "primary": true,
+        "disabled": false
+      },
+      "rows": [
+        [
+          {
+            "path": "summary.subtotals",
+            "key": "wizard",
+            "label": "Calculator",
+            "percentage": true,
+            "selectorIndex": 0,
+            "disabled": false
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "correction",
+            "label": "Correction",
+            "percentage": true,
+            "selectorIndex": 1,
+            "disabled": false
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "override",
+            "label": "Override",
+            "percentage": true,
+            "selectorIndex": 2,
+            "disabled": false
+          }
+        ],
+        [
+          {
+            "path": "summary.subtotals",
+            "key": "extended",
+            "label": "Extended",
+            "percentage": true,
+            "selectorIndex": 3,
+            "disabled": true
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "interrupted",
+            "label": "Interrupted",
+            "percentage": true,
+            "selectorIndex": 4,
+            "disabled": false
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "underride",
+            "label": "Underride",
+            "percentage": true,
+            "selectorIndex": 5,
+            "disabled": false
+          }
+        ]
+      ]
+    },
+    "settingsTogglable": "off"
+  },
+  {
+    "active": true,
+    "title": "Infusion site changes",
+    "type": "siteChanges",
+    "source": "cannulaPrime",
+    "manufacturer": "animas",
+    "disabled": false,
+    "subTitle": "Fill Cannula",
+    "hasHover": true,
+    "id": "siteChanges",
+    "index": 2,
+    "name": "siteChanges",
+    "noDataMessage": "Infusion site changes are not yet available for all pumps. Coming soon!",
+    "selectorOptions": {
+      "primary": {
+        "key": "reservoirChange",
+        "label": "Reservoir Changes"
+      },
+      "rows": [
+        [
+          {
+            "key": "cannulaPrime",
+            "label": "Cannula Fills",
+            "selected": true
+          },
+          {
+            "key": "tubingPrime",
+            "label": "Tube Primes",
+            "selected": false
+          }
+        ]
+      ]
+    },
+    "selectorMetaData": {
+      "latestPump": {
+        "deviceModel": "IR1285",
+        "isAutomatedBasalDevice": false,
+        "manufacturer": "animas",
+        "settings": {
+          "activeSchedule": "Weekday",
+          "basalSchedules": [
+            {
+              "name": "Exercise",
+              "value": [
+                {
+                  "rate": 0,
+                  "start": 0
+                }
+              ]
+            },
+            {
+              "name": "Other",
+              "value": [
+                {
+                  "rate": 0,
+                  "start": 0
+                }
+              ]
+            },
+            {
+              "name": "Weekday",
+              "value": [
+                {
+                  "rate": 0.075,
+                  "start": 0
+                },
+                {
+                  "rate": 0.1,
+                  "start": 25200000
+                },
+                {
+                  "rate": 0.15,
+                  "start": 28800000
+                },
+                {
+                  "rate": 0.15,
+                  "start": 36000000
+                },
+                {
+                  "rate": 0.125,
+                  "start": 50400000
+                },
+                {
+                  "rate": 0.125,
+                  "start": 61200000
+                },
+                {
+                  "rate": 0.1,
+                  "start": 68400000
+                },
+                {
+                  "rate": 0.075,
+                  "start": 70200000
+                }
+              ]
+            },
+            {
+              "name": "Weekend",
+              "value": [
+                {
+                  "rate": 0,
+                  "start": 0
+                }
+              ]
+            }
+          ],
+          "bgTarget": [
+            {
+              "range": 0.5,
+              "start": 0,
+              "target": 8
+            }
+          ],
+          "carbRatio": [
+            {
+              "amount": 32,
+              "start": 0
+            },
+            {
+              "amount": 16,
+              "start": 21600000
+            },
+            {
+              "amount": 24,
+              "start": 39600000
+            },
+            {
+              "amount": 28,
+              "start": 50400000
+            },
+            {
+              "amount": 32,
+              "start": 57600000
+            }
+          ],
+          "conversionOffset": 0,
+          "deviceId": "IR1285-65-69838-15",
+          "deviceTime": 1521464040000,
+          "id": "e82dc7d26c4c8043243b7911eddfd4eb",
+          "insulinSensitivity": [
+            {
+              "amount": 28,
+              "start": 0
+            },
+            {
+              "amount": 30,
+              "start": 3600000
+            },
+            {
+              "amount": 33.3,
+              "start": 7200000
+            },
+            {
+              "amount": 30,
+              "start": 18000000
+            },
+            {
+              "amount": 24,
+              "start": 21600000
+            },
+            {
+              "amount": 20,
+              "start": 25200000
+            },
+            {
+              "amount": 24,
+              "start": 64800000
+            }
+          ],
+          "revision": 1,
+          "time": 1521464040000,
+          "timezoneOffset": -240,
+          "type": "pumpSettings",
+          "units": {
+            "bg": "mmol/L",
+            "carb": "grams"
+          },
+          "uploadId": "f54cc526727923ac06e3b81bb5cadc28",
+          "normalTime": 1521464040000,
+          "displayOffset": -240,
+          "deviceSerialNumber": "65-69838-15",
+          "source": "Animas"
+        }
+      },
+      "canUpdateSettings": true,
+      "hasSiteChangeSourceSettings": false,
+      "patientName": "John Doe"
+    },
+    "settingsTogglable": false
+  },
+  {
+    "active": true,
+    "title": "Basals",
+    "summaryTitle": "Total basal events",
+    "type": "basals",
+    "dimensions": [
+      {
+        "path": "summary",
+        "key": "total",
+        "label": "Basal Events",
+        "primary": true,
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "temp",
+        "label": "Temp Basals",
+        "disabled": false
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "suspend",
+        "label": "Suspends",
+        "disabled": true
+      },
+      {
+        "path": "summary.subtotals",
+        "key": "automatedStop",
+        "label": "Automated Exited",
+        "hideEmpty": true
+      }
+    ],
+    "disabled": false,
+    "hasHover": true,
+    "id": "basals",
+    "index": 3,
+    "name": "basals",
+    "selectorOptions": {
+      "primary": {
+        "path": "summary",
+        "key": "total",
+        "label": "Basal Events",
+        "primary": true,
+        "disabled": false
+      },
+      "rows": [
+        [
+          {
+            "path": "summary.subtotals",
+            "key": "temp",
+            "label": "Temp Basals",
+            "disabled": false
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "suspend",
+            "label": "Suspends",
+            "disabled": true
+          },
+          {
+            "path": "summary.subtotals",
+            "key": "automatedStop",
+            "label": "Automated Exited",
+            "hideEmpty": true
+          }
+        ]
+      ]
+    },
+    "settingsTogglable": "off"
+  }
+]

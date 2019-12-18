@@ -24,127 +24,58 @@ var t = i18next.t.bind(i18next);
 var tideline = require('../../../js/');
 
 var _ = require('lodash');
-var bows = require('bows');
 var React = require('react');
-
-require('./less/basics.less');
-var basicsState = require('./logic/state');
-var basicsActions = require('./logic/actions');
-var dataMungerMkr = require('./logic/datamunger');
-var constants = require('./logic/constants');
 var sizeMe = require('react-sizeme');
 
-var Section = require('./components/DashboardSection');
+require('./less/basics.less');
+var basicsActions = require('./logic/actions');
+var constants = require('./logic/constants');
+var dt = require('../../../js/data/util/datetime');
 
+var Section = require('./components/DashboardSection');
+var CalendarContainer = require('./components/CalendarContainer');
+var SummaryGroup = React.createFactory(require('./components/misc/SummaryGroup'));
+var SiteChangeSelector = React.createFactory(require('./components/sitechange/Selector'));
+var WrapCount = React.createFactory(require('./components/chart/WrapCount'));
+var SiteChange = React.createFactory(require('./components/chart/SiteChange'));
+var InfusionHoverDisplay = React.createFactory(require('./components/day/hover/InfusionHoverDisplay'));
 var togglableState = require('./TogglableState');
+
 
 var BasicsChart = React.createClass({
   propTypes: {
+    aggregations: React.PropTypes.object.isRequired,
     bgClasses: React.PropTypes.object.isRequired,
     bgUnits: React.PropTypes.string.isRequired,
+    data: React.PropTypes.object.isRequired,
     onSelectDay: React.PropTypes.func.isRequired,
     patient: React.PropTypes.object.isRequired,
-    patientData: React.PropTypes.object.isRequired,
     permsOfLoggedInUser: React.PropTypes.object.isRequired,
     size: React.PropTypes.object.isRequired,
     timePrefs: React.PropTypes.object.isRequired,
-    updateBasicsData: React.PropTypes.func.isRequired,
     updateBasicsSettings: React.PropTypes.func.isRequired,
     trackMetric: React.PropTypes.func.isRequired,
   },
 
-  _adjustSectionsBasedOnAvailableData: function(basicsData) {
-    var insulinDataAvailable = this._insulinDataAvailable();
-    var noPumpDataMessage = t("This section requires data from an insulin pump, so there's nothing to display.");
-    var noSMBGDataMessage = t("This section requires data from a blood-glucose meter, so there's nothing to display.");
-
-    if (basicsData.sections.siteChanges.type !== constants.SECTION_TYPE_UNDECLARED) {
-      if (!this._hasSectionData(basicsData.sections.siteChanges.type)) {
-        basicsData.sections.siteChanges.active = false;
-        basicsData.sections.siteChanges.message = noPumpDataMessage;
-        basicsData.sections.siteChanges.settingsTogglable = togglableState.off;
-        if (!insulinDataAvailable) {
-          basicsData.sections.siteChanges.noDataMessage = null;
-        }
-      }
-    }
-
-    if (!this._hasSectionData(basicsData.sections.boluses.type)) {
-      basicsData.sections.boluses.active = false;
-      basicsData.sections.boluses.message = noPumpDataMessage;
-    }
-
-    if (!this._hasSectionData(basicsData.sections.basals.type)) {
-      basicsData.sections.basals.active = false;
-      basicsData.sections.basals.message = noPumpDataMessage;
-    }
-
-    if (!this._automatedBasalEventsAvailable()) {
-      var basalSection = _.find(basicsData.sections, {type: 'basal'});
-
-      basalSection.selectorOptions.rows.forEach(function(row) {
-        _.each(row, function(option) {
-          if (option.key === 'automatedStop') {
-            option.active = false;
-          }
-        });
-      });
-    }
-
-    if (!this._hasSectionData('smbg') && !this._hasSectionData('calibration')) {
-      basicsData.sections.fingersticks.active = false;
-      basicsData.sections.fingersticks.message = noSMBGDataMessage;
-    }
-
-    if (_.isEmpty(basicsData.data.calibration.data)) {
-      var fingerstickSection = _.find(basicsData.sections, {type: 'fingerstick'});
-
-      fingerstickSection.selectorOptions.rows.forEach(function(row) {
-        var calibrationSelector = _.find(row, function(option) {
-          return option.key === 'calibration';
-        });
-        if (calibrationSelector) {
-          calibrationSelector.active = false;
-        }
-      });
-    }
-  },
-
   _insulinDataAvailable: function() {
-    var {
-      basal,
-      bolus,
-      wizard,
-    } = _.get(this.props, 'patientData.basicsData.data', {});
+    const { basal, bolus, wizard } = _.get(this.props, 'data.metaData.latestDatumByType', {});
 
-    if (_.get(basal, 'data.length') || _.get(bolus, 'data.length') || _.get(wizard, 'data.length')) {
-      return true;
-    }
-    return false;
-  },
-
-  _automatedBasalEventsAvailable: function() {
-    return _.get(this.props, 'patientData.basicsData.data.basal.summary.automatedStop.count', 0) > 0;
-  },
-
-  _hasSectionData: function (section) {
-    var basicsData = this.props.patientData.basicsData;
-
-    // check that section has data within range of current view
-    return _.some(basicsData.data[section].data, function(datum) {
-      return (datum.time >= basicsData.dateRange[0]);
-    });
+    return !!(basal || bolus || wizard);
   },
 
   _availableDeviceData: function () {
+    const { bgSources } = _.get(this.props, 'data.metaData', {});
+
     var deviceTypes = [];
 
-    if (this._hasSectionData('cbg')) {
+    if (bgSources.cbg) {
       deviceTypes.push('CGM');
     }
-    if (this._hasSectionData('smbg')) {
+
+    if (bgSources.smbg) {
       deviceTypes.push('BGM');
     }
+
     if (this._insulinDataAvailable()) {
       deviceTypes.push('Pump');
     }
@@ -153,21 +84,9 @@ var BasicsChart = React.createClass({
   },
 
   componentWillMount: function() {
-    var basicsData = this.props.patientData.basicsData;
-    if (basicsData.sections == null) {
-      var dataMunger = dataMungerMkr(this.props.bgClasses, this.props.bgUnits);
-      var basalUtil = this.props.patientData.basalUtil;
-      var latestPump = dataMunger.getLatestPumpUploaded(this.props.patientData);
-      basicsData = _.assign({}, basicsData, basicsState(latestPump));
-
-      dataMunger.reduceByDay(basicsData);
-
-      dataMunger.processInfusionSiteHistory(basicsData, latestPump, this.props.patient, this.props.permsOfLoggedInUser);
-
-      this._adjustSectionsBasedOnAvailableData(basicsData);
-    }
-    this.setState(basicsData);
     basicsActions.bindApp(this);
+
+    this.setSectionsToState();
   },
 
   componentDidMount: function() {
@@ -183,43 +102,124 @@ var BasicsChart = React.createClass({
     }
   },
 
-  componentWillUnmount: function() {
-    this.props.updateBasicsData(this.state);
+  setSectionsToState: function() {
+    const typeSectionIndexMap = {
+      fingersticks: 0,
+      boluses: 1,
+      siteChanges: 2,
+      basals: 3,
+    };
+
+    const sections = [];
+
+    _.forOwn(this.props.aggregations, (aggregation, key) => {
+      const isSiteChanges = key === 'siteChanges';
+      const section = _.cloneDeep(aggregation);
+      let chart = WrapCount;
+      let hasHover = true;
+      let hoverDisplay;
+      let noDataMessage;
+      let selector = SummaryGroup;
+      let selectorOptions;
+      let selectorMetaData;
+      let settingsTogglable = togglableState.off;
+
+      if (isSiteChanges) {
+        const { latestPumpUpload: latestPump } = _.get(this.props, 'data.metaData', {});
+
+        const {
+          profile: {
+            fullName,
+          },
+          settings,
+        } = this.props.patient;
+
+        const permissions = this.props.permsOfLoggedInUser;
+        const canUpdateSettings = permissions.hasOwnProperty('custodian') || permissions.hasOwnProperty('root');
+        const hasSiteChangeSourceSettings = settings && settings.hasOwnProperty('siteChangeSource');
+
+        chart = SiteChange;
+        hoverDisplay = InfusionHoverDisplay;
+        noDataMessage = this._insulinDataAvailable() ? t('Infusion site changes are not yet available for all pumps. Coming soon!') : null;
+        selector = SiteChangeSelector;
+        settingsTogglable = togglableState.off;
+
+        if (section.manufacturer !== _.lowerCase(constants.INSULET)) {
+          hasHover = hasSiteChangeSourceSettings;
+          settingsTogglable = hasSiteChangeSourceSettings ? togglableState.closed : togglableState.open;
+
+          selectorOptions = {
+            primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
+            rows: [
+              [
+                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
+              ]
+            ]
+          };
+
+          selectorMetaData = {
+            latestPump,
+            canUpdateSettings,
+            hasSiteChangeSourceSettings,
+            patientName: fullName,
+          };
+        }
+      } else {
+        selectorOptions = _.groupBy(section.dimensions, dimension => dimension.primary ? 'primary' : 'rows');
+        if (_.isArray(selectorOptions.primary)) selectorOptions.primary = selectorOptions.primary[0] || {};
+        if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), 3);
+      }
+
+      _.defaults(section, {
+        active: !section.disabled,
+        chart,
+        container: CalendarContainer,
+        hasHover,
+        hoverDisplay,
+        id: key,
+        index: typeSectionIndexMap[key],
+        name: key,
+        noDataMessage,
+        selector,
+        selectorOptions,
+        selectorMetaData,
+        settingsTogglable,
+      });
+
+      sections.push(section);
+    });
+
+    const sortedSections = _.sortBy(sections, 'index');
+    this.setState({ sections: sortedSections });
   },
 
   render: function() {
-    var rightColumn = this.renderColumn('right');
+    var aggregations = this.renderAggregations();
     return (
       <div>
-        {rightColumn}
+        {aggregations}
       </div>
     );
   },
 
-  renderColumn: function(columnSide) {
-    var self = this;
-    var timePrefs = this.props.timePrefs;
-    var tz = timePrefs.timezoneAware ? timePrefs.timezoneName : 'UTC';
-    var sections = [];
-    for (var key in this.state.sections) {
-      var section = _.cloneDeep(self.state.sections[key]);
-      section.name = key;
-      sections.push(section);
-    }
-    var column = _.sortBy(
-      _.filter(sections, {column: columnSide}),
-      'index'
-    );
+  renderAggregations: function() {
+    const self = this;
+    const timePrefs = self.props.timePrefs;
+    const timezoneName = timePrefs.timezoneAware ? timePrefs.timezoneName : 'UTC';
+    const range = _.get(self.props, 'data.data.current.endpoints.range', []);
+    const aggregationsByDate = _.get(self.props, 'data.data.current.aggregationsByDate', {});
+    const days = dt.findBasicsDays(range, timezoneName);
 
-    return _.map(column, function(section, index) {
+    return _.map(self.state.sections, function(section) {
       return (
         <Section key={section.name}
           bgClasses={self.props.bgClasses}
           bgUnits={self.props.bgUnits}
           chart={section.chart}
           chartWidth={self.props.size.width}
-          data={self.state.data}
-          days={self.state.days}
+          data={aggregationsByDate[section.type]}
+          days={days}
           labels={section.labels}
           name={section.name}
           onSelectDay={self.props.onSelectDay}
@@ -229,7 +229,7 @@ var BasicsChart = React.createClass({
           title={section.title}
           settingsTogglable={section.settingsTogglable}
           updateBasicsSettings={self.props.updateBasicsSettings}
-          timezone={tz}
+          timezone={timezoneName}
           trackMetric={self.props.trackMetric} />
       );
     });

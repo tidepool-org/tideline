@@ -1,6 +1,7 @@
 var React = require('react');
 var moment = require('moment-timezone');
 var cx = require('classnames');
+var _ = require('lodash');
 
 var constants = require('../../logic/constants');
 
@@ -43,11 +44,7 @@ var ADay = React.createClass({
       (this.props.type === constants.SITE_CHANGE_RESERVOIR);
   },
   isASiteChangeDay: function() {
-    if (!this.props.data || !this.props.data.infusionSiteHistory) {
-      return false;
-    }
-
-    return (this.props.data.infusionSiteHistory[this.props.date].type === constants.SITE_CHANGE);
+    return (_.get(this.props, ['data', 'subtotals', this.props.type], 0) > 0);
   },
   mouseEnter: function () {
     // We do not want a hover effect on days in the future

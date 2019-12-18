@@ -206,9 +206,11 @@ var Selector = React.createClass({
       }
     };
 
-    if (pumpVocabulary.hasOwnProperty(pump)) {
+    const manufacturer = _.capitalize(_.get(pump, 'manufacturer', ''));
+
+    if (pumpVocabulary.hasOwnProperty(manufacturer)) {
       return (
-        <strong key={action}>{pumpVocabulary[pump][action]}</strong>
+        <strong key={action}>{pumpVocabulary[manufacturer][action]}</strong>
       );
     }
 
