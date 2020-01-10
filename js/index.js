@@ -26,20 +26,11 @@ if (_.get(i18next, 'options.returnEmptyString') === undefined) {
 }
 
 module.exports = {
-  TidelineData: require('./tidelinedata'),  
   pool: require('./pool'),
   oneDay: require('./oneday'),
   twoWeek: require('./twoweek'),
-  settings: require('./settings'),
-
-  validation: {
-    validate: require('./validation/validate')
-  },
 
   data: {
-    BasalUtil: require('./data/basalutil'),
-    BolusUtil: require('./data/bolusutil'),
-    BGUtil: require('./data/bgutil'),
     util: {
       datetime: require('./data/util/datetime'),
       format: require('./data/util/format'),
@@ -55,12 +46,9 @@ module.exports = {
     timechange: require('./plot/timechange'),
     SMBGTime: require('./plot/smbgtime'),
     smbg: require('./plot/smbg'),
-    suspend: require('./plot/suspend'), 
+    suspend: require('./plot/suspend'),
     wizard: require('./plot/wizard'),
     carb: require('./plot/carb'),
-    stats: {
-      puddle: require('./plot/stats/puddle'),
-    },
     util: {
       annotations: {
         annotation: require('./plot/util/annotations/annotation'),

@@ -298,11 +298,11 @@ module.exports = function(pool, opts) {
   };
 
   basal.xPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   basal.segmentEndXPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalEnd));
+    return opts.xScale(d.normalEnd);
   };
 
   basal.tooltipXPosition = function(d) {
@@ -322,7 +322,7 @@ module.exports = function(pool, opts) {
   };
 
   basal.width = function(d) {
-    return opts.xScale(Date.parse(d.normalEnd)) - opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalEnd) - opts.xScale(d.normalTime);
   };
 
   basal.height = function(d) {

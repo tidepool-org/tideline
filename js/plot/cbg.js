@@ -145,7 +145,7 @@ module.exports = function(pool, opts) {
   }
 
   cbg.xPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   cbg.yPosition = function(d) {

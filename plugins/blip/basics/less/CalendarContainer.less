@@ -75,7 +75,7 @@
       color: @calendar-label-color;
 		}
 
-		.Calendar-day--fingerstick {
+		.Calendar-day--fingersticks {
 			&.Calendar-day--HOVER {
 				background-color: @fingerstick;
 				.Calendar-weekday();
@@ -86,7 +86,7 @@
 			}
 		}
 
-		.Calendar-day--bolus {
+		.Calendar-day--boluses {
 			&.Calendar-day--HOVER {
 				background-color: @bolus;
 				.Calendar-weekday();
@@ -97,7 +97,7 @@
 			}
 		}
 
-		.Calendar-day--basal {
+		.Calendar-day--basals {
 			&.Calendar-day--HOVER {
 				background-color: @basal;
 				.Calendar-weekday();
@@ -108,7 +108,7 @@
 			}
 		}
 
-		.Calendar-day--reservoirChange, .Calendar-day--tubingPrime, .Calendar-day--cannulaPrime {
+    .Calendar-day--reservoirChange, .Calendar-day--tubingPrime, .Calendar-day--cannulaPrime {
 			&.Calendar-day--HOVER {
 				background-color: @infusion-day-color;
 			}
@@ -124,9 +124,11 @@
 				.corner-dates();
 				font-weight: bold;
 			}
-			&.Calendar-day--reservoirChange, &.Calendar-day--tubingPrime, &.Calendar-day--cannulaPrime,  {
+
+      &.Calendar-day--reservoirChange, &.Calendar-day--tubingPrime, &.Calendar-day--cannulaPrime {
 				color: @text;
-			}
+      }
+
 			.Calendar-day-text {
         align-self: center;
         flex-grow: 1;
@@ -164,7 +166,7 @@
 			overflow-x: hidden;
 		}
 
-		.Calendar-day, {
+		.Calendar-day {
       background-color: @day-color;
 
 			.WrapCount {

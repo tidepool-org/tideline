@@ -18,12 +18,10 @@
  /* jshint esversion:6 */
 
 var _ = require('lodash');
-var bows = require('bows');
 var cx = require('classnames');
 var moment = require('moment-timezone');
 var React = require('react');
 
-var debug = bows('Calendar');
 var basicsActions = require('../logic/actions');
 var BasicsUtils = require('./BasicsUtils');
 
@@ -54,6 +52,7 @@ var CalendarContainer = React.createClass({
       togglableState.closed,
       togglableState.off,
     ]).isRequired,
+    source: React.PropTypes.string,
     timezone: React.PropTypes.string.isRequired,
     type: React.PropTypes.string.isRequired,
     trackMetric: React.PropTypes.func.isRequired,
@@ -91,7 +90,7 @@ var CalendarContainer = React.createClass({
   componentWillMount() {
     var self = this;
     var options = this.props.selectorOptions;
-    var data = (this.props.type !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data[this.props.type].summary : null;
+    var data = (this.props.source !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data : null;
 
     if (options) {
       var rows = _.flatten(options.rows);
@@ -143,7 +142,7 @@ var CalendarContainer = React.createClass({
     return this.props.selector({
       bgClasses: this.props.bgClasses,
       bgUnits: this.props.bgUnits,
-      data: (this.props.type !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data[this.props.type].summary : null,
+      data: (this.props.source !== constants.SECTION_TYPE_UNDECLARED) ? this.props.data : null,
       selectedSubtotal: this._getSelectedSubtotal(),
       selectorOptions: this.props.selectorOptions,
       selectorMetaData: this.props.selectorMetaData,
@@ -173,22 +172,25 @@ var CalendarContainer = React.createClass({
 
   renderDays: function() {
     var self = this;
-    var path = this.getPathToSelected();
+    var path = this.getPathToSelected() || '';
+    var data = _.get(self.props.data, 'byDate', _.get(self.props.data, [path.split('.')[0], 'byDate']));
 
     return this.props.days.map(function(day, id) {
-      if (self.props.hasHover && self.state.hoverDate === day.date) {
+      var dateData = _.get(data, day.date, {});
+      var type = self.props.source || self.props.type;
+
+      if (!_.isEmpty(dateData) && self.props.hasHover && self.state.hoverDate === day.date) {
         return (
           <HoverDay
             key={day.date}
-            data={path ? self.props.data[self.props.type][path] :
-              self.props.data[self.props.type]}
+            data={dateData}
             date={day.date}
             hoverDisplay={self.props.hoverDisplay}
             onHover={self.onHover}
             onSelectDay={self.props.onSelectDay}
             subtotalType={self._getSelectedSubtotal()}
             timezone={self.props.timezone}
-            type={self.props.type}
+            type={type}
             title={self.props.title}
             trackMetric={self.props.trackMetric}
           />
@@ -198,15 +200,14 @@ var CalendarContainer = React.createClass({
           <ADay key={day.date}
             chart={self.props.chart}
             chartWidth={self.props.chartWidth}
-            data={path ? self.props.data[self.props.type][path] :
-              self.props.data[self.props.type]}
+            data={dateData}
             date={day.date}
             future={day.type === 'future'}
             isFirst={id === 0}
             mostRecent={day.type === 'mostRecent'}
             onHover={self.onHover}
             subtotalType={self._getSelectedSubtotal()}
-            type={self.props.type} />
+            type={type} />
         );
       }
     });

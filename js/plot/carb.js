@@ -29,7 +29,7 @@ module.exports = function(pool, opts) {
   _.defaults(opts, defaults);
 
   var xPos = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   function carb(selection) {
@@ -81,7 +81,7 @@ module.exports = function(pool, opts) {
       allCarbs.exit().remove();
 
       // tooltips
-      selection.selectAll('.d3-carb-group').on('mouseover', function() {        
+      selection.selectAll('.d3-carb-group').on('mouseover', function() {
         var parentContainer = document
           .getElementsByClassName('patient-data')[0]
           .getBoundingClientRect();

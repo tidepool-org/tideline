@@ -105,10 +105,11 @@ var datetime = {
 
   findBasicsDays: function(range, timezone) {
     timezone = timezone || 'UTC';
-    var currentDate = new Date(range[0]), days = [];
-    var dateOfUpload = moment(Date.parse(range[1])).tz(timezone).format('YYYY-MM-DD');
-    while (currentDate < moment(Date.parse(range[1])).tz(timezone).endOf('isoWeek')) {
-      var date = moment(currentDate).tz(timezone).format('YYYY-MM-DD');
+    var days = [];
+    var currentDate = moment.utc(range[0]).tz(timezone).toDate();
+    var dateOfUpload = moment.utc(range[1]).tz(timezone).format('YYYY-MM-DD');
+    while (currentDate < moment.utc(range[1]).tz(timezone).endOf('isoWeek')) {
+      var date = moment.utc(currentDate).tz(timezone).format('YYYY-MM-DD');
       var dateObj = {date: date};
       if (date < dateOfUpload) {
         dateObj.type = 'past';
@@ -120,7 +121,7 @@ var datetime = {
         dateObj.type = 'future';
       }
       days.push(dateObj);
-      currentDate = moment(currentDate).tz(timezone).add(1, 'days').toDate();
+      currentDate = moment.utc(currentDate).tz(timezone).add(1, 'days').toDate();
     }
     return days;
   },
@@ -177,6 +178,22 @@ var datetime = {
     var secToMs = localized.seconds() * 1000;
     var ms = localized.milliseconds();
     return hrsToMs + minToMs + secToMs + ms;
+  },
+
+  getLocalizedCeiling: function(utc, timezone) {
+    if (utc instanceof Date) {
+      throw new Error('`utc` must be a ISO-formatted String timestamp or integer hammertime!');
+    }
+
+    var startOfDay = moment.utc(utc)
+      .tz(timezone)
+      .startOf('day');
+
+    var utcHammertime = (typeof utc === 'string') ? Date.parse(utc) : utc;
+    if (startOfDay.valueOf() === utcHammertime) {
+      return startOfDay.toDate();
+    }
+    return startOfDay.add(1, 'day').valueOf();
   },
 
   getOffset: function(d, timezoneName) {

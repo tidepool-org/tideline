@@ -98,7 +98,7 @@ module.exports = function(pool, opts) {
   };
 
   smbg.xPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   smbg.yPosition = function(d) {

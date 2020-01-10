@@ -16,6 +16,7 @@
  */
 
 var d3 = require('d3');
+var moment = require('moment');
 var _ = require('lodash');
 
 var Pool = require('./pool');
@@ -45,7 +46,7 @@ module.exports = function(emitter, timePrefs) {
     statsHeight = 80,
     pools = [], poolGroup, days, daysGroup,
     xScale = d3.scale.linear(), xAxis, yScale = d3.time.scale.utc(), yAxis,
-    tidelineData, data, endpoints, viewEndpoints, dataStartNoon, dataEndNoon, poolScaleHeight,
+    data, viewEndpoints, dataStartNoon, dataEndNoon, poolScaleHeight,
     lessThanTwoWeeks = false,
     sortReverse = true, viewIndex,
     mainSVG, mainGroup, scrollNav, scrollHandleTrigger = true,
@@ -792,7 +793,7 @@ module.exports = function(emitter, timePrefs) {
     container.dataPerDay = [];
 
     var groupedByDate = _.groupBy(data, function(d) {
-      return timezoneAware ? (d.fillDate ? d.fillDate : dt.applyOffset(d.normalTime, d.displayOffset).slice(0,10)) : d.normalTime.slice(0,10);
+      return timezoneAware ? (d.fillDate ? d.fillDate : dt.applyOffset(d.normalTime, d.displayOffset).slice(0,10)) : moment.utc(d.normalTime).toISOString().slice(0,10);
     });
 
     var dates = Object.keys(groupedByDate);

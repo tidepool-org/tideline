@@ -134,7 +134,7 @@ module.exports = function(pool, opts) {
   }
 
   dailyx.xPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   dailyx.textXPosition = function(d) {

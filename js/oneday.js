@@ -506,20 +506,18 @@ module.exports = function(emitter, opts) {
   container.data = function(a) {
     if (!arguments.length) return data;
 
-    if (! (a && Array.isArray(a.data) && a.data.length > 0)) {
+    if (! (a && Array.isArray(a) && a.length > 0)) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything without /some/ data.");
       /* jshint ignore:end */
     }
-    else if (a.data.length === 1) {
+    else if (a.length === 1) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything with only *one* datapoint.");
       /* jshint ignore:end */
     }
 
-    tidelineData = a;
-
-    data = a.data;
+    data = a;
 
     var first = new Date(data[0].normalTime);
     var lastObj = _.sortBy(data, function(d) {
@@ -537,6 +535,7 @@ module.exports = function(emitter, opts) {
       throw new Error("Sorry, I can't render anything when the endpoints of your data are less than 24 hours apart.");
       /* jshint ignore:end */
     }
+
     container.endpoints = endpoints;
 
     return container;
@@ -544,11 +543,7 @@ module.exports = function(emitter, opts) {
 
   container.renderedData = function(a) {
     if (!arguments.length) return renderedData;
-    var start = new Date(dt.addDays(a[0], -buffer)).toISOString();
-    var end = new Date(dt.addDays(a[1], buffer)).toISOString();
-    var filtered = tidelineData.dataByDate.filter([start, end]);
-    renderedData = filtered.top(Infinity).reverse();
-
+    renderedData = data;
     return container;
   };
 

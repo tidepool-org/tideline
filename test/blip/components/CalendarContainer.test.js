@@ -37,12 +37,11 @@ const CalendarContainer = require('../../../plugins/blip/basics/components/Calen
 
 describe('CalendarContainer', () => {
   const data = {
-    basals: {
-      summary: {
-        basal: {
-          total: 4,
-        },
-      },
+    summary: {
+      total: 4,
+      subtotals: {
+        suspend: { count: 4 },
+      }
     },
   };
 
@@ -78,16 +77,15 @@ describe('CalendarContainer', () => {
     settingsTogglable: false,
     selectorOptions: {
       primary: {
-        key: 'basal',
-        path: 'basal',
-        average: true,
+        key: 'total',
+        path: 'summary',
+        primary: true,
       },
       rows: [
         [
           {
-            key: 'suspended',
-            path: 'basal',
-            average: true,
+            key: 'suspend',
+            path: 'summary.subtotals',
           },
         ],
       ],
@@ -123,15 +121,11 @@ describe('CalendarContainer', () => {
 
       wrapper.setProps({
         data: _.assign({}, data, {
-          basals: {
-            summary: {
-              basal: {
-                total: 0,
-                suspended: {
-                  count: 2,
-                },
-              },
-            },
+          summary: {
+            total: 0,
+            subtotals: {
+              suspend: { count: 4 },
+            }
           },
         }),
       });
@@ -139,7 +133,7 @@ describe('CalendarContainer', () => {
       wrapper.unmount().mount();
 
       sinon.assert.callCount(selectSubtotalSpy, 1);
-      sinon.assert.calledWith(selectSubtotalSpy, props.sectionId, 'suspended');
+      sinon.assert.calledWith(selectSubtotalSpy, props.sectionId, 'suspend');
     });
   });
 });

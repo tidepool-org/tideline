@@ -28,9 +28,8 @@ var EventEmitter = require('events').EventEmitter;
 var tideline = require('../../js/index');
 var fill = tideline.plot.util.fill;
 var scalesutil = tideline.plot.util.scales;
-var { getLatestPumpUpload, isAutomatedBasalDevice } = require('../../js/data/util/device');
 var dt = tideline.data.util.datetime;
-var { MGDL_UNITS, AUTOMATED_BASAL_DEVICE_MODELS } = require('../../js/data/util/constants');
+var { MGDL_UNITS } = require('../../js/data/util/constants');
 
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
@@ -182,18 +181,35 @@ function chartDailyFactory(el, options) {
     return chart;
   };
 
-  chart.load = function(tidelineData) {
-    var data = tidelineData.data;
-    chart.tidelineData = tidelineData;
+  chart.load = function(data) {
+    const renderedDataTypes = [
+      'basal',
+      'bolus',
+      'cbg',
+      'deviceEvent',
+      'food',
+      'message',
+      'smbg',
+      'wizard',
+    ];
 
-    var basalUtil = tidelineData.basalUtil;
-    var bolusUtil = tidelineData.bolusUtil;
-    var cbgUtil = tidelineData.cbgUtil;
-    var settingsUtil = tidelineData.settingsUtil;
-    var smbgUtil = tidelineData.smbgUtil;
+    const latestDatums = _.pick(_.get(data, 'metaData.latestDatumByType'), renderedDataTypes);
+    const latestDatumTime = _.max(_.map(latestDatums, d => (d.normalEnd || d.normalTime)));
+    const datumCeiling = dt.getLocalizedCeiling(latestDatumTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
+
+    const combinedData = _.reject(
+      _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
+      d => (d.normalTime >= datumCeiling)
+    );
+
+    const groupedData = _.groupBy(combinedData, 'type');
+
+    _.each(renderedDataTypes, type => {
+      if (!groupedData[type]) groupedData[type] = [];
+    });
 
     // initialize chart with data
-    chart.data(tidelineData).setAxes().setNav().setScrollNav();
+    chart.data(combinedData).setAxes().setNav().setScrollNav();
 
     // x-axis pools
     // add ticks to top x-axis pool
@@ -205,11 +221,8 @@ function chartDailyFactory(el, options) {
     }), true, true);
 
     // BG pool
-    var allBG = _.filter(data, function(d) {
-      if ((d.type === 'cbg') || (d.type === 'smbg')) {
-        return d;
-      }
-    });
+
+    const allBG = _.filter(combinedData, d => (d.type === 'cbg' || d.type === 'smbg'));
     var scaleBG = scales.bg(allBG, poolBG, SMBG_SIZE/2);
     var bgTickFormat = options.bgUnits === MGDL_UNITS ? 'd' : '.1f';
 
@@ -260,8 +273,8 @@ function chartDailyFactory(el, options) {
     // TODO: when we bring responsiveness in
     // decide number of ticks for these scales based on container height?
     // bolus & carbs pool
-    var scaleBolus = scales.bolus(tidelineData.grouped.bolus.concat(tidelineData.grouped.wizard), poolBolus);
-    var scaleCarbs = options.dynamicCarbs ? scales.carbs(tidelineData.grouped.wizard, poolBolus) : null;
+    var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
+    var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
     // set up y-axis for bolus
     poolBolus.yAxis(d3.svg.axis()
       .scale(scaleBolus)
@@ -309,7 +322,7 @@ function chartDailyFactory(el, options) {
     }), true, true);
 
     // basal pool
-    var scaleBasal = scales.basal(tidelineData.grouped.basal, poolBasal);
+    var scaleBasal = scales.basal(groupedData.basal, poolBasal);
     // set up y-axis
     poolBasal.yAxis(d3.svg.axis()
       .scale(scaleBasal)
@@ -323,7 +336,7 @@ function chartDailyFactory(el, options) {
     poolBasal.addPlotType('basal', tideline.plot.basal(poolBasal, {
       yScale: scaleBasal,
       emitter: emitter,
-      data: tidelineData.grouped.basal,
+      data: groupedData.basal,
       timezoneAware: chart.options.timePrefs.timezoneAware
     }), true, true);
 
@@ -331,7 +344,7 @@ function chartDailyFactory(el, options) {
     poolBasal.addPlotType('deviceEvent', tideline.plot.suspend(poolBasal, {
       yScale: scaleBasal,
       emitter: emitter,
-      data: tidelineData.grouped.deviceEvent,
+      data: groupedData.deviceEvent,
       timezoneAware: chart.options.timePrefs.timezoneAware
     }), true, true);
 
@@ -418,26 +431,6 @@ function chartDailyFactory(el, options) {
 
   chart.getCurrentDay = function() {
     return chart.getCurrentDomain().center;
-  };
-
-  chart.createMessage = function(message) {
-    log('New message created:', message);
-    chart.tidelineData.addData([message]);
-    chart.data(chart.tidelineData);
-    chart.emitter.emit('messageCreated', message);
-    return chart.tidelineData;
-  };
-
-  chart.editMessage = function(message) {
-    log('Message edited:', message);
-    // tideline only cares if the edited message was a top-level note
-    // not a comment
-    if (_.isEmpty(message.parentMessage)) {
-      chart.tidelineData.editDatum(message, 'utcTime');
-      chart.data(chart.tidelineData);
-      chart.emitter.emit('messageEdited', message);
-    }
-    return chart.tidelineData;
   };
 
   chart.closeMessage = function() {

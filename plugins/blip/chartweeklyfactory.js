@@ -29,7 +29,6 @@ var EventEmitter = require('events').EventEmitter;
 var tideline = require('../../js/index');
 var fill = tideline.plot.util.fill;
 var dt = tideline.data.util.datetime;
-var { getLatestPumpUpload, isAutomatedBasalDevice } = require('../../js/data/util/device');
 var { MGDL_UNITS } = require('../../js/data/util/constants');
 
 // Create a 'Two Weeks' chart object that is a wrapper around Tideline components
@@ -76,38 +75,28 @@ function chartWeeklyFactory(el, options) {
     return chart;
   };
 
-  chart.load = function(tidelineData, datetime) {
-    var basalUtil = tidelineData.basalUtil;
-    var bolusUtil = tidelineData.bolusUtil;
-    var cbgUtil = tidelineData.cbgUtil;
-    var smbgUtil = tidelineData.smbgUtil;
+  chart.load = function(data, datetime) {
+    const latestSMBG = _.get(data, 'metaData.latestDatumByType.smbg');
+    const datumCeiling = dt.getLocalizedCeiling(latestSMBG.normalTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
 
-    var twoWeekData = tidelineData.twoWeekData || [];
+    const twoWeekData = _.reject(
+      _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
+      d => (d.normalTime >= datumCeiling)
+    );
 
-    if (!datetime) {
-      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware);
-    }
-    else {
-      if (twoWeekData.length &&
-          Date.parse(datetime) > Date.parse(twoWeekData[twoWeekData.length - 1].normalTime)) {
-        datetime = twoWeekData[_.findLastIndex(twoWeekData, function(d) {
-          return d.twoWeekX === 0;
-        })].normalTime;
-      }
-      chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
-    }
-
+    chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
     chart.setup();
     chart.legend({
       main: t('Blood Glucose'),
       light: ' ' + chart.options.bgUnits
     });
 
-    var days = chart.days;
+    const days = chart.days;
+    let newPool;
 
     // make pools for each day
     days.forEach(function(day, i) {
-      var newPool = chart.newPool()
+      newPool = chart.newPool()
         .id('poolBG_' + day, chart.daysGroup())
         .index(chart.pools().indexOf(newPool))
         .heightRatio(1.0)
@@ -127,15 +116,15 @@ function chartWeeklyFactory(el, options) {
     });
 
     chart.pools().forEach(function(pool, i) {
-      var d = new Date(pool.id().replace('poolBG_', ''));
-      var dayOfTheWeek = d.getUTCDay();
-      var weekend = ((dayOfTheWeek === 0) || (dayOfTheWeek === 6));
+      const d = new Date(pool.id().replace('poolBG_', ''));
+      const dayOfTheWeek = d.getUTCDay();
+      const weekend = ((dayOfTheWeek === 0) || (dayOfTheWeek === 6));
 
       pool.addPlotType('fill', fill(pool, {
         gutter: {'top': 0.5, 'bottom': 0.5},
         dataGutter: chart.dataGutter(),
         fillClass: weekend ? 'd3-pool-weekend' : '',
-        x: function(t) { return t.twoWeekX; }
+        x: function(t) { return t.msPer24; }
       }), true, true);
       pool.addPlotType('smbg', smbgTime.draw(pool), true, true);
       chart.tooltips().addGroup(pool, {
