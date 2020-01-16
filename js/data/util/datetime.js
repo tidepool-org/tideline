@@ -107,8 +107,8 @@ var datetime = {
     timezone = timezone || 'UTC';
     var days = [];
     var currentDate = moment.utc(range[0]).tz(timezone).toDate();
-    var dateOfUpload = moment.utc(range[1]).tz(timezone).format('YYYY-MM-DD');
-    while (currentDate < moment.utc(range[1]).tz(timezone).endOf('isoWeek')) {
+    var dateOfUpload = moment.utc(range[1]).subtract(1, 'ms').tz(timezone).format('YYYY-MM-DD');
+    while (currentDate < moment.utc(range[1]).subtract(1, 'ms').tz(timezone).endOf('isoWeek')) {
       var date = moment.utc(currentDate).tz(timezone).format('YYYY-MM-DD');
       var dateObj = {date: date};
       if (date < dateOfUpload) {
