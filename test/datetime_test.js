@@ -235,8 +235,8 @@ describe('datetime utility', function() {
         {date: '2015-09-07', type: 'past'},
         {date: '2015-09-08', type: 'past'},
         {date: '2015-09-09', type: 'past'},
-        {date: '2015-09-10', type: 'past'},
-        {date: '2015-09-11', type: 'mostRecent'},
+        {date: '2015-09-10', type: 'mostRecent'},
+        {date: '2015-09-11', type: 'future'},
         {date: '2015-09-12', type: 'future'},
         {date: '2015-09-13', type: 'future'},
       ]);
