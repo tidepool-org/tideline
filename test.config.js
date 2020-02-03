@@ -1,6 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
-var RewirePlugin = require("rewire-webpack");
+var RewirePlugin = require('rewire-webpack');
 
 var definePlugin = new webpack.DefinePlugin({
   __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'false')),
@@ -14,8 +14,8 @@ module.exports = {
     jsdom: 'window',
     cheerio: 'window',
     'react/addons': true,
-    'react-dom/test-utils': true,
-    'react-test-renderer/shallow': true,
+    //'react-dom/test-utils': true,
+    //'react-test-renderer/shallow': true,
     'react/lib/ExecutionEnvironment': true,
     'react/lib/ReactContext': 'window',
     'text-encoding': 'window'

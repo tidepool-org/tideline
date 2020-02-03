@@ -18,14 +18,14 @@
 var _ = require('lodash');
 var React = require('react');
 
-var NoChange = React.createClass({
-  render: function() {
+class NoChange extends React.Component {
+  render() {
     return (
       <div className='NoChange'>
         <div className='NoChange-line'></div>
       </div>
     );
-  },
-});
+  }
+}
 
 module.exports = NoChange;
