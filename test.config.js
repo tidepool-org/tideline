@@ -14,8 +14,6 @@ module.exports = {
     jsdom: 'window',
     cheerio: 'window',
     'react/addons': true,
-    //'react-dom/test-utils': true,
-    //'react-test-renderer/shallow': true,
     'react/lib/ExecutionEnvironment': true,
     'react/lib/ReactContext': 'window',
     'text-encoding': 'window'
