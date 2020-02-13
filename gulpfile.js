@@ -1,6 +1,5 @@
 var gulp = require('gulp');
-var react = require('gulp-react');
-var jshint = require('gulp-jshint');
+var eslint = require('gulp-eslint');
 
 var jsFiles = [
   'example/**/*.js',
@@ -10,22 +9,18 @@ var jsFiles = [
   '*.js'
 ];
 
-gulp.task('jshint', function() {
+gulp.task('eslint', function() {
   var stream = gulp.src(jsFiles)
-    .pipe(react())
-    .pipe(jshint())
-    .pipe(jshint.reporter('jshint-stylish'));
-
-  if (process.env.CI) {
-    stream = stream.pipe(jshint.reporter('fail'));
-  }
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
 
   return stream;
 });
 
-gulp.task('jshint-watch', ['jshint'], function(cb){
+gulp.task('eslint-watch', ['eslint'], function(cb){
   console.log('Watching files for changes...');
-  gulp.watch(jsFiles, ['jshint']);
+  gulp.watch(jsFiles, ['eslint']);
 });
 
-gulp.task('default', ['jshint']);
+gulp.task('default', ['eslint']);

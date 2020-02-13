@@ -20,7 +20,7 @@
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var TestUtils = require('react-addons-test-utils');
+var TestUtils = require('react-dom/test-utils');
 var expect = chai.expect;
 
 var InfusionHoverDisplay = require('../../../../../plugins/blip/basics/components/day/hover/InfusionHoverDisplay');
@@ -29,37 +29,37 @@ describe('InfusionHoverDisplay', function () {
   beforeEach(function() {
     this.props = {
       data: {
-        "dataByDate": {
-          "2017-01-01": {
-            "type": "siteChange",
-            "count": 1,
-            "data": [
+        'dataByDate': {
+          '2017-01-01': {
+            'type': 'siteChange',
+            'count': 1,
+            'data': [
               {
-                "clockDriftOffset": 0,
-                "conversionOffset": 0,
-                "deviceId": "tandem544890473649",
-                "deviceTime": "2017-01-01T13:03:55",
-                "guid": "3e4c881a-de93-4d5b-a30a-8c5ce0f05d84",
-                "id": "cnqahrb55mn143g1tua8btdfe4mq2t47",
-                "payload": {
-                  "logIndices": [
+                'clockDriftOffset': 0,
+                'conversionOffset': 0,
+                'deviceId': 'tandem544890473649',
+                'deviceTime': '2017-01-01T13:03:55',
+                'guid': '3e4c881a-de93-4d5b-a30a-8c5ce0f05d84',
+                'id': 'cnqahrb55mn143g1tua8btdfe4mq2t47',
+                'payload': {
+                  'logIndices': [
                     43966
                   ]
                 },
-                "primeTarget": "cannula",
-                "subType": "prime",
-                "time": "2017-01-01T18:03:55.000Z",
-                "timezoneOffset": -300,
-                "type": "deviceEvent",
-                "uploadId": "upid_6e9e5afac47c",
-                "volume": 1,
-                "deviceSerialNumber": "1",
-                "source": "Tandem",
-                "normalTime": "2017-01-01T18:03:55.000Z",
-                "displayOffset": -300
+                'primeTarget': 'cannula',
+                'subType': 'prime',
+                'time': '2017-01-01T18:03:55.000Z',
+                'timezoneOffset': -300,
+                'type': 'deviceEvent',
+                'uploadId': 'upid_6e9e5afac47c',
+                'volume': 1,
+                'deviceSerialNumber': '1',
+                'source': 'Tandem',
+                'normalTime': '2017-01-01T18:03:55.000Z',
+                'displayOffset': -300
               }
             ],
-            "daysSince": 1
+            'daysSince': 1
           },
         },
       },

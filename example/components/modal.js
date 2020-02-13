@@ -19,7 +19,9 @@ var bows = require('bows');
 var crossfilter = require('crossfilter');
 var d3 = window.d3;
 var moment = require('moment-timezone');
+var PropTypes = require('prop-types');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var ReactDOM = require('react-dom');
 
 var dt = require('../../js/data/util/datetime');
@@ -33,27 +35,31 @@ var modalPlugin = require('../../plugins/blip').modalday;
 var brush = modalPlugin.brush;
 var modalDay = modalPlugin.modalDay;
 
-var Modal = React.createClass({
+var Modal = createReactClass({
+  displayName: 'Modal',
   chartType: 'modal',
   log: bows('Modal Day'),
+
   propTypes: {
-    bgPrefs: React.PropTypes.object.isRequired,
-    chartPrefs: React.PropTypes.object.isRequired,
-    initialDatetimeLocation: React.PropTypes.string,
-    patientData: React.PropTypes.object.isRequired,
-    onSwitchToDaily: React.PropTypes.func.isRequired,
-    onSwitchToModal: React.PropTypes.func.isRequired,
-    onSwitchToSettings: React.PropTypes.func.isRequired,
-    onSwitchToWeekly: React.PropTypes.func.isRequired,
-    updateChartPrefs: React.PropTypes.func.isRequired,
-    updateDatetimeLocation: React.PropTypes.func.isRequired
+    bgPrefs: PropTypes.object.isRequired,
+    chartPrefs: PropTypes.object.isRequired,
+    initialDatetimeLocation: PropTypes.string,
+    patientData: PropTypes.object.isRequired,
+    onSwitchToDaily: PropTypes.func.isRequired,
+    onSwitchToModal: PropTypes.func.isRequired,
+    onSwitchToSettings: PropTypes.func.isRequired,
+    onSwitchToWeekly: PropTypes.func.isRequired,
+    updateChartPrefs: PropTypes.func.isRequired,
+    updateDatetimeLocation: PropTypes.func.isRequired
   },
+
   getInitialState: function() {
     return {
       title: '',
       visibleDays: 0
     };
   },
+
   render: function() {
     /* jshint ignore:start */
     return (
@@ -111,6 +117,7 @@ var Modal = React.createClass({
       );
     /* jshint ignore:end */
   },
+
   formatDate: function(datetime) {
     var timePrefs = this.props.chartPrefs.timePrefs, timezone;
     if (!timePrefs.timezoneAware) {
@@ -121,11 +128,13 @@ var Modal = React.createClass({
     }
     return moment.utc(datetime).tz(timezone).format('MMMM D');
   },
+
   getTitle: function(datetimeLocationEndpoints) {
     // endpoint is exclusive, so need to subtract a day
     var end = d3.time.day.utc.offset(new Date(datetimeLocationEndpoints[1]), -1);
     return this.formatDate(datetimeLocationEndpoints[0]) + ' - ' + this.formatDate(end);
   },
+
   getNewDomain: function(current, extent) {
     var timePrefs = this.props.chartPrefs.timePrefs, timezone;
     if (!timePrefs.timezoneAware) {
@@ -137,20 +146,24 @@ var Modal = React.createClass({
     current = moment(current).tz(timezone).startOf('day').add(1, 'days');
     return [d3.time.day.utc.offset(current, -extent), current];
   },
+
   updateVisibleDays: function() {
     this.setState({
       visibleDays: d3.select('#modalDays').selectAll('g.modalDay').size()
     });
   },
+
   // handlers
   handleClickDaily: function() {
     var datetime = this.refs.chart.getCurrentDay();
     this.props.onSwitchToDaily(datetime);
   },
+
   handleClickModal: function() {
     // when you're on modal view, clicking modal does nothing
     return;
   },
+
   handleClickOneWeek: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.activeDomain = '1 week';
@@ -160,6 +173,7 @@ var Modal = React.createClass({
     this.refs.chart.setExtent(newDomain);
     this.handleDatetimeLocationChange(newDomain, prefs);
   },
+
   handleClickTwoWeeks: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.activeDomain = '2 weeks';
@@ -169,6 +183,7 @@ var Modal = React.createClass({
     this.refs.chart.setExtent(newDomain);
     this.handleDatetimeLocationChange(newDomain, prefs);
   },
+
   handleClickFourWeeks: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.activeDomain = '4 weeks';
@@ -178,13 +193,16 @@ var Modal = React.createClass({
     this.refs.chart.setExtent(newDomain);
     this.handleDatetimeLocationChange(newDomain, prefs);
   },
+
   handleClickWeekly: function() {
     var datetime = this.refs.chart.getCurrentDay();
     this.props.onSwitchToWeekly(datetime);
   },
+
   handleClickSettings: function() {
     this.props.onSwitchToSettings();
   },
+
   handleDatetimeLocationChange: function(datetimeLocationEndpoints, prefs) {
     if (this.isMounted()) {
       this.setState({
@@ -196,9 +214,11 @@ var Modal = React.createClass({
       this.props.updateDatetimeLocation(this.refs.chart.getCurrentDay());
     }
   },
+
   handleSelectDay: function(date) {
     this.props.onSwitchToDaily(date);
   },
+
   toggleDay: function(day) {
     var self = this;
     return function(e) {
@@ -208,21 +228,25 @@ var Modal = React.createClass({
       self.props.updateChartPrefs(prefs);
     };
   },
+
   toggleBoxOverlay: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.boxOverlay = prefs.modal.boxOverlay ? false : true;
     this.props.updateChartPrefs(prefs);
   },
+
   toggleGroup: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.grouped = prefs.modal.grouped ? false : true;
     this.props.updateChartPrefs(prefs);
   },
+
   toggleLines: function() {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.showingLines = prefs.modal.showingLines ? false : true;
     this.props.updateChartPrefs(prefs);
   },
+
   toggleWeekdays: function(allActive) {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.activeDays = {
@@ -236,6 +260,7 @@ var Modal = React.createClass({
     };
     this.props.updateChartPrefs(prefs);
   },
+
   toggleWeekends: function(allActive) {
     var prefs = _.cloneDeep(this.props.chartPrefs);
     prefs.modal.activeDays = {
@@ -248,27 +273,30 @@ var Modal = React.createClass({
       'sunday': !allActive
     };
     this.props.updateChartPrefs(prefs);
-  }
+  },
 });
 
-var ModalChart = React.createClass({
+var ModalChart = createReactClass({
+  displayName: 'ModalChart',
   chartOpts: ['bgClasses', 'bgUnits', 'boxOverlay', 'grouped', 'showingLines'],
   log: bows('Modal Chart'),
+
   propTypes: {
-    activeDays: React.PropTypes.object.isRequired,
-    bgClasses: React.PropTypes.object.isRequired,
-    bgUnits: React.PropTypes.string.isRequired,
-    extentSize: React.PropTypes.number.isRequired,
-    initialDatetimeLocation: React.PropTypes.string,
-    patientData: React.PropTypes.object.isRequired,
-    boxOverlay: React.PropTypes.bool.isRequired,
-    grouped: React.PropTypes.bool.isRequired,
-    showingLines: React.PropTypes.bool.isRequired,
-    timePrefs: React.PropTypes.object.isRequired,
+    activeDays: PropTypes.object.isRequired,
+    bgClasses: PropTypes.object.isRequired,
+    bgUnits: PropTypes.string.isRequired,
+    extentSize: PropTypes.number.isRequired,
+    initialDatetimeLocation: PropTypes.string,
+    patientData: PropTypes.object.isRequired,
+    boxOverlay: PropTypes.bool.isRequired,
+    grouped: PropTypes.bool.isRequired,
+    showingLines: PropTypes.bool.isRequired,
+    timePrefs: PropTypes.object.isRequired,
     // handlers
-    onDatetimeLocationChange: React.PropTypes.func.isRequired,
-    onSelectDay: React.PropTypes.func.isRequired
+    onDatetimeLocationChange: PropTypes.func.isRequired,
+    onSelectDay: PropTypes.func.isRequired
   },
+
   componentWillMount: function() {
     console.time('Modal Pre-Mount');
     var timezone;
@@ -295,6 +323,7 @@ var ModalChart = React.createClass({
     });
     console.timeEnd('Modal Pre-Mount');
   },
+
   componentDidMount: function() {
     this.log('Mounting...');
     var el = ReactDOM.findDOMNode(this);
@@ -326,6 +355,7 @@ var ModalChart = React.createClass({
     // in action being triggered that relies upon refs being set.
     console.timeEnd('Modal Draw');
   },
+
   componentWillReceiveProps: function(nextProps) {
     // refilter by active days if necessary
     var activeDays = nextProps.activeDays;
@@ -344,20 +374,24 @@ var ModalChart = React.createClass({
       ]);
     }
   },
+
   componentDidUpdate: function() {
     var data = this.dataByDate.top(Infinity).reverse();
     this.chart.render(data, _.pick(this.props, this.chartOpts));
   },
+
   componentWillUnmount: function() {
     this.log('Unmounting...');
     this.clearAllFilters();
     this.chart.destroy();
     this.brush.destroy();
   },
+
   bindEvents: function() {
     this.brush.emitter.on('brushed', this.handleDatetimeLocationChange);
     this.chart.emitter.on('selectDay', this.props.onSelectDay);
   },
+
   render: function() {
     /* jshint ignore:start */
     return (
@@ -365,13 +399,16 @@ var ModalChart = React.createClass({
       );
     /* jshint ignore:end */
   },
+
   clearAllFilters: function() {
     this.dataByDate.filterAll();
     this.dataByDayOfWeek.filterAll();
   },
+
   getCurrentDay: function() {
     return this.brush.getCurrentDay().toISOString();
   },
+
   getInitialExtent: function(domain) {
     var timePrefs = this.props.timePrefs, timezone;
     if (!timePrefs.timezoneAware) {
@@ -396,15 +433,17 @@ var ModalChart = React.createClass({
       extentBasis.toISOString()
     ];
   },
+
   setExtent: function(domain) {
     this.brush.setExtent(domain);
   },
+
   // handlers
   handleDatetimeLocationChange: function(datetimeLocationEndpoints) {
     this.dataByDate.filter(datetimeLocationEndpoints);
     this.chart.render(this.dataByDate.top(Infinity), _.pick(this.props, this.chartOpts));
     this.props.onDatetimeLocationChange(datetimeLocationEndpoints);
-  }
+  },
 });
 
 module.exports = Modal;
