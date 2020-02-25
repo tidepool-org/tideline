@@ -476,7 +476,9 @@ module.exports = function(emitter, timePrefs) {
 
     tickLabels.append('text')
       .text(function(d) {
-        return d3.time.format.utc('%b %-d')(d);
+        var date = d.getUTCDay();
+        var format = date === 0 ? '%b %-d' : '%-d';
+        return d3.time.format.utc(format)(d);
       })
       .attr({
         x: xPos,
