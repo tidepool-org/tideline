@@ -78,11 +78,17 @@ function chartWeeklyFactory(el, options) {
   chart.load = function(data, datetime) {
     const latestSMBG = _.get(data, 'metaData.latestDatumByType.smbg');
     const datumCeiling = dt.getLocalizedCeiling(latestSMBG.normalTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
+    const renderedDataTypes = ['smbg', 'fill'];
 
     const twoWeekData = _.reject(
       _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
       d => (d.normalTime >= datumCeiling)
     );
+
+    if (!_.some(twoWeekData, d => _.includes(renderedDataTypes, d.type))) {
+      log('Aborting chart load due to lack of data');
+      return;
+    }
 
     chart.data(twoWeekData, chart.options.timePrefs.timezoneAware, datetime);
     chart.setup();
