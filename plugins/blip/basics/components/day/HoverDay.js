@@ -56,7 +56,12 @@ var HoverDay = React.createClass({
     );
 
     if (this.props.hoverDisplay) {
-      display = this.props.hoverDisplay({data: this.props.data, date: this.props.date, trackMetric: this.props.trackMetric});
+      display = this.props.hoverDisplay({
+        data: this.props.data,
+        date: this.props.date,
+        trackMetric: this.props.trackMetric,
+        type: this.props.type,
+      });
     }
 
     return (

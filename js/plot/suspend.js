@@ -145,7 +145,7 @@ module.exports = function(pool, opts) {
   }
 
   suspend.xPosition = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   suspend.endXPosition = function(d) {

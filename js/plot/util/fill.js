@@ -1,15 +1,15 @@
 /*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -37,7 +37,7 @@ module.exports = function(pool, opts) {
       midnightWidth: 3,
       gutter: 0,
       fillClass: '',
-      x: function(t) { return Date.parse(t.normalTime); }
+      x: function(t) { return t.normalTime; }
     };
 
   _.defaults(opts || {}, defaults);
@@ -55,13 +55,13 @@ module.exports = function(pool, opts) {
     }
 
     selection.each(function(currentData) {
+      currentData = _.uniqBy(currentData, 'id');
       currentData.reverse();
 
       var fills = selection.selectAll('rect.d3-fill')
         .data(currentData, function(d) {
           return d.id;
         });
-
 
       fills.enter()
         .append('rect')
@@ -105,7 +105,6 @@ module.exports = function(pool, opts) {
             else {
               return fill.width(d);
             }
-            return fill.width(d);
           },
           height: function() {
             if (opts.gutter.top) {
@@ -119,7 +118,7 @@ module.exports = function(pool, opts) {
             return d.id;
           },
           'class': function(d) {
-            return 'd3-fill d3-rect-fill d3-fill-' + d.fillColor;
+            return 'd3-fill d3-rect-fill d3-fill-' + opts.classes[d.hourOfDay];
           }
         })
         .on('click', function() {
@@ -177,7 +176,7 @@ module.exports = function(pool, opts) {
   };
 
   fill.width = function(d) {
-    var s = Date.parse(d.normalTime), e = Date.parse(d.normalEnd);
+    var s = d.normalTime, e = d.normalEnd;
     return opts.xScale(e) - opts.xScale(s);
   };
 

@@ -1,15 +1,15 @@
 /*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -51,7 +51,7 @@ module.exports = function(pool, opts) {
   };
 
   var xPosition = function(d) {
-    var x = opts.xScale(Date.parse(d.normalTime)) - opts.width/2;
+    var x = opts.xScale(d.normalTime) - opts.width/2;
     return x;
   };
   var computePathHeight = function(d) {
@@ -287,7 +287,7 @@ module.exports = function(pool, opts) {
             d = pluckBolus(d);
             var rightEdge = xPosition(d) + opts.width;
             var doseHeight = computePathHeight(d);
-            var doseEnd = opts.xScale(Date.parse(d.normalTime) + commonbolus.getMaxDuration(d));
+            var doseEnd = opts.xScale(d.normalTime + commonbolus.getMaxDuration(d));
             return 'M' + rightEdge + ' ' + doseHeight + 'L' + doseEnd + ' ' + doseHeight;
           },
           'stroke-width': opts.bolusStroke,
@@ -304,7 +304,7 @@ module.exports = function(pool, opts) {
           d: function(d) {
             d = pluckBolus(d);
             var doseHeight = computePathHeight(d);
-            var doseEnd = opts.xScale(Date.parse(d.normalTime) + commonbolus.getMaxDuration(d)) - opts.triangleSize;
+            var doseEnd = opts.xScale(d.normalTime + commonbolus.getMaxDuration(d)) - opts.triangleSize;
             return extendedTriangle(doseEnd, doseHeight);
           },
           'stroke-width': opts.bolusStroke,
@@ -330,7 +330,7 @@ module.exports = function(pool, opts) {
           d: function(d) {
             d = pluckBolus(d);
             var doseHeight = computePathHeight(d);
-            var rightEdge = opts.xScale(Date.parse(d.normalTime) + d.duration);
+            var rightEdge = opts.xScale(d.normalTime + d.duration);
             var pathEnd = rightEdge + opts.suspendMarkerWidth;
 
             return 'M' + rightEdge + ' ' + doseHeight + 'L' + pathEnd + ' ' + doseHeight;
@@ -345,8 +345,8 @@ module.exports = function(pool, opts) {
           d: function(d) {
             d = pluckBolus(d);
             var doseHeight = computePathHeight(d);
-            var pathEnd = opts.xScale(Date.parse(d.normalTime) + d.duration) + opts.suspendMarkerWidth;
-            var doseEnd = opts.xScale(Date.parse(d.normalTime) + d.expectedDuration);
+            var pathEnd = opts.xScale(d.normalTime + d.duration) + opts.suspendMarkerWidth;
+            var doseEnd = opts.xScale(d.normalTime + d.expectedDuration);
 
             return 'M' + pathEnd + ' ' + doseHeight + 'L' + doseEnd + ' ' + doseHeight;
           },
@@ -362,7 +362,7 @@ module.exports = function(pool, opts) {
       add: function(d, rect) {
         if (_.get(opts, 'onBolusHover', false)) {
           opts.onBolusHover({
-            data: d, 
+            data: d,
             rect: rect
           });
         }
@@ -378,7 +378,7 @@ module.exports = function(pool, opts) {
     annotations: function(data, selection) {
       _.each(data, function(d) {
         var annotationOpts = {
-          x: opts.xScale(Date.parse(d.normalTime)),
+          x: opts.xScale(d.normalTime),
           y: opts.yScale(commonbolus.getMaxValue(d)),
           xMultiplier: -2,
           yMultiplier: 1,

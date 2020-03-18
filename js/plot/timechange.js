@@ -195,7 +195,7 @@ module.exports = function(pool, opts) {
   };
 
   timechange.xPositionCorner = function(d) {
-    return opts.xScale(Date.parse(d.normalTime)) - opts.size / 2;
+    return opts.xScale(d.normalTime) - opts.size / 2;
   };
 
   timechange.yPositionCorner = function(d) {
@@ -203,7 +203,7 @@ module.exports = function(pool, opts) {
   };
 
   timechange.xPositionCenter = function(d) {
-    return opts.xScale(Date.parse(d.normalTime));
+    return opts.xScale(d.normalTime);
   };
 
   timechange.yPositionCenter = function(d) {

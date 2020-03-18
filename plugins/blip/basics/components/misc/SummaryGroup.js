@@ -15,6 +15,8 @@
  * == BSD2 LICENSE ==
  */
 
+/* jshint esversion:6 */
+
 var _ = require('lodash');
 var classnames = require('classnames');
 var d3 = require('d3');
@@ -73,8 +75,11 @@ var SummaryGroup = React.createClass({
   },
 
   renderOption: function(option) {
-    if (typeof option.active !== 'undefined' && !option.active) {
-      return null; //(<div key={option.key} className='SummaryGroup-info SummaryGroup-info-blank'></div>);
+    var value = this.getOptionValue(option, this.props.data);
+    var isEmptyValue = !value || value <= 0;
+
+    if (option.hideEmpty && isEmptyValue) {
+      return null;
     }
 
     var classes = classnames({
@@ -86,9 +91,6 @@ var SummaryGroup = React.createClass({
       'SummaryGroup-no-percentage': (!option.primary && !option.percentage)
     });
 
-    var path = option.path;
-    var value = this.getOptionValue(option, this.props.data);
-
     option.disabled = false;
     if (value === 0) {
       option.disabled = true;
@@ -96,16 +98,12 @@ var SummaryGroup = React.createClass({
     }
 
     if (option.primary && option.average) {
-      var average;
-      if (option.path) {
-        average = this.props.data[path].avgPerDay;
-      }
-      else {
-        average = this.props.data.avgPerDay;
-      }
+      var average = _.get(this.props.data, [...option.path.split('.').concat('avgPerDay')]);
+
       if (isNaN(average)) {
         average = 0;
       }
+
       // currently rounding average to an integer
       var averageElem = (
         <span className="SummaryGroup-option-count">
@@ -131,14 +129,11 @@ var SummaryGroup = React.createClass({
     }
     else {
       var percentage;
+
       if (option.percentage) {
-        if (path) {
-          percentage = this.props.data[path][option.key].percentage;
-        }
-        else {
-          percentage = this.props.data[option.key].percentage;
-        }
+        percentage = _.get(this.props.data, [...option.path.split('.').concat(option.key, 'percentage')]);
       }
+
 
       var percentageElem = (option.percentage) ? (
         <span className="SummaryGroup-option-percentage">
