@@ -209,7 +209,7 @@ class BasicsChart extends React.Component {
     const timePrefs = self.props.timePrefs;
     const timezoneName = timePrefs.timezoneAware ? timePrefs.timezoneName : 'UTC';
     const range = _.get(self.props, 'data.data.current.endpoints.range', []);
-    const aggregationsByDate = _.get(self.props, 'data.data.current.aggregationsByDate', {});
+    const aggregationsByDate = _.get(self.props, 'data.data.aggregationsByDate', {});
     const days = dt.findBasicsDays(range, timezoneName);
 
     return _.map(self.state.sections, function(section) {
