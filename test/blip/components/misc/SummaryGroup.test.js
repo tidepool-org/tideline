@@ -17,13 +17,6 @@
 
 /* jshint esversion: 9 */
 
-/* global describe */
-/* global it */
-/* global expect */
-/* global before */
-/* global beforeEach */
-/* global afterEach */
-/* global after */
 /* global sinon */
 /* global chai */
 
@@ -32,8 +25,11 @@ var { DEFAULT_BG_BOUNDS, MGDL_UNITS } = require('../../../../js/data/util/consta
 
 const React = require('react');
 const _ = require('lodash');
-const { shallow } = require('enzyme');
+const Enzyme = require('enzyme');
+const shallow = Enzyme.shallow;
+const Adapter = require('enzyme-adapter-react-16');
 const SummaryGroup = require('../../../../plugins/blip/basics/components/misc/SummaryGroup');
+Enzyme.configure({adapter: new Adapter()});
 
 describe('SummaryGroup', () => {
   const data = {

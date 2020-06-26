@@ -70,27 +70,27 @@ module.exports = function(pool, opts) {
           }
         });
       var cbgVeryLow = cbgGroups.filter(function(d) {
-        if (categorize(d) === "verylow") {
+        if (categorize(d) === 'verylow') {
           return d;
         }
       });
       var cbgLow = cbgGroups.filter(function(d) {
-        if (categorize(d) === "low") {
+        if (categorize(d) === 'low') {
           return d;
         }
       });
       var cbgTarget = cbgGroups.filter(function(d) {
-        if (categorize(d) === "target") {
+        if (categorize(d) === 'target') {
           return d;
         }
       });
       var cbgHigh = cbgGroups.filter(function(d) {
-        if (categorize(d) === "high") {
+        if (categorize(d) === 'high') {
           return d;
         }
       });
       var cbgVeryHigh = cbgGroups.filter(function(d) {
-        if (categorize(d) === "veryhigh") {
+        if (categorize(d) === 'veryhigh') {
           return d;
         }
       });

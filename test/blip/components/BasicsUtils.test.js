@@ -17,9 +17,6 @@
 
 /* jshint esversion:6 */
 
-/* global describe */
-/* global context */
-/* global it */
 /* global expect */
 /* global chai */
 

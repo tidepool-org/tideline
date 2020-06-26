@@ -26,19 +26,19 @@ module.exports = function(bgClasses, bgUnits = MGDL_UNITS) {
   if (Object.keys(bgClasses).length > 3) {
     return function(datum) {
       var category = categorizeBg(datum);
-      if (category === "verylow") {
+      if (category === 'verylow') {
         return 'd3-bg-very-low';
       }
-      else if (category === "low") {
+      else if (category === 'low') {
         return 'd3-bg-low';
       }
-      else if (category === "target") {
+      else if (category === 'target') {
         return 'd3-bg-target';
       }
-      else if (category === "high") {
+      else if (category === 'high') {
         return 'd3-bg-high';
       }
-      else if (category === "veryhigh") {
+      else if (category === 'veryhigh') {
         return 'd3-bg-very-high';
       }
     };
@@ -46,13 +46,13 @@ module.exports = function(bgClasses, bgUnits = MGDL_UNITS) {
   else {
     return function(datum) {
       var category = categorizeBg(datum);
-      if (category === "low" || category === "verylow") {
+      if (category === 'low' || category === 'verylow') {
         return 'd3-bg-low';
       }
-      else if (category === "target") {
+      else if (category === 'target') {
         return 'd3-bg-target';
       }
-      else if (category === "high" || category === "veryhigh") {
+      else if (category === 'high' || category === 'veryhigh') {
         return 'd3-bg-high';
       }
     };

@@ -107,13 +107,13 @@ module.exports = function(pool, opts) {
       var renderGroupMarkers = basalPathGroups.length > 1;
 
       var basalPathsGroup = selection
-        .selectAll(`.d3-basal-path-group`)
-        .data([`d3-basal-path-group`]);
+        .selectAll('.d3-basal-path-group')
+        .data(['d3-basal-path-group']);
 
       basalPathsGroup
         .enter()
         .append('g')
-        .attr('class', `d3-basal-path-group`);
+        .attr('class', 'd3-basal-path-group');
 
       _.each(basalPathGroups, (data, index) => {
         var id = data[0].id;
@@ -191,7 +191,7 @@ module.exports = function(pool, opts) {
       });
 
       var undeliveredPaths = basalPathsGroup
-          .selectAll(`.d3-basal.d3-path-basal.d3-path-basal-undelivered`)
+          .selectAll('.d3-basal.d3-path-basal.d3-path-basal-undelivered')
           .data(['d3-basal d3-path-basal d3-path-basal-undelivered']);
 
       undeliveredPaths
@@ -351,7 +351,7 @@ module.exports = function(pool, opts) {
       case 'temp':
         group.append('p')
           .append('span')
-          .html('<span class="plain">'+t("Temp basal of")+'</span> ' + basal.tempPercentage(datum));
+          .html('<span class="plain">'+t('Temp basal of')+'</span> ' + basal.tempPercentage(datum));
         if (datum.suppressed) {
           group.append('p')
             .append('span')

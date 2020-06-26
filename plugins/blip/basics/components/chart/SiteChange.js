@@ -16,19 +16,21 @@
  */
 
 var _ = require('lodash');
+var PropTypes = require('prop-types');
 var React = require('react');
 
 var constants = require('../../logic/constants');
 var Change = require('../sitechange/Change');
 var NoChange = require('../sitechange/NoChange');
 
-var SiteChange = React.createClass({
-  propTypes: {
-    data: React.PropTypes.object.isRequired,
-    date: React.PropTypes.string.isRequired,
-    subtotalType: React.PropTypes.string,
-  },
-  render: function() {
+class SiteChange extends React.Component {
+  static propTypes = {
+    data: PropTypes.object.isRequired,
+    date: PropTypes.string.isRequired,
+    subtotalType: PropTypes.string,
+  };
+
+  render() {
     var type = this.props.subtotalType || constants.SITE_CHANGE_RESERVOIR;
     var count = _.get(this.props.data, ['subtotals', type], 0);
     var daysSince = _.get(this.props.data, ['summary', 'daysSince', type]);
@@ -41,7 +43,7 @@ var SiteChange = React.createClass({
         {siteChangeComponent}
       </div>
     );
-  },
-});
+  }
+}
 
 module.exports = SiteChange;
