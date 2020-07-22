@@ -16,18 +16,20 @@
  */
 
 var _ = require('lodash');
+var PropTypes = require('prop-types');
 var React = require('react');
 var cx = require('classnames');
 
 var constants = require('../../logic/constants');
 
-var Change = React.createClass({
-  propTypes: {
-    daysSince: React.PropTypes.number.isRequired,
-    count: React.PropTypes.number,
-    type: React.PropTypes.string.isRequired,
-  },
-  render: function() {
+class Change extends React.Component {
+  static propTypes = {
+    daysSince: PropTypes.number.isRequired,
+    count: PropTypes.number,
+    type: PropTypes.string.isRequired,
+  };
+
+  render() {
     var daysText = null;
     var daysSinceNum = null;
     if (!_.isNaN(this.props.daysSince)){
@@ -62,7 +64,7 @@ var Change = React.createClass({
         <div className='Change-line-mark'></div>
       </div>
     );
-  },
-});
+  }
+}
 
 module.exports = Change;

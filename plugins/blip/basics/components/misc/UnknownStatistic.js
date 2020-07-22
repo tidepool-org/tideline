@@ -20,15 +20,15 @@ var t = i18next.t.bind(i18next);
 var React = require('react');
 var annotations = require('../../../../../js/plot/util/annotations/annotationdefinitions');
 
-var UnknownStatistic = React.createClass({
-  render: function() {
+class UnknownStatistic extends React.Component {
+  render() {
     return (
       <p className="UnknownStatistic">
         <span className="UnknownStatistic-lead">{annotations.LEAD_TEXT['stats-insufficient-data']()} </span>
-        {t("At least three days do not have boluses, so this statistic might not be right")}.
+        {t('At least three days do not have boluses, so this statistic might not be right')}.
       </p>
     );
   }
-});
+}
 
 module.exports = UnknownStatistic;

@@ -17,13 +17,7 @@
 
 /* jshint esversion:6 */
 
-/* global describe */
-/* global it */
 /* global expect */
-/* global before */
-/* global beforeEach */
-/* global afterEach */
-/* global after */
 /* global sinon */
 /* global chai */
 
@@ -32,8 +26,12 @@ var { DEFAULT_BG_BOUNDS, MGDL_UNITS, BG_CLAMP_THRESHOLD } = require('../../../js
 
 const React = require('react');
 const _ = require('lodash');
-const { mount } = require('enzyme');
+const Enzyme = require('enzyme');
+const mount = Enzyme.mount;
+const Adapter = require('enzyme-adapter-react-16');
 const CalendarContainer = require('../../../plugins/blip/basics/components/CalendarContainer');
+
+Enzyme.configure({adapter: new Adapter()});
 
 describe('CalendarContainer', () => {
   const data = {
