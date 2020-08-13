@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var eslint = require('gulp-eslint');
 
 var jsFiles = [
-  'example/**/*.js',
   'js/**/*.js',
   'plugins/**/*.js',
   'test/**/*.js',
