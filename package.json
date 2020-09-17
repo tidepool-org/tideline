@@ -1,6 +1,6 @@
 {
   "name": "tideline",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
@@ -13,7 +13,6 @@
     "pretest": "NODE_ENV=test npm run lint",
     "browser-tests": "./node_modules/karma/bin/karma start --browsers Chrome",
     "test-watch": "TZ=UTC NODE_ENV=test ./node_modules/karma/bin/karma start --no-single-run --reporters=mocha",
-    "start": "BUILD_DEV=true webpack-dev-server -d --cache --colors --progress --content-base example --port 8081",
     "lint": "gulp eslint",
     "lint-watch": "gulp eslint-watch"
   },
@@ -84,8 +83,7 @@
     "sinon": "1.17.5",
     "style-loader": "0.13.1",
     "url-loader": "0.5.7",
-    "webpack": "1.13.2",
-    "webpack-dev-server": "1.15.0"
+    "webpack": "1.13.2"
   },
   "resolutions": {
     "sundial/moment-timezone": "0.5.21"

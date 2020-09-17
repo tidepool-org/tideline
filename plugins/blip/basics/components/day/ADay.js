@@ -27,19 +27,6 @@ class ADay extends React.Component {
     monthAbbrevMask: 'MMM D'
   };
 
-  /**
-   * We currently do not want to ever re-render this component,
-   * possibly subject to change in the future
-   *
-   * @return {boolean}
-   */
-  shouldComponentUpdate(nextProps, nextState) {
-    if (nextProps.subtotalType !== this.props.subtotalType || nextProps.chartWidth !== this.props.chartWidth) {
-      return true;
-    }
-    return false;
-  }
-
   isASiteChangeEvent = () => {
     return (this.props.type === constants.SITE_CHANGE_CANNULA) ||
       (this.props.type === constants.SITE_CHANGE_TUBING) ||
