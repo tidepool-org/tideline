@@ -211,7 +211,7 @@ var CalendarContainer = createReactClass({
             date={day.date}
             outOfRange={day.type === 'outOfRange'}
             isFirst={index === 0}
-            mostRecent={day.type === 'inRange' && nextDay.type === 'outOfRange'} // TODO: get this...
+            mostRecent={day.type === 'inRange' && nextDay.type === 'outOfRange'}
             onHover={self.onHover}
             subtotalType={self._getSelectedSubtotal()}
             type={type} />
