@@ -14,7 +14,7 @@ class ADay extends React.Component {
     chartWidth: PropTypes.number.isRequired,
     data: PropTypes.object,
     date: PropTypes.string.isRequired,
-    future: PropTypes.bool.isRequired,
+    outOfRange: PropTypes.bool.isRequired,
     isFirst: PropTypes.bool.isRequired,
     mostRecent: PropTypes.bool.isRequired,
     onHover: PropTypes.func.isRequired,
@@ -38,8 +38,8 @@ class ADay extends React.Component {
   };
 
   mouseEnter = () => {
-    // We do not want a hover effect on days in the future
-    if (this.props.future) {
+    // We do not want a hover effect on days out of the data range
+    if (this.props.outOfRange) {
       return;
     }
     // We do not want a hover effect on infusion site days that were not site changes
@@ -50,7 +50,7 @@ class ADay extends React.Component {
   };
 
   mouseLeave = () => {
-    if (this.props.future) {
+    if (this.props.outOfRange) {
       return;
     }
     this.props.onHover(null);
@@ -62,8 +62,8 @@ class ADay extends React.Component {
     var isDisabled = (this.props.type === constants.SECTION_TYPE_UNDECLARED);
 
     var containerClass = cx('Calendar-day--' + this.props.type, {
-      'Calendar-day': !this.props.future,
-      'Calendar-day-future': this.props.future,
+      'Calendar-day': !this.props.outOfRange,
+      'Calendar-day-out-of-range': this.props.outOfRange,
       'Calendar-day-most-recent': this.props.mostRecent,
       'Calendar-day--disabled': isDisabled,
     });
@@ -92,7 +92,7 @@ class ADay extends React.Component {
         <p className='Calendar-weekday'>
           {(monthLabel) ? monthLabel : date.format(this.props.dayAbbrevMask)}
         </p>
-        {this.props.future ? null: chart}
+        {this.props.outOfRange ? null : chart}
       </div>
     );
   }

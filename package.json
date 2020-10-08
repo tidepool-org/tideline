@@ -1,6 +1,6 @@
 {
   "name": "tideline",
-  "version": "1.19.0",
+  "version": "1.20.0-web-54-basics-date-range-selection.3",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
