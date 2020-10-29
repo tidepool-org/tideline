@@ -45,7 +45,7 @@
       display: flex;
 		}
 
-		.Calendar-day, .Calendar-day-future, .Calendar-day--HOVER {
+		.Calendar-day, .Calendar-day-out-of-range, .Calendar-day--HOVER {
 			position: relative;
       color: @calendar-label-color;
 
@@ -158,8 +158,8 @@
 			}
 		}
 
-		.Calendar-day-future {
-			background-color: @future-day-color;
+		.Calendar-day-out-of-range {
+			background-color: @out-of-range-day-color;
 		}
 
 		.Calendar-day-most-recent {

@@ -181,7 +181,8 @@ var CalendarContainer = createReactClass({
     var path = this.getPathToSelected() || '';
     var data = _.get(self.props.data, 'byDate', _.get(self.props.data, [path.split('.')[0], 'byDate']));
 
-    return this.props.days.map(function(day, id) {
+    return this.props.days.map(function(day, index) {
+      var nextDay = self.props.days[index + 1] || {};
       var dateData = _.get(data, day.date, {});
       var type = self.props.source || self.props.type;
 
@@ -208,9 +209,9 @@ var CalendarContainer = createReactClass({
             chartWidth={self.props.chartWidth}
             data={dateData}
             date={day.date}
-            future={day.type === 'future'}
-            isFirst={id === 0}
-            mostRecent={day.type === 'mostRecent'}
+            outOfRange={day.type === 'outOfRange'}
+            isFirst={index === 0}
+            mostRecent={day.type === 'inRange' && nextDay.type === 'outOfRange'}
             onHover={self.onHover}
             subtotalType={self._getSelectedSubtotal()}
             type={type} />
