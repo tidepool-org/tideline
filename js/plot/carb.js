@@ -70,7 +70,7 @@ module.exports = function(pool, opts) {
       carbGroup
         .append('text')
         .text(function(d) {
-          return d.nutrition.carbohydrate.net;
+          return Math.round(d.nutrition.carbohydrate.net);
         })
         .attr({
           x: xPos,
