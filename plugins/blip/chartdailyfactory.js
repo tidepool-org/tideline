@@ -38,6 +38,7 @@ function chartDailyFactory(el, options) {
   var defaults = {
     bgUnits: MGDL_UNITS,
     bolusRatio: 0.35,
+    carbUnits: ['grams'],
     dynamicCarbs: false,
     labelBaseline: 4,
     timePrefs: {
@@ -46,6 +47,16 @@ function chartDailyFactory(el, options) {
     }
   };
   _.defaults(options, defaults);
+
+  const carbUnitsAbbreviations = {
+    grams: 'g',
+    exchanges: 'exch',
+  };
+
+  const abbreviatedCarbUnits = _.map(options.carbUnits, units => carbUnitsAbbreviations[units]);
+  const showingCarbExchanges = _.includes(options.carbUnits, 'exchanges');
+  const bolusCarbsLegend = ['bolus', 'carbs'];
+  if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
 
   var scales = scalesutil(options);
   var emitter = new EventEmitter();
@@ -119,10 +130,10 @@ function chartDailyFactory(el, options) {
       },
       {
         'main': ' & '+t('Carbohydrates'),
-        'light': ' g'
+        'light': ' ' + abbreviatedCarbUnits.join(', '),
       }])
       .labelBaseline(options.labelBaseline)
-      .legend(['bolus', 'carbs'])
+      .legend(bolusCarbsLegend)
       .index(chart.pools().indexOf(poolBolus))
       .heightRatio(1.35)
       .gutterWeight(1.0);
