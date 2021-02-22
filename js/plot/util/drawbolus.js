@@ -99,6 +99,11 @@ module.exports = function(pool, opts) {
         return opts.yScale(bolusValue) - r - (bolusValue ? opts.carbPadding : 0);
       };
 
+      var classNames = function (d) {
+        const className = d.carbUnits === 'exchanges' ? 'd3-circle-carb-exchanges' : 'd3-circle-carbs';
+        return [className, 'd3-carbs'];
+      }
+
       carbs.append('circle')
         .attr({
           cx: xPos,
@@ -107,7 +112,7 @@ module.exports = function(pool, opts) {
             return opts.yScaleCarbs ? opts.yScaleCarbs(d.carbInput) : opts.r;
           },
           'stroke-width': 0,
-          'class': 'd3-circle-carbs d3-carbs',
+          'class': d => classNames(d).join(' '),
           id: function(d) {
             return 'carbs_' + d.id;
           }
