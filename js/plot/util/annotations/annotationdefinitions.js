@@ -39,7 +39,7 @@ var definitions = {
     'medtronic600/smbg/entered-in-sensor-calib',
     'medtronic600/smbg/entered-as-bg-marker',
     'wizard/target-automated',
-    'tandem/pumpSettingsOverride/fabricated-from-new-day'
+    'tandem/pumpSettingsOverride/fabricated-from-new-day',
   ],
   LEAD_TEXT: {
     'stats-insufficient-data': function() {
