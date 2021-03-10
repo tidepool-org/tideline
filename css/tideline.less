@@ -430,6 +430,22 @@ svg {
     }
   }
 
+  &[class*="d3-basal-marker-group-override-sleep-"] {
+    fill: @settings-override-sleep;
+    stroke: @settings-override-sleep;
+  }
+
+  &[class*="d3-basal-marker-group-override-physicalActivity-"] {
+    fill: @settings-override-physicalActivity;
+    stroke: @settings-override-physicalActivity;
+  }
+
+  .d3-marker-extension-line {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1.5, 3;
+  }
+
   .d3-basal-group-label {
     fill: #ffffff;
     stroke-width: 0;

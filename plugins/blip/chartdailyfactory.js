@@ -359,6 +359,14 @@ function chartDailyFactory(el, options) {
       timezoneAware: chart.options.timePrefs.timezoneAware
     }), true, true);
 
+    // add device settings override data to basal pool
+    poolBasal.addPlotType('deviceEvent', tideline.plot.pumpSettingsOverride(poolBasal, {
+      yScale: scaleBasal,
+      emitter: emitter,
+      data: groupedData.deviceEvent,
+      timezoneAware: chart.options.timePrefs.timezoneAware
+    }), true, true);
+
     // messages pool
     // add background fill rectangles to messages pool
     poolMessages.addPlotType('fill', fill(poolMessages, {
