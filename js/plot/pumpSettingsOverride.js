@@ -40,6 +40,13 @@ module.exports = function(pool, opts) {
   function settingsOverride(selection) {
     opts.xScale = pool.xScale().copy();
 
+    var isFabricatedNewDayOverride = datum => {
+      return _.includes(
+        _.map(_.get(datum, 'annotations', []), 'code'),
+        'tandem/pumpSettingsOverride/fabricated-from-new-day'
+      );
+    };
+
     selection.each(function(currentData) {
       var filteredData = _.filter(currentData, {
         subType: 'pumpSettingsOverride',
@@ -60,17 +67,10 @@ module.exports = function(pool, opts) {
         var xPosition = settingsOverride.xPosition(datum);
         var yPosition = radius + 2;
         var endXPosition = settingsOverride.endXPosition(datum);
-        var overrideType = _.get(datum, 'overrideType', '');
+        var overrideType = _.get(datum, 'overrideType');
         var source = datum.source;
         var prevDatum = filteredData[index - 1];
-        var showMarker = true;
-
-        if (!_.isEmpty(overrideType) && _.get(prevDatum, 'overrideType') === overrideType) {
-          // TODO: only hide marker if duration of previous datum is < 24 hours
-          if (_.map(_.get(datum, 'annotations', []), 'code').includes('tandem/pumpSettingsOverride/fabricated-from-new-day')) {
-            showMarker = false;
-          }
-        }
+        var showMarker = !isFabricatedNewDayOverride(datum) || !isFabricatedNewDayOverride(prevDatum);
 
         var markers = deviceEventGroup
           .selectAll(`.d3-basal-marker-group.d3-basal-marker-group-override-${overrideType}-${id}`)
