@@ -16,9 +16,7 @@
  */
 
 /* jshint esversion:6 */
-var i18next = require('i18next');
-var t = i18next.t.bind(i18next);
-
+var d3 = require('d3');
 var _ = require('lodash');
 
 var dt = require('../data/util/datetime');
@@ -48,74 +46,101 @@ module.exports = function(pool, opts) {
     };
 
     selection.each(function(currentData) {
-      var filteredData = _.filter(currentData, {
-        subType: 'pumpSettingsOverride',
-      });
+      var filteredData = _.filter(currentData, { subType: 'pumpSettingsOverride' });
 
-      var deviceEventGroup = selection
-        .selectAll('.d3-deviceevent-group')
-        .data(['d3-deviceevent-group']);
+      // Because the new datums are fabricated at upload when they cross midnight, we stitch them
+      // together by adding the fabricated datum's duration to the previous one, so long as the
+      // previous one is not also a fabricated datum.
+      var stitchedData = _.reduce(filteredData, (res, datum, index) => {
+        var prevDatum = res[res.length - 1];
 
-      deviceEventGroup
+        if (prevDatum && (isFabricatedNewDayOverride(datum) && !isFabricatedNewDayOverride(prevDatum))) {
+          res[res.length - 1] = {
+            ...prevDatum,
+            duration: prevDatum.duration + datum.duration,
+          };
+        } else {
+          res.push(datum);
+        }
+
+        return res;
+      }, []);
+
+      var radius = 7;
+      var yPosition = radius + 2;
+
+      var markers = d3.select(this)
+        .selectAll('.d3-basal-marker-group.d3-pump-settings-override-group')
+        .data(stitchedData, function(d) {
+          return d.id;
+        });
+
+      var markersGroups = markers
         .enter()
         .append('g')
-        .attr('class', 'd3-basal-path-group');
+        .attr('class', function(d) {
+          return `d3-basal-marker-group-override-${d.overrideType}-${d.id}`;
+        })
+        .classed({ 'd3-basal-marker-group': true, 'd3-pump-settings-override-group': true });
 
-      _.each(filteredData, (datum, index) => {
-        var id = datum.id;
-        var radius = 7;
-        var xPosition = settingsOverride.xPosition(datum);
-        var yPosition = radius + 2;
-        var endXPosition = settingsOverride.endXPosition(datum);
-        var overrideType = _.get(datum, 'overrideType');
-        var source = datum.source;
-        var prevDatum = filteredData[index - 1];
-        var showMarker = !isFabricatedNewDayOverride(datum) || !isFabricatedNewDayOverride(prevDatum);
+      markersGroups.append('line').attr({
+        x1: settingsOverride.xPosition,
+        y1: yPosition,
+        x2: settingsOverride.endXPosition,
+        y2: yPosition,
+        class: 'd3-marker-extension-line'
+      });
 
-        var markers = deviceEventGroup
-          .selectAll(`.d3-basal-marker-group.d3-basal-marker-group-override-${overrideType}-${id}`)
-          .data([`d3-basal-marker-group d3-basal-marker-group-override-${overrideType}-${id}`]);
+      markersGroups.append('line').attr({
+        x1: settingsOverride.xPosition,
+        y1: yPosition,
+        x2: settingsOverride.xPosition,
+        y2: pool.height(),
+        class: 'd3-basal-group-line'
+      });
 
-        var markersGroups = markers
-          .enter()
-          .append('g')
-          .attr('class', function(d) {
-            return d;
-          });
+      markersGroups.append('circle').attr({
+        class: 'd3-basal-group-circle',
+        cx: settingsOverride.xPosition,
+        cy: yPosition,
+        r: radius
+      });
 
-        showMarker && markersGroups.append('line').attr({
-          x1: xPosition,
-          y1: yPosition,
-          x2: xPosition,
-          y2: pool.height(),
-          class: 'd3-basal-group-line'
-        });
+      markersGroups
+        .append('text')
+        .attr({
+          x: settingsOverride.xPosition,
+          y: yPosition,
+          class: 'd3-basal-group-label'
+        })
+        .text(d => _.get(SETTINGS_OVERRIDE_LABELS, [d.source, d.overrideType, 'marker'], (d.overrideType || 'O').toUpperCase()).charAt(0));
 
-        markersGroups.append('line').attr({
-          x1: xPosition,
-          y1: yPosition,
-          x2: endXPosition,
-          y2: yPosition,
-          class: 'd3-marker-extension-line'
-        });
+      markersGroups.append('rect').attr({
+        x: d => settingsOverride.xPosition(d) - radius,
+        y: 0,
+        width: d => (settingsOverride.endXPosition(d) - settingsOverride.xPosition(d)) + radius,
+        height: radius * 2,
+        class: 'd3-marker-extension-hover-target'
+      });
 
-        showMarker && markersGroups.append('circle').attr({
-          class: 'd3-basal-group-circle',
-          cx: xPosition,
-          cy: yPosition,
-          r: radius
-        });
+      markers.exit().remove();
 
-        showMarker && markersGroups
-          .append('text')
-          .attr({
-            x: xPosition,
-            y: yPosition,
-            class: 'd3-basal-group-label'
-          })
-          .text(_.get(SETTINGS_OVERRIDE_LABELS, [source, datum.overrideType, 'marker'], (datum.overrideType || 'O').toUpperCase()).charAt(0));
+      var highlight = pool.highlight(markers);
 
-        markers.exit().remove();
+      // tooltips
+      selection.selectAll('.d3-pump-settings-override-group').on('mouseover', function(d) {
+        highlight.on(d3.select(this));
+        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
+        var container = this.getBoundingClientRect();
+        container.y = container.top - parentContainer.top;
+
+        settingsOverride.addTooltip(d3.select(this).datum(), container);
+      });
+      selection.selectAll('.d3-pump-settings-override-group').on('mouseout', function() {
+        highlight.off();
+        if (_.get(opts, 'onPumpSettingsOverrideOut', false)){
+          opts.onPumpSettingsOverrideOut();
+        }
       });
     });
   }
@@ -130,6 +155,15 @@ module.exports = function(pool, opts) {
 
   settingsOverride.yPosition = function(d) {
     return opts.yScale(d.rate);
+  };
+
+  settingsOverride.addTooltip = function(d, rect) {
+    if (_.get(opts, 'onPumpSettingsOverrideHover', false)) {
+      opts.onPumpSettingsOverrideHover({
+        data: d,
+        rect: rect,
+      });
+    }
   };
 
   return settingsOverride;

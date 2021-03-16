@@ -364,7 +364,9 @@ function chartDailyFactory(el, options) {
       yScale: scaleBasal,
       emitter: emitter,
       data: groupedData.deviceEvent,
-      timezoneAware: chart.options.timePrefs.timezoneAware
+      timezoneAware: chart.options.timePrefs.timezoneAware,
+      onPumpSettingsOverrideHover: options.onPumpSettingsOverrideHover,
+      onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
     }), true, true);
 
     // messages pool
