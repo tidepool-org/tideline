@@ -38,6 +38,7 @@ var definitions = {
     'medtronic600/smbg/entered-in-bolus-wizard',
     'medtronic600/smbg/entered-in-sensor-calib',
     'medtronic600/smbg/entered-as-bg-marker',
+    'medtronic/wizard/carb-to-exchange-ratio-deconverted',
     'wizard/target-automated',
   ],
   LEAD_TEXT: {

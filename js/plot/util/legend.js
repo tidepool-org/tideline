@@ -22,6 +22,7 @@ var d3 = require('d3');
 var _ = require('lodash');
 
 var log = require('bows')('Shapes');
+var EMPTY_SPACE = '\u2002';
 
 var legend = {
   SHAPE_MARGIN: 3,
@@ -43,7 +44,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('delivered'))
+          .text(EMPTY_SPACE + t('delivered'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
             opts.textHeight = this.getBoundingClientRect().height;
@@ -67,7 +68,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('scheduled'))
+          .text(EMPTY_SPACE + t('scheduled'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
           });
@@ -171,7 +172,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('delivered'))
+          .text(EMPTY_SPACE + t('delivered'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
             opts.textHeight = this.getBoundingClientRect().height;
@@ -195,7 +196,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('undelivered'))
+          .text(EMPTY_SPACE + t('undelivered'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
             opts.textHeight = this.getBoundingClientRect().height;
@@ -221,7 +222,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('carbs'))
+          .text(EMPTY_SPACE + t('carbs'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
             opts.textHeight = this.getBoundingClientRect().height;
@@ -247,7 +248,7 @@ var legend = {
           .attr({
             'class': 'd3-pool-legend'
           })
-          .text(t('carb exchanges'))
+          .text(EMPTY_SPACE + t('carb exchanges'))
           .each(function() {
             opts.widths.push(this.getBoundingClientRect().width);
             opts.textHeight = this.getBoundingClientRect().height;
