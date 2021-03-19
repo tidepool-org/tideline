@@ -35,6 +35,15 @@ module.exports = function(pool, opts) {
 
   opts = _.defaults(opts, defaults);
 
+  var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
+  var chartContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
+
+  var chartExtents = {
+    left: chartContainer.left,
+    right: chartContainer.right,
+    width: chartContainer.right - chartContainer.left,
+  };
+
   function settingsOverride(selection) {
     opts.xScale = pool.xScale().copy();
 
@@ -51,7 +60,7 @@ module.exports = function(pool, opts) {
       // Because the new datums are fabricated at upload when they cross midnight, we stitch them
       // together by adding the fabricated datum's duration to the previous one, so long as the
       // previous one is not also a fabricated datum.
-      var stitchedData = _.reduce(filteredData, (res, datum, index) => {
+      var stitchedData = _.reduce(filteredData, (res, datum) => {
         var prevDatum = res[res.length - 1];
 
         if (prevDatum && (isFabricatedNewDayOverride(datum) && !isFabricatedNewDayOverride(prevDatum))) {
@@ -130,7 +139,6 @@ module.exports = function(pool, opts) {
       // tooltips
       selection.selectAll('.d3-pump-settings-override-group').on('mouseover', function(d) {
         highlight.on(d3.select(this));
-        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
         var container = this.getBoundingClientRect();
         container.y = container.top - parentContainer.top;
 
@@ -161,7 +169,8 @@ module.exports = function(pool, opts) {
     if (_.get(opts, 'onPumpSettingsOverrideHover', false)) {
       opts.onPumpSettingsOverrideHover({
         data: d,
-        rect: rect,
+        rect,
+        chartExtents,
       });
     }
   };
