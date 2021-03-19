@@ -57,6 +57,11 @@ function chartDailyFactory(el, options) {
   const showingCarbExchanges = _.includes(options.carbUnits, 'exchanges');
   const bolusCarbsLegend = ['bolus', 'carbs'];
   if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
+  if (options.automatedBolus) bolusCarbsLegend.unshift('bolusAutomated');
+
+  const basalLegend = ['basal'];
+  if (options.automatedBasal) basalLegend.unshift('basalAutomated');
+  console.log('options', options);
 
   var scales = scalesutil(options);
   var emitter = new EventEmitter();
@@ -146,7 +151,7 @@ function chartDailyFactory(el, options) {
         light: ' U/hr'
       }])
       .labelBaseline(options.labelBaseline)
-      .legend(['basal'])
+      .legend(basalLegend)
       .index(chart.pools().indexOf(poolBasal))
       .heightRatio(1.0)
       .gutterWeight(1.0);
