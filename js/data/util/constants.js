@@ -20,7 +20,7 @@ module.exports = {
   SETTINGS_OVERRIDE_LABELS: {
     Tandem: {
       [SLEEP]: { label: t('Sleep'), marker: t('Z') },
-      [PHYSICAL_ACTIVITY]: { label: t('Excercise'), marker: t('E') },
+      [PHYSICAL_ACTIVITY]: { label: t('Exercise'), marker: t('E') },
     },
   },
   SCHEDULED_BASAL_LABELS: {
