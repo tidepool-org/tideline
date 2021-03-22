@@ -64,10 +64,8 @@ module.exports = function(pool, opts) {
         var prevDatum = res[res.length - 1];
 
         if (prevDatum && (isFabricatedNewDayOverride(datum) && !isFabricatedNewDayOverride(prevDatum))) {
-          res[res.length - 1] = {
-            ...prevDatum,
-            duration: prevDatum.duration + datum.duration,
-          };
+          res[res.length - 1].normalEnd = datum.normalEnd;
+          res[res.length - 1].duration += datum.duration;
         } else {
           res.push(datum);
         }
@@ -158,7 +156,7 @@ module.exports = function(pool, opts) {
   };
 
   settingsOverride.endXPosition = function(d) {
-    return opts.xScale(Date.parse(dt.addDuration(d.normalTime, d.duration)));
+    return opts.xScale(d.normalEnd);
   };
 
   settingsOverride.yPosition = function(d) {
