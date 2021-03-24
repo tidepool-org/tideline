@@ -137,9 +137,9 @@ module.exports = function(pool, opts) {
       // tooltips
       selection.selectAll('.d3-pump-settings-override-group').on('mouseover', function(d) {
         highlight.on(d3.select(this));
+        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
         var container = this.getBoundingClientRect();
         container.y = container.top - parentContainer.top;
-
         settingsOverride.addTooltip(d3.select(this).datum(), container);
       });
       selection.selectAll('.d3-pump-settings-override-group').on('mouseout', function() {
