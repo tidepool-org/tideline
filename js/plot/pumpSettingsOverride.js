@@ -35,14 +35,6 @@ module.exports = function(pool, opts) {
 
   opts = _.defaults(opts, defaults);
 
-  var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
-  var chartContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
-
-  var chartExtents = {
-    left: chartContainer.left,
-    right: chartContainer.right,
-    width: chartContainer.right - chartContainer.left,
-  };
 
   function settingsOverride(selection) {
     opts.xScale = pool.xScale().copy();
@@ -138,9 +130,17 @@ module.exports = function(pool, opts) {
       selection.selectAll('.d3-pump-settings-override-group').on('mouseover', function(d) {
         highlight.on(d3.select(this));
         var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
+        var chartNavContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
         var container = this.getBoundingClientRect();
         container.y = container.top - parentContainer.top;
-        settingsOverride.addTooltip(d3.select(this).datum(), container);
+
+        var chartExtents = {
+          left: chartNavContainer.left,
+          right: chartNavContainer.right,
+          width: chartNavContainer.right - chartNavContainer.left,
+        };
+
+        settingsOverride.addTooltip(d3.select(this).datum(), container, chartExtents);
       });
       selection.selectAll('.d3-pump-settings-override-group').on('mouseout', function() {
         highlight.off();
@@ -163,7 +163,7 @@ module.exports = function(pool, opts) {
     return opts.yScale(d.rate);
   };
 
-  settingsOverride.addTooltip = function(d, rect) {
+  settingsOverride.addTooltip = function(d, rect, chartExtents) {
     if (_.get(opts, 'onPumpSettingsOverrideHover', false)) {
       opts.onPumpSettingsOverrideHover({
         data: d,
