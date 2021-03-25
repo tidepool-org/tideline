@@ -1,40 +1,11 @@
-/*
- * == BSD2 LICENSE ==
- * Copyright (c) 2014, Tidepool Project
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the associated License, which is identical to the BSD 2-Clause
- * License as published by the Open Source Initiative at opensource.org.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the License for more details.
- *
- * You should have received a copy of the License along with this program; if
- * not, you can obtain one from Tidepool Project at tidepool.org.
- * == BSD2 LICENSE ==
- */
-
 /* jshint esversion:6 */
 var d3 = require('d3');
 var _ = require('lodash');
 
-var dt = require('../data/util/datetime');
 var { SETTINGS_OVERRIDE_LABELS } = require('../data/util/constants');
 
 module.exports = function(pool, opts) {
   opts = opts || {};
-
-  var defaults = {
-    opacity: 0.4,
-    opacityDelta: 0.2,
-    pathStroke: 1.5,
-    timezoneAware: false,
-    tooltipPadding: 20
-  };
-
-  opts = _.defaults(opts, defaults);
-
 
   function settingsOverride(selection) {
     opts.xScale = pool.xScale().copy();
