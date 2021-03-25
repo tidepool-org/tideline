@@ -88,6 +88,7 @@ describe('annotation definitions', function() {
         'medtronic600/smbg/entered-as-bg-marker',
         'medtronic/wizard/carb-to-exchange-ratio-deconverted',
         'wizard/target-automated',
+        'tandem/pumpSettingsOverride/fabricated-from-new-day',
       ]);
     });
   });

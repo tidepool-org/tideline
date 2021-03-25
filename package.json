@@ -1,6 +1,6 @@
 {
   "name": "tideline",
-  "version": "1.23.0",
+  "version": "1.24.0-control-iq.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
