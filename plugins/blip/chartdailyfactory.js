@@ -61,7 +61,6 @@ function chartDailyFactory(el, options) {
 
   const basalLegend = ['basal'];
   if (options.automatedBasal) basalLegend.unshift('basalAutomated');
-  console.log('options', options);
 
   var scales = scalesutil(options);
   var emitter = new EventEmitter();
