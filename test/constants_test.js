@@ -52,6 +52,15 @@ describe('constants', function() {
     });
   });
 
+  it('should define the SETTINGS_OVERRIDE_LABELS mapping', function() {
+    expect(constants.SETTINGS_OVERRIDE_LABELS).to.eql({
+      Tandem: {
+        sleep: { label: 'Sleep', marker: 'Z' },
+        physicalActivity: { label: 'Exercise', marker: 'E' },
+      },
+    });
+  });
+
   it('should define the SCHEDULED_BASAL_LABELS mapping', function() {
     expect(constants.SCHEDULED_BASAL_LABELS).to.eql({
       Medtronic: 'Manual',

@@ -251,6 +251,10 @@ svg {
     stroke: @bolus;
     stroke-width: 1.5;
   }
+  &.d3-rect-bolus-automated-legend {
+    .d3-bolus-automated;
+    stroke-width: 1.5;
+  }
   &.d3-path-bolus {
     stroke: @bolus;
     fill: none;
@@ -378,12 +382,21 @@ svg {
 
 // basal
 .d3-basal {
+  &.d3-rect-basal-automated {
+    fill: @basal-automated;
+    stroke: @basal-automated;
+    stroke-opacity: 0.01;
+    &.d3-legend {
+      fill-opacity: 0.6;
+      stroke-width: 1.5;
+    }
+  }
   &.d3-rect-basal {
     fill: @basal;
     stroke: @basal;
     stroke-opacity: 0.01;
     &.d3-legend {
-      fill-opacity: 0.3;
+      fill-opacity: 0.6;
       stroke-width: 1.5;
     }
     &.d3-basal-automated {
@@ -416,6 +429,11 @@ svg {
   }
 }
 
+.d3-marker-extension-hover-target {
+  stroke-width: 0;
+  fill: transparent;
+}
+
 .d3-basal-marker-group {
   fill: @basal;
   stroke: @basal;
@@ -424,10 +442,22 @@ svg {
   &[class*="d3-basal-marker-group-automated-"] {
     fill: @basal-automated;
     stroke: @basal-automated;
+  }
 
-    .d3-basal-group-label {
-      fill: #4e4e4f;
-    }
+  &[class*="d3-basal-marker-group-override-sleep-"] {
+    fill: @settings-override-sleep;
+    stroke: @settings-override-sleep;
+  }
+
+  &[class*="d3-basal-marker-group-override-physicalActivity-"] {
+    fill: @settings-override-physicalActivity;
+    stroke: @settings-override-physicalActivity;
+  }
+
+  .d3-marker-extension-line {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1.5, 3;
   }
 
   .d3-basal-group-label {

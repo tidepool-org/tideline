@@ -57,6 +57,10 @@ function chartDailyFactory(el, options) {
   const showingCarbExchanges = _.includes(options.carbUnits, 'exchanges');
   const bolusCarbsLegend = ['bolus', 'carbs'];
   if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
+  if (options.automatedBolus) bolusCarbsLegend.unshift('bolusAutomated');
+
+  const basalLegend = ['basal'];
+  if (options.automatedBasal) basalLegend.unshift('basalAutomated');
 
   var scales = scalesutil(options);
   var emitter = new EventEmitter();
@@ -146,7 +150,7 @@ function chartDailyFactory(el, options) {
         light: ' U/hr'
       }])
       .labelBaseline(options.labelBaseline)
-      .legend(['basal'])
+      .legend(basalLegend)
       .index(chart.pools().indexOf(poolBasal))
       .heightRatio(1.0)
       .gutterWeight(1.0);
@@ -357,6 +361,16 @@ function chartDailyFactory(el, options) {
       emitter: emitter,
       data: groupedData.deviceEvent,
       timezoneAware: chart.options.timePrefs.timezoneAware
+    }), true, true);
+
+    // add device settings override data to basal pool
+    poolBasal.addPlotType('deviceEvent', tideline.plot.pumpSettingsOverride(poolBasal, {
+      yScale: scaleBasal,
+      emitter: emitter,
+      data: groupedData.deviceEvent,
+      timezoneAware: chart.options.timePrefs.timezoneAware,
+      onPumpSettingsOverrideHover: options.onPumpSettingsOverrideHover,
+      onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
     }), true, true);
 
     // messages pool

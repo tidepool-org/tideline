@@ -76,6 +76,32 @@ var legend = {
       type: 'text'
     }
   ],
+  basalAutomated: [
+    {
+      create: function(opts) {
+        opts.widths.push(opts.SHAPE_WIDTH);
+        return opts.selection.append('rect')
+          .attr({
+            'class': 'd3-basal d3-rect-basal-automated d3-legend'
+          });
+      },
+      type: 'rect'
+    },
+    {
+      create: function(opts) {
+        return opts.selection.append('text')
+          .attr({
+            'class': 'd3-pool-legend'
+          })
+          .text(EMPTY_SPACE + t('automated'))
+          .each(function() {
+            opts.widths.push(this.getBoundingClientRect().width);
+            opts.textHeight = this.getBoundingClientRect().height;
+          });
+      },
+      type: 'text'
+    },
+  ],
   bg: [
     {
       create: function(opts) {
@@ -204,6 +230,32 @@ var legend = {
       },
       type: 'text'
     }
+  ],
+  bolusAutomated: [
+    {
+      create: function(opts) {
+        opts.widths.push(opts.SHAPE_WIDTH);
+        return opts.selection.append('rect')
+          .attr({
+            'class': 'd3-bolus d3-rect-bolus-automated-legend'
+          });
+      },
+      type: 'rect'
+    },
+    {
+      create: function(opts) {
+        return opts.selection.append('text')
+          .attr({
+            'class': 'd3-pool-legend'
+          })
+          .text(EMPTY_SPACE + t('automated'))
+          .each(function() {
+            opts.widths.push(this.getBoundingClientRect().width);
+            opts.textHeight = this.getBoundingClientRect().height;
+          });
+      },
+      type: 'text'
+    },
   ],
   carbs: [
     {

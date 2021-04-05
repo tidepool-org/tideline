@@ -6,6 +6,9 @@ const MGDL_UNITS = t('mg/dL');
 const MMOLL_UNITS = t('mmol/L');
 const MGDL_PER_MMOLL = 18.01559;
 
+const SLEEP = 'sleep';
+const PHYSICAL_ACTIVITY = 'physicalActivity';
+
 module.exports = {
   AUTOMATED_BASAL_DEVICE_MODELS: {
     Medtronic: ['1580', '1581', '1582', '1780', '1781', '1782'],
@@ -13,6 +16,12 @@ module.exports = {
   AUTOMATED_BASAL_LABELS: {
     Medtronic: t('Auto Mode'),
     default: t('Automated'),
+  },
+  SETTINGS_OVERRIDE_LABELS: {
+    Tandem: {
+      [SLEEP]: { label: t('Sleep'), marker: t('Z') },
+      [PHYSICAL_ACTIVITY]: { label: t('Exercise'), marker: t('E') },
+    },
   },
   SCHEDULED_BASAL_LABELS: {
     Medtronic: t('Manual'),
