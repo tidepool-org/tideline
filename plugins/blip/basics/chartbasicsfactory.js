@@ -65,6 +65,16 @@ class BasicsChart extends React.Component {
     return !!(basal || bolus || wizard);
   };
 
+  _siteChangeDataAvailable = () => {
+    const siteChangeDataCount = _.reduce(
+      _.get(this.props, 'data.data.current.aggregationsByDate.siteChanges.byDate'),
+      (result, value) => result + _.max(_.values(value.subtotals)),
+      0
+    );
+
+    return siteChangeDataCount > 0
+  };
+
   _availableDeviceData = () => {
     const { bgSources } = _.get(this.props, 'data.metaData', {});
 
@@ -173,8 +183,14 @@ class BasicsChart extends React.Component {
         if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), section.perRow || 3);
       }
 
+      let active = !section.disabled;
+
+      if (isSiteChanges) {
+        active = !section.disabled || this._siteChangeDataAvailable()
+      }
+
       _.defaults(section, {
-        active: !section.disabled,
+        active,
         chart,
         container: CalendarContainer,
         hasHover,
