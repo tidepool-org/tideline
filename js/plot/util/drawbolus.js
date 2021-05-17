@@ -143,7 +143,10 @@ module.exports = function(pool, opts) {
           height: function(d) {
             return top - opts.yScale(commonbolus.getDelivered(d));
           },
-          'class': 'd3-rect-bolus d3-bolus',
+          'class': function(d) {
+            d = pluckBolus(d);
+            return d.subType === 'automated' ? 'd3-bolus-automated d3-bolus' : 'd3-rect-bolus d3-bolus';
+          },
           id: function(d) {
             d = pluckBolus(d);
             return 'bolus_' + d.id;

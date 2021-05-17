@@ -40,6 +40,7 @@ var definitions = {
     'medtronic600/smbg/entered-as-bg-marker',
     'medtronic/wizard/carb-to-exchange-ratio-deconverted',
     'wizard/target-automated',
+    'tandem/pumpSettingsOverride/fabricated-from-new-day',
   ],
   LEAD_TEXT: {
     'stats-insufficient-data': function() {
@@ -114,6 +115,10 @@ var definitions = {
     'tandem/basal/fabricated-from-new-day': function(source, defs) {
       source = defs.sourceText(source);
       return t('We have fabricated this basal segment from a {{source}} new day event; it was not provided directly as basal data', {source: source});
+    },
+    'tandem/pumpSettingsOverride/estimated-duration': function(source, defs) {
+      source = defs.sourceText(source);
+      return t('We have estimated the duration of this override; it was not provided directly by {{source}}', {source: source});
     },
     'basal/intersects-incomplete-suspend': function() {
       return t("Within this basal segment, we are omitting a suspend event that didn't end. This may have resulted from changing the date & time settings on the device or switching to a new device. As a result, this basal segment may be inaccurate.");
