@@ -147,7 +147,7 @@ class BasicsChart extends React.Component {
         } = this.props.patient;
 
         const permissions = this.props.permsOfLoggedInUser;
-        const canUpdateSettings = permissions.hasOwnProperty('custodian') || permissions.hasOwnProperty('root');
+        const canUpdateSettings = permissions && (permissions.hasOwnProperty('custodian') || permissions.hasOwnProperty('root'));
         const hasSiteChangeSourceSettings = settings && settings.hasOwnProperty('siteChangeSource');
 
         chart = SiteChange;
