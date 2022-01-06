@@ -1,6 +1,6 @@
 {
   "name": "tideline",
-  "version": "1.25.0-web-880-clinic-signup.1",
+  "version": "1.25.0",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
