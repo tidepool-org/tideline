@@ -44,7 +44,8 @@ module.exports = function(pool, opts) {
       var filteredData = _.filter(currentData, {
         subType: 'status',
         status: 'suspended',
-        reason: { suspended: 'automatic' }
+        reason: { suspended: 'automatic' },
+        payload: { suspended: { reason: 'Auto suspend by PLGS' } },
       });
 
       filteredData = _.filter(filteredData, (data) => {

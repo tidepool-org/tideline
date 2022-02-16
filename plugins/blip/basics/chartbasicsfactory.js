@@ -180,6 +180,14 @@ class BasicsChart extends React.Component {
       } else {
         selectorOptions = _.groupBy(section.dimensions, dimension => dimension.primary ? 'primary' : 'rows');
         if (_.isArray(selectorOptions.primary)) selectorOptions.primary = selectorOptions.primary[0] || {};
+
+        if (section.type === 'basals') {
+          const basalAggregationData = this.props.data?.data?.aggregationsByDate?.basals;
+          const hasAutomatedSuspends = basalAggregationData?.automatedSuspend?.summary?.subtotals?.automatedSuspend?.count > 0;
+          const hasAutomatedStops = basalAggregationData?.basal?.summary?.subtotals?.automatedStop?.count > 0;
+          if (hasAutomatedSuspends && hasAutomatedStops) section.perRow = 2;
+        }
+
         if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), section.perRow || 3);
       }
 
