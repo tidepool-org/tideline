@@ -43,7 +43,6 @@ module.exports = function(emitter, timePrefs) {
       currentTranslation: 0
     },
     axisGutter = 52, dataGutter, dayTickSize = 0,
-    statsHeight = 80,
     pools = [], poolGroup, days, daysGroup,
     xScale = d3.scale.linear(), xAxis, yScale = d3.time.scale.utc(), yAxis,
     data, viewEndpoints, dataStartNoon, dataEndNoon, poolScaleHeight,
@@ -74,10 +73,10 @@ module.exports = function(emitter, timePrefs) {
     log('Jumped forward two weeks.');
     var n = 0;
     if (sortReverse) {
-      nav.currentTranslation += height - nav.axisHeight - statsHeight;
+      nav.currentTranslation += height - nav.axisHeight;
       emitter.emit('inTransition', true);
       mainGroup.transition().duration(500).tween('zoom', function() {
-        var iy = d3.interpolate(nav.currentTranslation - height + nav.axisHeight + statsHeight, nav.currentTranslation);
+        var iy = d3.interpolate(nav.currentTranslation - height + nav.axisHeight, nav.currentTranslation);
         return function(t) {
           nav.scroll.translate([0, iy(t)]);
           nav.scroll.event(mainGroup);
@@ -92,10 +91,10 @@ module.exports = function(emitter, timePrefs) {
       });
     }
     else {
-      nav.currentTranslation -= height - nav.axisHeight - statsHeight;
+      nav.currentTranslation -= height - nav.axisHeight;
       emitter.emit('inTransition', true);
       mainGroup.transition().duration(500).tween('zoom', function() {
-        var iy = d3.interpolate(nav.currentTranslation + height - nav.axisHeight - statsHeight, nav.currentTranslation);
+        var iy = d3.interpolate(nav.currentTranslation + height - nav.axisHeight, nav.currentTranslation);
         return function(t) {
           nav.scroll.translate([0, iy(t)]);
           nav.scroll.event(mainGroup);
@@ -115,10 +114,10 @@ module.exports = function(emitter, timePrefs) {
     log('Jumped back two weeks.');
     var n = 0;
     if (sortReverse) {
-      nav.currentTranslation -= height - nav.axisHeight - statsHeight;
+      nav.currentTranslation -= height - nav.axisHeight;
       emitter.emit('inTransition', true);
       mainGroup.transition().duration(500).tween('zoom', function() {
-        var iy = d3.interpolate(nav.currentTranslation + height - nav.axisHeight - statsHeight, nav.currentTranslation);
+        var iy = d3.interpolate(nav.currentTranslation + height - nav.axisHeight, nav.currentTranslation);
         return function(t) {
           nav.scroll.translate([0, iy(t)]);
           nav.scroll.event(mainGroup);
@@ -133,10 +132,10 @@ module.exports = function(emitter, timePrefs) {
       });
     }
     else {
-      nav.currentTranslation += height - nav.axisHeight - statsHeight;
+      nav.currentTranslation += height - nav.axisHeight;
       emitter.emit('inTransition', true);
       mainGroup.transition().duration(500).tween('zoom', function() {
-        var iy = d3.interpolate(nav.currentTranslation - height + nav.axisHeight + statsHeight, nav.currentTranslation);
+        var iy = d3.interpolate(nav.currentTranslation - height + nav.axisHeight, nav.currentTranslation);
         return function(t) {
           nav.scroll.translate([0, iy(t)]);
           nav.scroll.event(mainGroup);
@@ -165,7 +164,7 @@ module.exports = function(emitter, timePrefs) {
     var weight = 1.0;
     var cumWeight = weight * numPools;
     var totalPoolsHeight =
-      container.height() - nav.axisHeight - statsHeight;
+      container.height() - nav.axisHeight;
     poolScaleHeight = totalPoolsHeight/cumWeight;
     var actualPoolsHeight = 0;
     pools.forEach(function(pool) {
@@ -192,7 +191,7 @@ module.exports = function(emitter, timePrefs) {
       }
     }
     else {
-      currentYPosition = container.height() - statsHeight - poolScaleHeight;
+      currentYPosition = container.height() - poolScaleHeight;
       nextBatchYPosition = currentYPosition + poolScaleHeight;
       for (var k = viewIndex; k < pools.length; k++) {
         pool = pools[k];
@@ -208,13 +207,6 @@ module.exports = function(emitter, timePrefs) {
         pool.group().attr('transform', 'translate(0,' + pool.yPosition() + ')');
       }
     }
-
-    // setup stats group
-    container.poolStats = new Pool(container);
-    container.poolStats.id('poolStats', poolGroup).heightRatio(1.05).height(statsHeight * (4/5));
-    container.poolStats.group().attr({
-      transform: 'translate(' + axisGutter + ',' + (height - statsHeight) + ')'
-    });
   };
 
   container.clear = function() {
@@ -364,7 +356,7 @@ module.exports = function(emitter, timePrefs) {
       .attr({
         x: 0,
         y: 0,
-        height: height - nav.axisHeight - statsHeight,
+        height: height - nav.axisHeight,
         width: width,
         transform: 'translate(0,' + nav.axisHeight + ')'
       });
@@ -427,7 +419,7 @@ module.exports = function(emitter, timePrefs) {
 
     // set the domain and range for the main two-week y-scale
     yScale.domain(viewEndpoints)
-      .range([nav.axisHeight, height - statsHeight])
+      .range([nav.axisHeight, height])
       .ticks(d3.time.day.utc, 1);
 
     yAxis = d3.svg.axis().scale(yScale)
@@ -450,13 +442,13 @@ module.exports = function(emitter, timePrefs) {
       start.setUTCDate(start.getUTCDate() - 1);
       nav.scrollScale = d3.time.scale.utc()
           .domain([dataEndNoon, start])
-          .range([nav.axisHeight + nav.scrollThumbRadius, height - statsHeight - nav.scrollThumbRadius]);
+          .range([nav.axisHeight + nav.scrollThumbRadius, height - nav.scrollThumbRadius]);
 
     }
     else {
       nav.scrollScale = d3.time.scale.utc()
         .domain([dataStartNoon, dataEndNoon])
-        .range([nav.axisHeight + nav.scrollThumbRadius, height - statsHeight - nav.scrollThumbRadius]);
+        .range([nav.axisHeight + nav.scrollThumbRadius, height - nav.scrollThumbRadius]);
     }
 
     pools.forEach(function(pool) {
@@ -571,7 +563,7 @@ module.exports = function(emitter, timePrefs) {
       var translationAdjustment, yStart, xPos;
       if (sortReverse) {
         yStart = nav.scrollScale(viewEndpoints[1]);
-        translationAdjustment = height - statsHeight;
+        translationAdjustment = height;
 
         xPos = 2 * nav.navGutter / 3;
 
@@ -581,7 +573,7 @@ module.exports = function(emitter, timePrefs) {
             x1: xPos,
             x2: xPos,
             y1: nav.axisHeight + nav.scrollGutterWidth/2,
-            y2: height - statsHeight - nav.scrollGutterWidth/2,
+            y2: height - nav.scrollGutterWidth/2,
             'stroke-width': nav.scrollGutterWidth,
             'class': 'scroll'
           });
@@ -598,7 +590,7 @@ module.exports = function(emitter, timePrefs) {
             x1: xPos,
             x2: xPos,
             y1: nav.axisHeight + nav.scrollGutterWidth/2,
-            y2: height - statsHeight - nav.scrollGutterWidth/2,
+            y2: height - nav.scrollGutterWidth/2,
             'stroke-width': nav.scrollGutterWidth,
             'class': 'scroll'
           });
@@ -657,7 +649,6 @@ module.exports = function(emitter, timePrefs) {
     pools.forEach(function(pool) {
       pool.annotations(annotations);
     });
-    container.poolStats.annotations(annotations);
     return container;
   };
 
