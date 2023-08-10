@@ -59,15 +59,15 @@ class BasicsChart extends React.Component {
     trackMetric: PropTypes.func.isRequired,
   };
 
-  _insulinDataAvailable = () => {
-    const { basal, bolus, wizard } = _.get(this.props, 'data.metaData.latestDatumByType', {});
+  _insulinDataAvailable = (props = this.props) => {
+    const { basal, bolus, wizard } = _.get(props, 'data.metaData.latestDatumByType', {});
 
     return !!(basal || bolus || wizard);
   };
 
-  _siteChangeDataAvailable = () => {
+  _siteChangeDataAvailable = (props = this.props) => {
     const siteChangeDataCount = _.reduce(
-      _.get(this.props, 'data.data.current.aggregationsByDate.siteChanges.byDate'),
+      _.get(props, 'data.data.current.aggregationsByDate.siteChanges.byDate'),
       (result, value) => result + _.max(_.values(value.subtotals)),
       0
     );
@@ -101,6 +101,18 @@ class BasicsChart extends React.Component {
     this.setSectionsToState();
   }
 
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    let reRenderSections = false;
+
+    if (nextProps.aggregations) {
+      _.each(nextProps.aggregations, ({ disabled }, key) => {
+        if (disabled !== this.props.aggregations?.[key].disabled) reRenderSections = true;
+      });
+    }
+
+    if (reRenderSections) this.setSectionsToState(nextProps);
+  }
+
   componentDidMount() {
     var availableDeviceData = this._availableDeviceData();
 
@@ -114,7 +126,7 @@ class BasicsChart extends React.Component {
     }
   }
 
-  setSectionsToState = () => {
+  setSectionsToState = (props = this.props) => {
     const typeSectionIndexMap = {
       fingersticks: 0,
       boluses: 1,
@@ -124,7 +136,7 @@ class BasicsChart extends React.Component {
 
     const sections = [];
 
-    _.forOwn(this.props.aggregations, (aggregation, key) => {
+    _.forOwn(props.aggregations, (aggregation, key) => {
       const isSiteChanges = key === 'siteChanges';
       const section = _.cloneDeep(aggregation);
       let chart = WrapCount;
@@ -137,16 +149,16 @@ class BasicsChart extends React.Component {
       let settingsTogglable = togglableState.off;
 
       if (isSiteChanges) {
-        const { latestPumpUpload: latestPump } = _.get(this.props, 'data.metaData', {});
+        const { latestPumpUpload: latestPump } = _.get(props, 'data.metaData', {});
 
         const {
           profile: {
             fullName,
           },
           settings,
-        } = this.props.patient;
+        } = props.patient;
 
-        const permissions = this.props.permsOfLoggedInUser;
+        const permissions = props.permsOfLoggedInUser;
         const canUpdateSettings = permissions && (permissions.hasOwnProperty('custodian') || permissions.hasOwnProperty('root'));
         const hasSiteChangeSourceSettings = settings && settings.hasOwnProperty('siteChangeSource');
 
@@ -182,7 +194,7 @@ class BasicsChart extends React.Component {
         if (_.isArray(selectorOptions.primary)) selectorOptions.primary = selectorOptions.primary[0] || {};
 
         if (section.type === 'basals') {
-          const basalAggregationData = this.props.data?.data?.aggregationsByDate?.basals;
+          const basalAggregationData = props.data?.data?.aggregationsByDate?.basals;
           const hasAutomatedSuspends = basalAggregationData?.automatedSuspend?.summary?.subtotals?.automatedSuspend?.count > 0;
           const hasAutomatedStops = basalAggregationData?.basal?.summary?.subtotals?.automatedStop?.count > 0;
           if (hasAutomatedSuspends && hasAutomatedStops) section.perRow = 2;
