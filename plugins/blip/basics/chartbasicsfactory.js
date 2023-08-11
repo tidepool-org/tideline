@@ -101,6 +101,7 @@ class BasicsChart extends React.Component {
     this.setSectionsToState();
   }
 
+  // eslint-disable-next-line camelcase
   UNSAFE_componentWillReceiveProps(nextProps) {
     let reRenderSections = false;
 
