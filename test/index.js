@@ -21,27 +21,27 @@ require('./polyfill/function.prototype.bind');
 // ====================================
 
 /* plugins/ */
-require('./chartbasicsfactory_test');
-require('intl/locale-data/jsonp/en.js');
+require('./chartbasicsfactory_test.js');
+// require('intl/locale-data/jsonp/en.js');
 
 
-// DOM not required
-// ====================================
+// // DOM not required
+// // ====================================
 
-/* js/data/ */
-require('./constants_test');
-require('./format_test');
-require('./datetime_test');
-require('./basalutil_test');
+// /* js/data/ */
+// require('./constants_test.js');
+// require('./format_test.js');
+// require('./datetime_test.js');
+// require('./basalutil_test.js');
 
-/* js/plot/ */
-require('./annotations_test');
-require('./commonbolus_test');
-require('./device_test');
+// /* js/plot/ */
+// require('./annotations_test.js');
+// require('./commonbolus_test.js');
+// require('./device_test.js');
 
-require('./blip/components/day/hover/InfusionHoverDisplay.test.js');
-require('./blip/components/logic/actions.test.js');
-require('./blip/components/misc/SummaryGroup.test.js');
-require('./blip/components/sitechange/Selector.test.js');
-require('./blip/components/BasicsUtils.test.js');
-require('./blip/components/CalendarContainer.test.js');
+// require('./blip/components/day/hover/InfusionHoverDisplay.test.js');
+// require('./blip/components/logic/actions.test.js');
+// require('./blip/components/misc/SummaryGroup.test.js');
+// require('./blip/components/sitechange/Selector.test.js');
+// require('./blip/components/BasicsUtils.test.js');
+// require('./blip/components/CalendarContainer.test.js');

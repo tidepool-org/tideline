@@ -1,4 +1,11 @@
-var webpackConf = require('./test.config.js');
+var webpackConf = require('./webpack.config.js');
+
+webpackConf.externals = {
+  cheerio: 'window',
+  'react/addons': true,
+  'react/lib/ExecutionEnvironment': true,
+  'react/lib/ReactContext': true,
+};
 
 module.exports = function (config) {
   config.set({
@@ -25,13 +32,24 @@ module.exports = function (config) {
       },
     },
     files: [
-      'test/index.js'
+      'loadtests.js',
     ],
-    frameworks: [ 'mocha', 'sinon', 'chai', 'intl-shim' ],
+    frameworks: ['webpack', 'mocha', 'chai', 'sinon', 'intl-shim'],
     logLevel: config.LOG_INFO,
     preprocessors: {
-      'test/index.js': [ 'webpack' ] // Preprocess with webpack and our sourcemap loader
+      'loadtests.js': ['webpack', 'sourcemap'],
     },
+    plugins: [
+      'karma-webpack',
+      'karma-sourcemap-loader',
+      'karma-mocha',
+      'karma-mocha-reporter',
+      'karma-chai',
+      'karma-sinon',
+      'karma-intl-shim',
+      'karma-chrome-launcher',
+      'karma-coverage',
+    ],
     reporters: [ 'mocha' ],
     singleRun: true,
     webpack: webpackConf,
