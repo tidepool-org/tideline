@@ -15,8 +15,7 @@
  * == BSD2 LICENSE ==
  */
 var _ = require('lodash');
-window.d3 = window.d3 || require('d3/d3.min.js');
-window.d3.chart = window.d3.chart || require('d3.chart/d3.chart.min.js');
+window.d3 = window.d3 || require('d3');
 
 var i18next = require('i18next');
 // Should be initialized in calling module

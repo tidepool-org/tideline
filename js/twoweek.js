@@ -426,7 +426,7 @@ module.exports = function(emitter, timePrefs) {
       .orient('left')
       .outerTickSize(0)
       .innerTickSize(dayTickSize)
-      .tickFormat(d3.time.format.utc('%a'));
+      .tickFormat(d3.timeFormat.utc('%a'));
 
     mainGroup.select('#tidelineYAxisGroup')
       .append('g')
@@ -470,7 +470,7 @@ module.exports = function(emitter, timePrefs) {
       .text(function(d) {
         var date = d.getUTCDay();
         var format = date === 0 ? '%b %-d' : '%-d';
-        return d3.time.format.utc(format)(d);
+        return d3.timeFormat.utc(format)(d);
       })
       .attr({
         x: xPos,

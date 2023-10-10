@@ -43,7 +43,7 @@ var format = {
   },
 
   tooltipBGValue: function(value, units) {
-    return units === MGDL_UNITS ? d3.format('g')(Math.round(value)) : d3.format('.1f')(value);
+    return units === MGDL_UNITS ? d3.format('.0g')(Math.round(value)) : d3.format('.1f')(value);
   },
 
   tooltipValue: function(x) {
@@ -115,13 +115,13 @@ var format = {
       return '-- %';
     }
     else {
-      return d3.format('%')(f);
+      return d3.format('.0%')(f);
     }
   },
 
   millisecondsAsTimeOfDay: function(i) {
     var d = new Date(i);
-    return d3.time.format.utc('%-I:%M %p')(d);
+    return d3.utcFormat('%-I:%M %p')(d);
   },
 
   timespan: function(d) {
@@ -200,7 +200,7 @@ var format = {
     if (offset) {
       d.setUTCMinutes(d.getUTCMinutes() + offset);
     }
-    return d3.time.format.utc('%-I:%M %p')(d).toLowerCase();
+    return d3.utcFormat('%-I:%M %p')(d).toLowerCase();
   },
 
   /**
@@ -261,7 +261,7 @@ var format = {
     if (offset) {
       d.setUTCMinutes(d.getUTCMinutes() + offset);
     }
-    return d3.time.format.utc('%-I %p')(d).toLowerCase();
+    return d3.utcFormat('%-I %p')(d).toLowerCase();
   }
 };
 
