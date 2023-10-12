@@ -1,5 +1,9 @@
 {
   "name": "tideline",
+  "engines": {
+    "node": "20.8.0"
+  },
+  "packageManager": "yarn@3.6.4",
   "version": "1.28.0-web-2595-critical-depandancy-updates.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
@@ -9,11 +13,11 @@
   "main": "js/index.js",
   "license": "BSD-2-Clause",
   "scripts": {
-    "test": "TZ=UTC NODE_ENV=test ./node_modules/karma/bin/karma start",
+    "test": "TZ=UTC NODE_ENV=test yarn karma start",
     "pretest": "NODE_ENV=test npm run lint",
-    "browser-tests": "./node_modules/karma/bin/karma start --browsers Chrome",
-    "test-watch": "TZ=UTC NODE_ENV=test ./node_modules/karma/bin/karma start --no-single-run --reporters=mocha",
-    "lint": "NODE_ENV=test ./node_modules/.bin/eslint js/ plugins/ test/ *.js"
+    "browser-tests": "yarn karma start --browsers Chrome",
+    "test-watch": "TZ=UTC NODE_ENV=test yarn karma start --no-single-run --reporters=mocha",
+    "lint": "NODE_ENV=test yarn eslint js/ plugins/ test/ *.js"
   },
   "dependencies": {
     "bows": "1.7.2",
@@ -24,6 +28,7 @@
     "i18next": "23.5.1",
     "intl": "1.2.5",
     "lodash": "4.17.21",
+    "moment": "2.29.4",
     "moment-timezone": "0.5.43",
     "react": "16.14.0",
     "react-dom": "16.14.0",
@@ -35,6 +40,7 @@
     "@babel/core": "7.23.0",
     "@babel/plugin-proposal-class-properties": "7.21.4-esm.4",
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
+    "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@babel/polyfill": "7.12.1",
     "@babel/preset-env": "7.22.20",
     "@babel/preset-react": "7.22.15",

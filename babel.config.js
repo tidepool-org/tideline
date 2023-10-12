@@ -1,12 +1,11 @@
 module.exports = function babelConfig(api) {
   const presets = [
-    ['@babel/preset-env', { loose: true }],
+    '@babel/preset-env',
     '@babel/preset-react',
     'babel-preset-react-app',
   ];
 
   const plugins = [
-    ['@babel/plugin-proposal-class-properties', { loose: true }],
     '@babel/plugin-transform-modules-commonjs',
   ];
 

@@ -5,7 +5,7 @@ language: node_js
 dist: trusty
 
 node_js:
-  - "16.20.2"
+  - "20.8.0"
   - "stable"
 
 cache:
