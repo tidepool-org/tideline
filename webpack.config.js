@@ -23,8 +23,10 @@ const styleLoaderConfiguration = [
       {
         loader: 'css-loader?sourceMap',
         options: {
+          modules: {
+            localIdentName,
+          },
           importLoaders: 1,
-          localIdentName,
           modules: true,
           sourceMap: true,
         },
@@ -117,9 +119,6 @@ const plugins = [
   new webpack.DefinePlugin({
     __DEV__: isDev,
   }),
-  new webpack.LoaderOptionsPlugin({
-    debug: true,
-  }),
   new NodePolyfillPlugin(),
 ];
 
@@ -128,8 +127,8 @@ const entry = {
 };
 
 const output = {
-  // filename: '[name].js',
-  // assetModuleFilename: '[name][ext]',
+  filename: '[name].js',
+  assetModuleFilename: '[name][ext]',
   path: path.join(__dirname, '/dist/'),
 };
 

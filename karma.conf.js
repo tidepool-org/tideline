@@ -1,4 +1,5 @@
-var webpackConf = require('./webpack.config.js');
+const path = require('path');
+const webpackConf = require('./webpack.config.js');
 
 webpackConf.externals = {
   cheerio: 'window',
@@ -6,6 +7,12 @@ webpackConf.externals = {
   'react/lib/ExecutionEnvironment': true,
   'react/lib/ReactContext': true,
 };
+
+webpackConf.output = {
+  path: path.join(__dirname, '/dist/'),
+};
+
+delete webpackConf.entry;
 
 module.exports = function (config) {
   config.set({
@@ -36,9 +43,6 @@ module.exports = function (config) {
     ],
     frameworks: ['webpack', 'mocha', 'chai', 'sinon', 'intl-shim'],
     logLevel: config.LOG_INFO,
-    preprocessors: {
-      'loadtests.js': ['webpack', 'sourcemap'],
-    },
     plugins: [
       'karma-webpack',
       'karma-sourcemap-loader',
@@ -50,6 +54,9 @@ module.exports = function (config) {
       'karma-chrome-launcher',
       'karma-coverage',
     ],
+    preprocessors: {
+      'loadtests.js': ['webpack', 'sourcemap'],
+    },
     reporters: [ 'mocha' ],
     singleRun: true,
     webpack: webpackConf,
