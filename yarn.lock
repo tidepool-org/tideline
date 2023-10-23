@@ -6160,12 +6160,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:23.5.1":
-  version: 23.5.1
-  resolution: "i18next@npm:23.5.1"
+"i18next@npm:23.6.0":
+  version: 23.6.0
+  resolution: "i18next@npm:23.6.0"
   dependencies:
     "@babel/runtime": ^7.22.5
-  checksum: 4be043bd72287bfae9777a3252b9458d2e3f5e9a97ea62cf434e6e3767b45df4365d8780d0dd14efd4e9da5eb0f90534510b138f1372d1cb9012000a69bbedaf
+  checksum: 0898be75ce56a5901eb9763c8cd941a23cfc24fbe7b32ba0479c08f58c40c1c88c95596430154a6250087ec76d150335144b2cb637ebaa443490b9af7b6e275e
   languageName: node
   linkType: hard
 
@@ -9744,7 +9744,7 @@ __metadata:
     eslint-plugin-moment-utc: 1.0.0
     eslint-plugin-react: 7.33.2
     file-loader: 6.2.0
-    i18next: 23.5.1
+    i18next: 23.6.0
     intl: 1.2.5
     intl-pluralrules: 2.0.1
     jshint: 2.13.6
