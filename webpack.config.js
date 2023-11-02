@@ -71,44 +71,24 @@ const babelLoaderConfiguration = {
 // This is needed for webpack to import static images in JavaScript files
 const imageLoaderConfiguration = {
   test: /\.(gif|jpe?g|png|svg)$/,
-  use: {
-    loader: 'url-loader',
-    options: {
-      name: '[name].[ext]',
-    },
+  type: 'asset/resource',
+  generator: {
+    filename: '[name].[ext]'
   },
 };
 
 const fontLoaderConfiguration = [
   {
     test: /\.eot$/,
-    use: {
-      loader: 'url-loader',
-      options: {
-        limit: 10000,
-        mimetype: 'application/vnd.ms-fontobject',
-      },
-    },
+    type: 'asset/resource',
   },
   {
     test: /\.woff$/,
-    use: {
-      loader: 'url-loader',
-      options: {
-        limit: 10000,
-        mimetype: 'application/font-woff',
-      },
-    },
+    type: 'asset/resource',
   },
   {
     test: /\.ttf$/,
-    use: {
-      loader: 'url-loader',
-      options: {
-        limit: 10000,
-        mimetype: 'application/octet-stream',
-      },
-    },
+    type: 'asset/resource',
   },
 ];
 
