@@ -3,7 +3,6 @@
 *.idea
 *.iml
 *.log
-.yarn
 forks/
 node_modules/
 dev/demodata/indexed_segments.json
@@ -12,3 +11,11 @@ tmp/
 web/
 wiki/
 package-lock.json
+
+# yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
