@@ -20,7 +20,6 @@
 var i18next = require('i18next');
 var t = i18next.t.bind(i18next);
 
-// in order to get d3.chart dependency
 var tideline = require('../../../js/');
 
 var _ = require('lodash');
