@@ -119,6 +119,9 @@ const resolve = {
   extensions: [
     '.js',
   ],
+  fallback: {
+    fs: false,
+  },
 };
 
 module.exports = {

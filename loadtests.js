@@ -18,5 +18,5 @@ enzyme.configure({
   disableLifecycleMethods: true,
 });
 
-const context = require.context('./test', true, /_test\.js$/); // Load .js files in /test
+const context = require.context('./test', true, /(\.|_)test\.js$/); // Load .js files in /test
 context.keys().forEach(context);
