@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.28.0",
+  "version": "1.28.1-web-2959-dep-update",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
@@ -39,7 +39,6 @@
   "devDependencies": {
     "@babel/cli": "7.23.0",
     "@babel/core": "7.23.0",
-    "@babel/plugin-proposal-class-properties": "7.21.4-esm.4",
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@babel/polyfill": "7.12.1",
