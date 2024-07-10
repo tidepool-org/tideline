@@ -27,6 +27,7 @@ class SiteChange extends React.Component {
   static propTypes = {
     data: PropTypes.object.isRequired,
     date: PropTypes.string.isRequired,
+    manufacturer: PropTypes.string,
     subtotalType: PropTypes.string,
   };
 
@@ -36,7 +37,7 @@ class SiteChange extends React.Component {
     var daysSince = _.get(this.props.data, ['summary', 'daysSince', type]);
     var siteChangeComponent =
       (count > 0) ?
-        <Change daysSince={daysSince} count={count} type={type} /> :
+        <Change daysSince={daysSince} count={count} type={type} manufacturer={this.props.manufacturer} /> :
         <NoChange />;
     return (
       <div className='SiteChange'>

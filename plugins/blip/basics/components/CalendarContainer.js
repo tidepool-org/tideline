@@ -47,6 +47,7 @@ var CalendarContainer = createReactClass({
     days: PropTypes.array.isRequired,
     hasHover: PropTypes.bool.isRequired,
     hoverDisplay: PropTypes.func,
+    manufacturer: PropTypes.string,
     onSelectDay: PropTypes.func.isRequired,
     sectionId: PropTypes.string.isRequired,
     selector: PropTypes.func,
@@ -89,7 +90,7 @@ var CalendarContainer = createReactClass({
       return _.get(_.find(_.flatten(options.rows), {selected: true}), 'key', options.primary.key);
     }
 
-    return null;
+    return this.props.source !== constants.SECTION_TYPE_UNDECLARED ? this.props.source : null;
   },
 
   componentWillMount() {
@@ -210,6 +211,7 @@ var CalendarContainer = createReactClass({
             chartWidth={self.props.chartWidth}
             data={dateData}
             date={day.date}
+            manufacturer={self.props.manufacturer}
             outOfRange={day.type === 'outOfRange' || isExcludedBolusDay}
             isFirst={index === 0}
             mostRecent={day.type === 'inRange' && nextDay.type === 'outOfRange'}

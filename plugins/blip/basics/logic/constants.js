@@ -12,6 +12,7 @@ module.exports = {
   SITE_CHANGE_CANNULA: 'cannulaPrime',
   SECTION_TYPE_UNDECLARED: 'undeclared',
   INSULET: 'Insulet',
+  LOOP: 'Loop',
   TANDEM: 'Tandem',
   ANIMAS: 'Animas',
   MEDTRONIC: 'Medtronic',
