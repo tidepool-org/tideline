@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.28.1-web-2959-dep-update",
+  "version": "1.28.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
