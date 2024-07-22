@@ -21,19 +21,34 @@ var format = require('../../data/util/format');
 
 module.exports = {
   getRecommended: function(d) {
-    if (!d.recommended) {
+    let event = d;
+
+    if (_.get(d, 'type') === 'bolus' && (event.dosingDecision || event.wizard)) {
+      event = event.dosingDecision || event.wizard;
+    }
+
+    if (!event.recommended && !event.recommendedBolus) {
       return NaN;
     }
-    if (d.recommended.net != null) {
-      return d.recommended.net;
+
+    const netRecommendation = event.recommendedBolus
+      ? _.get(event, ['recommendedBolus', 'amount'], null)
+      : _.get(event, ['recommended', 'net'], null);
+
+    console.log('netRecommendation', netRecommendation);
+
+    if (netRecommendation != null) {
+      return netRecommendation;
     }
+
     var rec = 0;
-    if (d.recommended.carb) {
-      rec += d.recommended.carb;
+    if (event.recommended.carb) {
+      rec += event.recommended.carb;
     }
-    if (d.recommended.correction) {
-      rec += d.recommended.correction;
+    if (event.recommended.correction) {
+      rec += event.recommended.correction;
     }
+
     return format.fixFloatingPoint(rec);
   },
   getMaxValue: function(d) {
@@ -84,6 +99,7 @@ module.exports = {
         return NaN;
       }
     }
+    if (d.type === 'bolus')
     if (d.extended != null && d.expectedExtended != null) {
       if (d.normal != null) {
         if (d.expectedNormal != null) {
