@@ -35,8 +35,6 @@ module.exports = {
       ? _.get(event, ['recommendedBolus', 'amount'], null)
       : _.get(event, ['recommended', 'net'], null);
 
-    console.log('netRecommendation', netRecommendation);
-
     if (netRecommendation != null) {
       return netRecommendation;
     }
