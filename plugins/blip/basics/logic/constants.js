@@ -13,7 +13,7 @@ module.exports = {
   SECTION_TYPE_UNDECLARED: 'undeclared',
   INSULET: 'Insulet',
   TIDEPOOL_LOOP: 'Tidepool Loop',
-  LOOP: 'Loop',
+  DIY_LOOP: 'DIY Loop',
   TANDEM: 'Tandem',
   ANIMAS: 'Animas',
   MEDTRONIC: 'Medtronic',

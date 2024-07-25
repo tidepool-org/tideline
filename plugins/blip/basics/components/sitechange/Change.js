@@ -50,7 +50,7 @@ class Change extends React.Component {
       'Change--cannula': (this.props.type === constants.SITE_CHANGE_CANNULA),
       'Change--tubing': (this.props.type === constants.SITE_CHANGE_TUBING),
       'Change--reservoir': (this.props.type === constants.SITE_CHANGE_RESERVOIR),
-      'Change--loop-tubing': (_.includes([constants.LOOP, constants.TIDEPOOL_LOOP].map(_.toLowerCase), this.props.manufacturer) && this.props.type === constants.SITE_CHANGE_TUBING),
+      'Change--loop-tubing': (_.includes([constants.DIY_LOOP, constants.TIDEPOOL_LOOP].map(_.toLowerCase), this.props.manufacturer) && this.props.type === constants.SITE_CHANGE_TUBING),
     });
 
     return (
