@@ -168,7 +168,7 @@ class BasicsChart extends React.Component {
         selector = SiteChangeSelector;
         settingsTogglable = togglableState.off;
 
-        if (!_.includes(_.map([constants.INSULET, constants.LOOP], _.lowerCase), section.manufacturer)) {
+        if (!_.includes(_.map([constants.INSULET, constants.LOOP, constants.TIDEPOOL_LOOP], _.lowerCase), section.manufacturer)) {
           hasHover = hasSiteChangeSourceSettings;
           settingsTogglable = hasSiteChangeSourceSettings ? togglableState.closed : togglableState.open;
 

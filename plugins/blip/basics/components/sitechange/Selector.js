@@ -203,6 +203,11 @@ var Selector = createReactClass({
         [constants.SITE_CHANGE_TUBING]: 'Prime',
         [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
       },
+      [constants.TIDEPOOL_LOOP]: {
+        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
+        [constants.SITE_CHANGE_TUBING]: 'Prime',
+        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+      },
       [constants.MEDTRONIC]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',
         [constants.SITE_CHANGE_TUBING]: 'Prime',
