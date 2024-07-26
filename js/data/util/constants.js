@@ -1,6 +1,7 @@
 /* jshint esversion:6 */
 const i18next = require('i18next');
 const t = i18next.t.bind(i18next);
+var constants = require('../../../plugins/blip/basics/logic/constants')
 
 const MGDL_UNITS = t('mg/dL');
 const MMOLL_UNITS = t('mmol/L');
@@ -8,6 +9,7 @@ const MGDL_PER_MMOLL = 18.01559;
 
 const SLEEP = 'sleep';
 const PHYSICAL_ACTIVITY = 'physicalActivity';
+const PREPRANDIAL = 'preprandial';
 
 module.exports = {
   AUTOMATED_BASAL_DEVICE_MODELS: {
@@ -21,6 +23,14 @@ module.exports = {
     Tandem: {
       [SLEEP]: { label: t('Sleep'), marker: t('Z') },
       [PHYSICAL_ACTIVITY]: { label: t('Exercise'), marker: t('E') },
+    },
+    [constants.DIY_LOOP.toLowerCase()]: {
+      [PHYSICAL_ACTIVITY]: { label: t('Workout'), marker: t('W') },
+      [PREPRANDIAL]: { label: t('Premeal'), marker: t('P') },
+    },
+    [constants.TIDEPOOL_LOOP.toLowerCase()]: {
+      [PHYSICAL_ACTIVITY]: { label: t('Workout'), marker: t('W') },
+      [PREPRANDIAL]: { label: t('Premeal'), marker: t('P') },
     },
   },
   SCHEDULED_BASAL_LABELS: {
