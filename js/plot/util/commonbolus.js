@@ -97,7 +97,6 @@ module.exports = {
         return NaN;
       }
     }
-    if (d.type === 'bolus')
     if (d.extended != null && d.expectedExtended != null) {
       if (d.normal != null) {
         if (d.expectedNormal != null) {
