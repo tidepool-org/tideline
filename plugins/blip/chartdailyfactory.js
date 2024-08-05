@@ -369,6 +369,7 @@ function chartDailyFactory(el, options) {
       emitter: emitter,
       data: groupedData.deviceEvent,
       timezoneAware: chart.options.timePrefs.timezoneAware,
+      timezoneName: chart.options.timePrefs.timezoneName,
       onPumpSettingsOverrideHover: options.onPumpSettingsOverrideHover,
       onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
     }), true, true);

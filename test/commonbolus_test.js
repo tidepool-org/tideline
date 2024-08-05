@@ -1,15 +1,15 @@
 /*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -18,6 +18,7 @@
 var chai = require('chai');
 var assert = chai.assert;
 var expect = chai.expect;
+var { MS_IN_HOUR } = require('../plugins/blip/basics/logic/constants');
 
 var commonbolus = require('../js/plot/util/commonbolus');
 
@@ -126,7 +127,18 @@ describe('common bolus functions', function() {
       recommended: {
         net: 2.0
       }
-    }
+    },
+    withDosingDecision: {
+      type: 'bolus',
+      normal: 1.0,
+      bgInput: 192,
+      carbInput: 24,
+      expectedNormal: 6,
+      insulinOnBoard: 2.654,
+      dosingDecision: {
+        recommendedBolus: { amount: 1.5 },
+      },
+    },
   };
 
   describe('getRecommended', function() {
@@ -136,6 +148,10 @@ describe('common bolus functions', function() {
 
     it('should return NaN when no recommended', function() {
       expect(isNaN(commonbolus.getRecommended(fixtures.normal))).to.be.true;
+      expect(isNaN(commonbolus.getRecommended({
+        ...fixtures.withDosingDecision,
+        dosingDecision: { recommendedBolus: undefined },
+      }))).to.be.true;
     });
 
     it('should return 0.0 when override of suggestion of no bolus', function() {
@@ -157,6 +173,10 @@ describe('common bolus functions', function() {
 
     it('should return net rec when net rec exists', function() {
       expect(commonbolus.getRecommended(fixtures.withNetRec)).to.equal(fixtures.withNetRec.recommended.net);
+    });
+
+    it('should return net rec when net rec exists within dosingDecision', function() {
+      expect(commonbolus.getRecommended(fixtures.withDosingDecision)).to.equal(fixtures.withDosingDecision.dosingDecision.recommendedBolus.amount);
     });
   });
 

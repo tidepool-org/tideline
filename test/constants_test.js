@@ -58,6 +58,14 @@ describe('constants', function() {
         sleep: { label: 'Sleep', marker: 'Z' },
         physicalActivity: { label: 'Exercise', marker: 'E' },
       },
+      ['diy loop']: {
+        physicalActivity: { label: 'Workout', marker: 'W' },
+        preprandial: { label: 'Premeal', marker: 'P' },
+      },
+      ['tidepool loop']: {
+        physicalActivity: { label: 'Workout', marker: 'W' },
+        preprandial: { label: 'Premeal', marker: 'P' },
+      },
     });
   });
 

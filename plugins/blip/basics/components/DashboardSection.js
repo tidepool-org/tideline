@@ -63,6 +63,7 @@ class DashboardSection extends React.Component {
           excludeDaysWithoutBolus={this.props.excludeDaysWithoutBolus}
           hasHover={section.hasHover}
           hoverDisplay={section.hoverDisplay}
+          manufacturer={section.manufacturer}
           onSelectDay={this.props.onSelectDay}
           sectionId={section.id}
           selector={section.selector}
