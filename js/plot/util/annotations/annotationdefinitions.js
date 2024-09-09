@@ -24,6 +24,7 @@ var format = require('../../../data/util/format');
 var definitions = {
   DISABLED: [
     'basal/auto',
+    'bolus/mutable',
     'bg/out-of-range',
     'medtronic600/smbg/bg-reading-received',
     'medtronic600/smbg/user-accepted-remote-bg',
