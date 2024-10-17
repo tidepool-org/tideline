@@ -14,6 +14,7 @@ class ADay extends React.Component {
     chartWidth: PropTypes.number.isRequired,
     data: PropTypes.object,
     date: PropTypes.string.isRequired,
+    manufacturer: PropTypes.string,
     outOfRange: PropTypes.bool.isRequired,
     isFirst: PropTypes.bool.isRequired,
     mostRecent: PropTypes.bool.isRequired,
@@ -83,6 +84,7 @@ class ADay extends React.Component {
         chartWidth: this.props.chartWidth,
         data: this.props.data,
         date: this.props.date,
+        manufacturer: this.props.manufacturer,
         subtotalType: this.props.subtotalType,
       });
     }

@@ -72,6 +72,20 @@ module.exports = function(pool, opts) {
 
       drawBolus.extended(extended);
 
+      // boluses where recommended > delivered
+      var underride = boluses.filter(function(d) {
+        return commonbolus.getRecommended(d) > commonbolus.getDelivered(d);
+      });
+
+      drawBolus.underride(underride);
+
+      // boluses where delivered > recommended
+      var override = boluses.filter(function(d) {
+        return commonbolus.getDelivered(d) > commonbolus.getRecommended(d);
+      });
+
+      drawBolus.override(override);
+
       // boluses where programmed differs from delivered
       var suspended = boluses.filter(function(d) {
         return commonbolus.getDelivered(d) !== commonbolus.getProgrammed(d);

@@ -1,6 +1,7 @@
 /* jshint esversion:6 */
 var d3 = require('d3');
 var _ = require('lodash');
+var moment = require('moment-timezone');
 
 var { SETTINGS_OVERRIDE_LABELS } = require('../data/util/constants');
 
@@ -30,7 +31,12 @@ module.exports = function(pool, opts) {
           res[res.length - 1].normalEnd = datum.normalEnd;
           res[res.length - 1].duration += datum.duration;
         } else {
-          res.push(datum);
+          // No need to stitch, but we still want to truncate the override end if it's scheduled to
+          // extend into the future
+          res.push({
+            ...datum,
+            normalEnd: _.min([datum.normalEnd, moment().tz(opts.timezoneName).valueOf()]),
+          });
         }
 
         return res;

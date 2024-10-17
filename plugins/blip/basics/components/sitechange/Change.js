@@ -26,6 +26,7 @@ class Change extends React.Component {
   static propTypes = {
     daysSince: PropTypes.number.isRequired,
     count: PropTypes.number,
+    manufacturer: PropTypes.string,
     type: PropTypes.string.isRequired,
   };
 
@@ -49,6 +50,7 @@ class Change extends React.Component {
       'Change--cannula': (this.props.type === constants.SITE_CHANGE_CANNULA),
       'Change--tubing': (this.props.type === constants.SITE_CHANGE_TUBING),
       'Change--reservoir': (this.props.type === constants.SITE_CHANGE_RESERVOIR),
+      'Change--loop-tubing': (_.includes(_.map([constants.DIY_LOOP, constants.TIDEPOOL_LOOP], _.lowerCase), this.props.manufacturer) && this.props.type === constants.SITE_CHANGE_TUBING),
     });
 
     return (
