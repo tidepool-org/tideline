@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.30.0",
+  "version": "1.31.0-web-3274-device-settings-data-sources.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
