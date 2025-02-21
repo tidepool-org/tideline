@@ -116,7 +116,7 @@ function chartDailyFactory(el, options) {
     poolBG = chart.newPool()
       .id('poolBG', chart.poolGroup())
       .label([{
-        'main': t('Blood Glucose'),
+        'main': t('Glucose'),
         'light': ' ' + chart.options.bgUnits
       }])
       .labelBaseline(options.labelBaseline)
