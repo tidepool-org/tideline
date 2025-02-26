@@ -149,20 +149,22 @@ module.exports = {
   },
 
   isOverride: (d) => {
-    const amountRecommended = module.exports.getRecommended(d);
-    const amountProgrammed = module.exports.getProgrammed(d);
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
 
     if (!amountRecommended) return false;
 
-    return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed > amountRecommended;
+    return self.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed > amountRecommended;
   },
 
   isUnderride: (d) => {
-    const amountRecommended = module.exports.getRecommended(d);
-    const amountProgrammed = module.exports.getProgrammed(d);
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
 
     if (!amountRecommended) return false;
 
-    return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed < amountRecommended;
+    return self.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed < amountRecommended;
   }
 };
