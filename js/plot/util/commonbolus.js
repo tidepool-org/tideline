@@ -152,12 +152,16 @@ module.exports = {
     const amountRecommended = module.exports.getRecommended(d);
     const amountProgrammed = module.exports.getProgrammed(d);
 
+    if (!amountRecommended) return false;
+
     return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed > amountRecommended;
   },
 
   isUnderride: (d) => {
     const amountRecommended = module.exports.getRecommended(d);
     const amountProgrammed = module.exports.getProgrammed(d);
+
+    if (!amountRecommended) return false;
 
     return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed < amountRecommended;
   }
