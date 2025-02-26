@@ -142,5 +142,23 @@ module.exports = {
       return NaN;
     }
     return d.expectedDuration || d.duration;
+  },
+
+  isDifferentBeyondPrecision: (a, b, precision) => {
+    return _.round(a, precision) !== _.round(b, precision);
+  },
+
+  isOverride: (d) => {
+    const amountRecommended = module.exports.getRecommended(d);
+    const amountProgrammed = module.exports.getProgrammed(d);
+
+    return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed > amountRecommended;
+  },
+
+  isUnderride: (d) => {
+    const amountRecommended = module.exports.getRecommended(d);
+    const amountProgrammed = module.exports.getProgrammed(d);
+
+    return module.exports.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed < amountRecommended;
   }
 };

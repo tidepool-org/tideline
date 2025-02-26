@@ -94,14 +94,14 @@ module.exports = function(pool, opts) {
 
       // boluses where recommended > delivered
       var underride = boluses.filter(function(d) {
-        return commonbolus.getRecommended(d) > commonbolus.getDelivered(d);
+        return commonbolus.isUnderride(d);
       });
 
       drawBolus.underride(underride);
 
       // boluses where delivered > recommended
       var override = boluses.filter(function(d) {
-        return commonbolus.getDelivered(d) > commonbolus.getRecommended(d);
+        return commonbolus.isOverride(d);
       });
 
       drawBolus.override(override);
