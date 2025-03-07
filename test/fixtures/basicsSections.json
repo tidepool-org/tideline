@@ -248,7 +248,7 @@
     "source": "cannulaPrime",
     "manufacturer": "animas",
     "disabled": false,
-    "subTitle": "Fill Cannula",
+    "subTitle": "Cannula Fill",
     "hasHover": true,
     "id": "siteChanges",
     "index": 2,

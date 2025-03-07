@@ -191,42 +191,47 @@ var Selector = createReactClass({
       [constants.ANIMAS]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Go Rewind',
         [constants.SITE_CHANGE_TUBING]: 'Go Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.INSULET]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Activate Pod',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Pod Activate',
         [constants.SITE_CHANGE_CANNULA]: 'Prime',
       },
+      [constants.MICROTECH]: {
+        [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',
+        [constants.SITE_CHANGE_TUBING]: 'Reservoir Prime',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Prime',
+      },
       [constants.DIY_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.TIDEPOOL_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.TWIIST_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cassete',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cassete Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.MEDTRONIC]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',
         [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Prime',
       },
       [constants.TANDEM]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cartridge',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cartridge Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       default: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cartridge',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cartridge Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       }
     };
 

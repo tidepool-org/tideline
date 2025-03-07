@@ -12,6 +12,7 @@ module.exports = {
   SITE_CHANGE_CANNULA: 'cannulaPrime',
   SECTION_TYPE_UNDECLARED: 'undeclared',
   INSULET: 'Insulet',
+  MICROTECH: 'Microtech',
   TIDEPOOL_LOOP: 'Tidepool Loop',
   TWIIST_LOOP: 'Twiist',
   DIY_LOOP: 'DIY Loop',
