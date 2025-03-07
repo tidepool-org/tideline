@@ -13,6 +13,7 @@ module.exports = {
   SECTION_TYPE_UNDECLARED: 'undeclared',
   INSULET: 'Insulet',
   TIDEPOOL_LOOP: 'Tidepool Loop',
+  TWIIST_LOOP: 'Twiist',
   DIY_LOOP: 'DIY Loop',
   TANDEM: 'Tandem',
   ANIMAS: 'Animas',

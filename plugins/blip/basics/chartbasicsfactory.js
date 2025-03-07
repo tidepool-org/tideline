@@ -172,14 +172,17 @@ class BasicsChart extends React.Component {
           hasHover = hasSiteChangeSourceSettings;
           settingsTogglable = hasSiteChangeSourceSettings ? togglableState.closed : togglableState.open;
 
+          const siteChangeOptions = section.manufacturer === _.lowerCase(constants.TWIIST_LOOP) ? [
+            { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+            { key: constants.SITE_CHANGE_RESERVOIR, label: t('Cassette Changes'), selected: section.source === constants.SITE_CHANGE_RESERVOIR },
+          ] : [
+            { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+            { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
+          ];
+
           selectorOptions = {
             primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
-            rows: [
-              [
-                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
-                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
-              ]
-            ]
+            rows: [siteChangeOptions],
           };
 
           selectorMetaData = {

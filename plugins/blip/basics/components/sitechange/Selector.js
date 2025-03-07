@@ -200,13 +200,18 @@ var Selector = createReactClass({
       },
       [constants.DIY_LOOP]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
+        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
       },
       [constants.TIDEPOOL_LOOP]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
+        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+      },
+      [constants.TWIIST_LOOP]: {
+        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cassete',
+        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
+        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
       },
       [constants.MEDTRONIC]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',

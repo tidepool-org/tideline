@@ -51,6 +51,7 @@ class Change extends React.Component {
       'Change--tubing': (this.props.type === constants.SITE_CHANGE_TUBING),
       'Change--reservoir': (this.props.type === constants.SITE_CHANGE_RESERVOIR),
       'Change--loop-tubing': (_.includes(_.map([constants.DIY_LOOP, constants.TIDEPOOL_LOOP], _.lowerCase), this.props.manufacturer) && this.props.type === constants.SITE_CHANGE_TUBING),
+      'Change--twiist-cassette': (_.lowerCase(constants.TWIIST_LOOP) === this.props.manufacturer && this.props.type === constants.SITE_CHANGE_RESERVOIR),
     });
 
     return (
