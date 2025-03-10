@@ -47,112 +47,13 @@ var Selector = createReactClass({
 
     return (
       <div className="SiteChangeSelector">
-        {this.renderMessage()}
         {this.renderOptions()}
       </div>
     );
   },
 
-  renderMessage: function() {
-    if (!this.props.selectorMetaData.hasOwnProperty('latestPump')) {
-      return;
-    }
-
-    var subAction;
-    var message;
-    var type = this.props.selectedSubtotal;
-    var {
-      latestPump,
-      canUpdateSettings,
-      hasSiteChangeSourceSettings,
-      patientName,
-    } = this.props.selectorMetaData;
-
-    if (canUpdateSettings) {
-      switch(type) {
-        case constants.SITE_CHANGE_TUBING:
-          message = [
-            'We are using ',
-            this.subAction(latestPump, constants.SITE_CHANGE_TUBING),
-            ' to visualize your infusion site changes.'
-          ];
-          break;
-        case constants.SITE_CHANGE_CANNULA:
-          message = [
-            'We are using ',
-            this.subAction(latestPump, constants.SITE_CHANGE_CANNULA),
-            ' to visualize your infusion site changes.'
-          ];
-          break;
-        default:
-          message = ['Please select how you would like to see infusion site changes:'];
-          break;
-      }
-    }
-    else {
-      switch(type) {
-        case constants.SITE_CHANGE_TUBING:
-          subAction = this.subAction(latestPump, constants.SITE_CHANGE_TUBING);
-          message = hasSiteChangeSourceSettings ? [
-            patientName,
-            ' is using ',
-            subAction,
-            ' to see infusion site changes.'
-          ] : [
-            'You are using ',
-            subAction,
-            ' to see infusion site changes for ',
-            patientName,
-          ];
-          break;
-        case constants.SITE_CHANGE_CANNULA:
-          subAction = this.subAction(latestPump, constants.SITE_CHANGE_CANNULA);
-          message = hasSiteChangeSourceSettings ? [
-            patientName,
-            ' is using ',
-            subAction,
-            ' to see infusion site changes.'
-          ] : [
-            'You are using ',
-            subAction,
-            ' to see infusion site changes for ',
-            patientName,
-          ];
-          break;
-        default:
-          message = [
-            patientName,
-            ' has not selected how they would like to see infusion site changes.',
-            ' Please select a temporary view option:'
-          ];
-          break;
-        }
-    }
-
-    var messageClass = cx({
-      'SiteChangeSelector-message': true,
-      'SiteChangeSelector-message--disabled': (!canUpdateSettings),
-      'SiteChangeSelector-message--cannula': (type === constants.SITE_CHANGE_CANNULA),
-      'SiteChangeSelector-message--tubing': (type === constants.SITE_CHANGE_TUBING),
-    });
-
-    return (
-      <p className={messageClass}>{message}</p>
-    );
-  },
-
   renderOptions: function() {
     var self = this;
-
-    var {
-      canUpdateSettings,
-      hasSiteChangeSourceSettings,
-    } = self.props.selectorMetaData;
-
-    if (!canUpdateSettings && hasSiteChangeSourceSettings) {
-      return;
-    }
-
     var optionRows = self.props.selectorOptions.rows;
 
     return optionRows.map(function(row, id) {
@@ -170,6 +71,7 @@ var Selector = createReactClass({
       'SiteChangeSelector-option': true,
       'SiteChangeSelector-option--cannula': (option.key === constants.SITE_CHANGE_CANNULA),
       'SiteChangeSelector-option--tubing': (option.key === constants.SITE_CHANGE_TUBING),
+      'SiteChangeSelector-option--reservoir': (option.key === constants.SITE_CHANGE_RESERVOIR),
       'SiteChangeSelector-option--selected': (option.key === this.props.selectedSubtotal),
     });
 
@@ -239,12 +141,12 @@ var Selector = createReactClass({
 
     if (pumpVocabulary.hasOwnProperty(manufacturer)) {
       return (
-        <strong key={action}>{pumpVocabulary[manufacturer][action]}</strong>
+        <span key={action}>{pumpVocabulary[manufacturer][action]}</span>
       );
     }
 
     return (
-      <strong key={action}>{pumpVocabulary.default[action]}</strong>
+      <span key={action}>{pumpVocabulary.default[action]}</span>
     );
   },
 

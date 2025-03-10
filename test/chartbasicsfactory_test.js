@@ -103,7 +103,7 @@ var defaultAggregations = {
     source: 'cannulaPrime',
     subTitle: 'Cannula Fill',
     summaryTitle: undefined,
-    title: 'Infusion site changes',
+    title: 'Site Changes',
     type: 'siteChanges',
   },
 };

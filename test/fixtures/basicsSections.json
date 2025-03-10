@@ -104,8 +104,7 @@
           }
         ]
       ]
-    },
-    "settingsTogglable": "off"
+    }
   },
   {
     "active": true,
@@ -238,12 +237,11 @@
           }
         ]
       ]
-    },
-    "settingsTogglable": "off"
+    }
   },
   {
     "active": true,
-    "title": "Infusion site changes",
+    "title": "Site Changes",
     "type": "siteChanges",
     "source": "cannulaPrime",
     "manufacturer": "animas",
@@ -253,7 +251,7 @@
     "id": "siteChanges",
     "index": 2,
     "name": "siteChanges",
-    "noDataMessage": "Infusion site changes are not yet available for all pumps. Coming soon!",
+    "noDataMessage": "Site changes are not yet available for all pumps. Coming soon!",
     "selectorOptions": {
       "primary": {
         "key": "reservoirChange",
@@ -263,12 +261,12 @@
         [
           {
             "key": "cannulaPrime",
-            "label": "Cannula Fills",
+            "label": "Cannula Fill",
             "selected": true
           },
           {
             "key": "tubingPrime",
-            "label": "Tube Primes",
+            "label": "Tube Prime",
             "selected": false
           }
         ]
@@ -428,8 +426,7 @@
       "canUpdateSettings": true,
       "hasSiteChangeSourceSettings": false,
       "patientName": "John Doe"
-    },
-    "settingsTogglable": false
+    }
   },
   {
     "active": true,
@@ -498,7 +495,6 @@
           }
         ]
       ]
-    },
-    "settingsTogglable": "off"
+    }
   }
 ]
