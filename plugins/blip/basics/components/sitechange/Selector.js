@@ -47,112 +47,13 @@ var Selector = createReactClass({
 
     return (
       <div className="SiteChangeSelector">
-        {this.renderMessage()}
         {this.renderOptions()}
       </div>
     );
   },
 
-  renderMessage: function() {
-    if (!this.props.selectorMetaData.hasOwnProperty('latestPump')) {
-      return;
-    }
-
-    var subAction;
-    var message;
-    var type = this.props.selectedSubtotal;
-    var {
-      latestPump,
-      canUpdateSettings,
-      hasSiteChangeSourceSettings,
-      patientName,
-    } = this.props.selectorMetaData;
-
-    if (canUpdateSettings) {
-      switch(type) {
-        case constants.SITE_CHANGE_TUBING:
-          message = [
-            'We are using ',
-            this.subAction(latestPump, constants.SITE_CHANGE_TUBING),
-            ' to visualize your infusion site changes.'
-          ];
-          break;
-        case constants.SITE_CHANGE_CANNULA:
-          message = [
-            'We are using ',
-            this.subAction(latestPump, constants.SITE_CHANGE_CANNULA),
-            ' to visualize your infusion site changes.'
-          ];
-          break;
-        default:
-          message = ['Please select how you would like to see infusion site changes:'];
-          break;
-      }
-    }
-    else {
-      switch(type) {
-        case constants.SITE_CHANGE_TUBING:
-          subAction = this.subAction(latestPump, constants.SITE_CHANGE_TUBING);
-          message = hasSiteChangeSourceSettings ? [
-            patientName,
-            ' is using ',
-            subAction,
-            ' to see infusion site changes.'
-          ] : [
-            'You are using ',
-            subAction,
-            ' to see infusion site changes for ',
-            patientName,
-          ];
-          break;
-        case constants.SITE_CHANGE_CANNULA:
-          subAction = this.subAction(latestPump, constants.SITE_CHANGE_CANNULA);
-          message = hasSiteChangeSourceSettings ? [
-            patientName,
-            ' is using ',
-            subAction,
-            ' to see infusion site changes.'
-          ] : [
-            'You are using ',
-            subAction,
-            ' to see infusion site changes for ',
-            patientName,
-          ];
-          break;
-        default:
-          message = [
-            patientName,
-            ' has not selected how they would like to see infusion site changes.',
-            ' Please select a temporary view option:'
-          ];
-          break;
-        }
-    }
-
-    var messageClass = cx({
-      'SiteChangeSelector-message': true,
-      'SiteChangeSelector-message--disabled': (!canUpdateSettings),
-      'SiteChangeSelector-message--cannula': (type === constants.SITE_CHANGE_CANNULA),
-      'SiteChangeSelector-message--tubing': (type === constants.SITE_CHANGE_TUBING),
-    });
-
-    return (
-      <p className={messageClass}>{message}</p>
-    );
-  },
-
   renderOptions: function() {
     var self = this;
-
-    var {
-      canUpdateSettings,
-      hasSiteChangeSourceSettings,
-    } = self.props.selectorMetaData;
-
-    if (!canUpdateSettings && hasSiteChangeSourceSettings) {
-      return;
-    }
-
     var optionRows = self.props.selectorOptions.rows;
 
     return optionRows.map(function(row, id) {
@@ -170,6 +71,7 @@ var Selector = createReactClass({
       'SiteChangeSelector-option': true,
       'SiteChangeSelector-option--cannula': (option.key === constants.SITE_CHANGE_CANNULA),
       'SiteChangeSelector-option--tubing': (option.key === constants.SITE_CHANGE_TUBING),
+      'SiteChangeSelector-option--reservoir': (option.key === constants.SITE_CHANGE_RESERVOIR),
       'SiteChangeSelector-option--selected': (option.key === this.props.selectedSubtotal),
     });
 
@@ -191,37 +93,47 @@ var Selector = createReactClass({
       [constants.ANIMAS]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Go Rewind',
         [constants.SITE_CHANGE_TUBING]: 'Go Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.INSULET]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Activate Pod',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Pod Activate',
         [constants.SITE_CHANGE_CANNULA]: 'Prime',
       },
+      [constants.MICROTECH]: {
+        [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',
+        [constants.SITE_CHANGE_TUBING]: 'Reservoir Prime',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Prime',
+      },
       [constants.DIY_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.TIDEPOOL_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Pod',
-        [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Pod Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
+      },
+      [constants.TWIIST_LOOP]: {
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cassette Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.MEDTRONIC]: {
         [constants.SITE_CHANGE_RESERVOIR]: 'Rewind',
         [constants.SITE_CHANGE_TUBING]: 'Prime',
-        [constants.SITE_CHANGE_CANNULA]: 'Prime Cannula',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Prime',
       },
       [constants.TANDEM]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cartridge',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cartridge Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       default: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Change Cartridge',
-        [constants.SITE_CHANGE_TUBING]: 'Fill Tubing',
-        [constants.SITE_CHANGE_CANNULA]: 'Fill Cannula',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cartridge Change',
+        [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
+        [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       }
     };
 
@@ -229,12 +141,12 @@ var Selector = createReactClass({
 
     if (pumpVocabulary.hasOwnProperty(manufacturer)) {
       return (
-        <strong key={action}>{pumpVocabulary[manufacturer][action]}</strong>
+        <span key={action}>{pumpVocabulary[manufacturer][action]}</span>
       );
     }
 
     return (
-      <strong key={action}>{pumpVocabulary.default[action]}</strong>
+      <span key={action}>{pumpVocabulary.default[action]}</span>
     );
   },
 

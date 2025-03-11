@@ -69,9 +69,6 @@ describe('SiteChangeSelector', function () {
 
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
-
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('Please select how you would like to see infusion site changes:');
     });
 
     it('should render with cannula message when cannula selected', function () {
@@ -83,11 +80,8 @@ describe('SiteChangeSelector', function () {
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
 
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--cannula');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('We are using Fill Cannula to visualize your infusion site changes.');
-
       var optionElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-option--selected');
-      expect(ReactDOM.findDOMNode(optionElem).textContent).to.equal('Fill Cannula');
+      expect(ReactDOM.findDOMNode(optionElem).textContent).to.equal('Cannula Fill');
     });
 
     it('should render with tubing message when tubing selected', function () {
@@ -99,11 +93,8 @@ describe('SiteChangeSelector', function () {
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
 
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--tubing');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('We are using Fill Tubing to visualize your infusion site changes.');
-
       var optionElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-option--tubing');
-      expect(ReactDOM.findDOMNode(optionElem).textContent).to.equal('Fill Tubing');
+      expect(ReactDOM.findDOMNode(optionElem).textContent).to.equal('Tubing Fill');
     });
 
     it('should render with message disabled when canUpdateSettings is false and user has not selected siteChange source', function () {
@@ -114,9 +105,6 @@ describe('SiteChangeSelector', function () {
 
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
-
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--disabled');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal(this.props.selectorMetaData.patientName + ' has not selected how they would like to see infusion site changes. Please select a temporary view option:');
     });
 
     it('should render with cannula message when canUpdateSettings is false and careteam user has selected siteChange source', function () {
@@ -128,9 +116,6 @@ describe('SiteChangeSelector', function () {
 
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
-
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--disabled');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('You are using Fill Cannula to see infusion site changes for ' + this.props.selectorMetaData.patientName);
     });
 
     it('should render with tubing message when canUpdateSettings is false and careteam user has selected siteChange source', function () {
@@ -142,9 +127,6 @@ describe('SiteChangeSelector', function () {
 
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
-
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--disabled');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('You are using Fill Tubing to see infusion site changes for ' + this.props.selectorMetaData.patientName);
     });
   });
 
@@ -158,17 +140,12 @@ describe('SiteChangeSelector', function () {
       var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector');
       expect(compElem).to.be.ok;
 
-      var messageElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-message--cannula');
-      expect(ReactDOM.findDOMNode(messageElem).textContent).to.equal('We are using Fill Cannula to visualize your infusion site changes.');
-
       var cannulaOptionElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-option--selected');
-      expect(ReactDOM.findDOMNode(cannulaOptionElem).textContent).to.equal('Fill Cannula');
-
-      var tubingOptionElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'SiteChangeSelector-option--tubing');
+      expect(ReactDOM.findDOMNode(cannulaOptionElem).textContent).to.equal('Cannula Fill');
 
       expect(basicsActions.setSiteChangeEvent.callCount).to.equal(0);
-      renderedElem.handleSelectSubtotal(constants.SITE_CHANGE_TUBING, 'Fill Tubing');
-      expect(basicsActions.setSiteChangeEvent.withArgs('siteChanges', constants.SITE_CHANGE_TUBING, 'Fill Tubing', this.props.trackMetric, this.props.updateBasicsSettings).callCount).to.equal(1);
+      renderedElem.handleSelectSubtotal(constants.SITE_CHANGE_TUBING, 'Tubing Fill');
+      expect(basicsActions.setSiteChangeEvent.withArgs('siteChanges', constants.SITE_CHANGE_TUBING, 'Tubing Fill', this.props.trackMetric, this.props.updateBasicsSettings).callCount).to.equal(1);
     });
   });
 });
