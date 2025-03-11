@@ -116,7 +116,7 @@ var Selector = createReactClass({
         [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
       [constants.TWIIST_LOOP]: {
-        [constants.SITE_CHANGE_RESERVOIR]: 'Cassete Change',
+        [constants.SITE_CHANGE_RESERVOIR]: 'Cassette Change',
         [constants.SITE_CHANGE_TUBING]: 'Tubing Fill',
         [constants.SITE_CHANGE_CANNULA]: 'Cannula Fill',
       },
