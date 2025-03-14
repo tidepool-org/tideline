@@ -60,7 +60,6 @@ class DashboardSection extends React.Component {
           chartWidth={this.props.chartWidth}
           data={this.props.data}
           days={this.props.days}
-          excludeDaysWithoutBolus={this.props.excludeDaysWithoutBolus}
           hasHover={section.hasHover}
           hoverDisplay={section.hoverDisplay}
           manufacturer={section.manufacturer}
