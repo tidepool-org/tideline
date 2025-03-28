@@ -388,7 +388,7 @@ module.exports = function(pool, opts) {
         var annotationOpts = {
           x: opts.xScale(d.normalTime),
           y: opts.yScale(commonbolus.getMaxValue(d)),
-          xMultiplier: -2,
+          xMultiplier: d.tags?.wizard ? -2 : 0, // we shift the wizard annotation icon to the left to allow room for carb rendering above the bolus
           yMultiplier: 1,
           d: d,
           orientation: {
