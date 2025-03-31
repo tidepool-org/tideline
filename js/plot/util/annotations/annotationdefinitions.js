@@ -24,7 +24,6 @@ var format = require('../../../data/util/format');
 var definitions = {
   DISABLED: [
     'basal/auto',
-    'bolus/mutable',
     'bg/out-of-range',
     'medtronic600/smbg/bg-reading-received',
     'medtronic600/smbg/user-accepted-remote-bg',
@@ -153,6 +152,9 @@ var definitions = {
     },
     'time-change': function() {
       return t('The date and/or time settings of your device were changed recently, and this datum may overlap in the timeline display with other data from the same device.');
+    },
+    'bolus/mutable': function() {
+      return t('Confirmation of bolus delivery pending. Actual delivered amount may differ after completion is confirmed.');
     }
   },
   default: function(source) {
