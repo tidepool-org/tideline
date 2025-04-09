@@ -14,7 +14,7 @@ module.exports = {
   INSULET: 'Insulet',
   MICROTECH: 'Microtech',
   TIDEPOOL_LOOP: 'Tidepool Loop',
-  TWIIST_LOOP: 'Twiist',
+  TWIIST_LOOP: 'twiist',
   DIY_LOOP: 'DIY Loop',
   TANDEM: 'Tandem',
   ANIMAS: 'Animas',

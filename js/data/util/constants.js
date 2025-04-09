@@ -32,6 +32,10 @@ module.exports = {
       [PHYSICAL_ACTIVITY]: { label: t('Workout'), marker: t('W') },
       [PREPRANDIAL]: { label: t('Premeal'), marker: t('P') },
     },
+    [constants.TWIIST_LOOP.toLowerCase()]: {
+      [PHYSICAL_ACTIVITY]: { label: t('Workout'), marker: t('W') },
+      [PREPRANDIAL]: { label: t('Premeal'), marker: t('P') },
+    },
   },
   SCHEDULED_BASAL_LABELS: {
     Medtronic: t('Manual'),
