@@ -59,7 +59,14 @@ module.exports = function(pool, opts) {
 
       // sort by size so smaller boluses are drawn last
       bolusGroups = bolusGroups.sort(function(a,b){
-        return d3.descending(commonbolus.getMaxValue(a), commonbolus.getMaxValue(b));
+        // in cases where the max value is the same, tiebreak the sort by counting extended boluses
+        // as 1 unit higher so that a non-extended bolus is drawn on top, enabling both to be hovered over
+        const maxValue = {
+          a: commonbolus.getMaxValue(a) + a.tags.extended ? 1 : 0,
+          b: commonbolus.getMaxValue(b) + b.tags.extended ? 1 : 0,
+        };
+
+        return d3.descending(maxValue.a, maxValue.b);
       });
 
       drawBolus.bolus(bolusGroups.filter(function(d) {
