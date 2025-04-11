@@ -50,7 +50,7 @@
     font-size: 15px;
     font-weight: bold;
     .header;
-    padding: 15px 15px 15px 10px;
+    padding: 15px 15px 15px 0;
 
     i:before {
       margin-right: 0
@@ -60,7 +60,6 @@
       cursor: pointer;
     }
   }
-
 
   .SectionHeader--nodata {
     color: @text-light;
@@ -74,10 +73,10 @@
 
   .DashboardSection-content {
     box-sizing: border-box;
-    padding: 0px 0px 10px 10px;
+    margin-bottom: 10px;
   }
 }
 
 .DashboardSection:nth-child(4) .DashboardSection-container .DashboardSection-content {
-  padding-bottom: 0px;
+  margin-bottom: 0px;
 }

@@ -48,7 +48,6 @@ class BasicsChart extends React.Component {
     bgClasses: PropTypes.object.isRequired,
     bgUnits: PropTypes.string.isRequired,
     data: PropTypes.object.isRequired,
-    excludeDaysWithoutBolus: PropTypes.bool,
     onSelectDay: PropTypes.func.isRequired,
     patient: PropTypes.object.isRequired,
     permsOfLoggedInUser: PropTypes.object.isRequired,
@@ -257,7 +256,6 @@ class BasicsChart extends React.Component {
           chartWidth={self.props.size.width}
           data={aggregationsByDate[section.type]}
           days={days}
-          excludeDaysWithoutBolus={self.props.excludeDaysWithoutBolus}
           labels={section.labels}
           name={section.name}
           onSelectDay={self.props.onSelectDay}
