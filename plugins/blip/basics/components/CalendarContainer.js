@@ -53,11 +53,6 @@ var CalendarContainer = createReactClass({
     selector: PropTypes.func,
     selectorOptions: PropTypes.object,
     selectorMetaData: PropTypes.object,
-    settingsTogglable: PropTypes.oneOf([
-      togglableState.open,
-      togglableState.closed,
-      togglableState.off,
-    ]).isRequired,
     source: PropTypes.string,
     timezone: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
@@ -124,7 +119,7 @@ var CalendarContainer = createReactClass({
 
     var selector = null;
 
-    if (this.props.selector && this.props.selectorOptions && this.props.settingsTogglable !== togglableState.closed) {
+    if (this.props.selector && this.props.selectorOptions) {
       selector = this.renderSelector();
     }
 

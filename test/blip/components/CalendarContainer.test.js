@@ -72,7 +72,6 @@ describe('CalendarContainer', () => {
     hasHover: false,
     onSelectDay: sinon.stub(),
     sectionId: 'basals',
-    settingsTogglable: false,
     selectorOptions: {
       primary: {
         key: 'total',

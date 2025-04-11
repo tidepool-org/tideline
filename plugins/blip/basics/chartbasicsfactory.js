@@ -145,7 +145,6 @@ class BasicsChart extends React.Component {
       let selector = SummaryGroup;
       let selectorOptions;
       let selectorMetaData;
-      let settingsTogglable = togglableState.off;
 
       if (isSiteChanges) {
         const { latestPumpUpload: latestPump } = _.get(props, 'data.metaData', {});
@@ -163,22 +162,23 @@ class BasicsChart extends React.Component {
 
         chart = SiteChange;
         hoverDisplay = InfusionHoverDisplay;
-        noDataMessage = this._insulinDataAvailable() ? t('Infusion site changes are not yet available for all pumps. Coming soon!') : null;
+        noDataMessage = this._insulinDataAvailable() ? t('Site changes are not yet available for all pumps. Coming soon!') : null;
         selector = SiteChangeSelector;
-        settingsTogglable = togglableState.off;
 
-        if (!_.includes(_.map([constants.INSULET, constants.DIY_LOOP, constants.TIDEPOOL_LOOP], _.lowerCase), section.manufacturer)) {
+        if (!_.includes(_.map([constants.INSULET, constants.MICROTECH, constants.DIY_LOOP, constants.TIDEPOOL_LOOP], _.lowerCase), section.manufacturer)) {
           hasHover = hasSiteChangeSourceSettings;
-          settingsTogglable = hasSiteChangeSourceSettings ? togglableState.closed : togglableState.open;
+
+          const siteChangeOptions = section.manufacturer === _.lowerCase(constants.TWIIST_LOOP) ? [
+            { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+            { key: constants.SITE_CHANGE_RESERVOIR, label: t('Cassette Changes'), selected: section.source === constants.SITE_CHANGE_RESERVOIR },
+          ] : [
+            { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
+            { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
+          ];
 
           selectorOptions = {
             primary: { key: constants.SITE_CHANGE_RESERVOIR, label: t('Reservoir Changes') },
-            rows: [
-              [
-                { key: constants.SITE_CHANGE_CANNULA, label: t('Cannula Fills'), selected: section.source === constants.SITE_CHANGE_CANNULA},
-                { key: constants.SITE_CHANGE_TUBING, label: t('Tube Primes'), selected: section.source === constants.SITE_CHANGE_TUBING },
-              ]
-            ]
+            rows: [siteChangeOptions],
           };
 
           selectorMetaData = {
@@ -221,7 +221,6 @@ class BasicsChart extends React.Component {
         selector,
         selectorOptions,
         selectorMetaData,
-        settingsTogglable,
       });
 
       sections.push(section);
@@ -264,7 +263,6 @@ class BasicsChart extends React.Component {
           togglable={section.togglable}
           section={section}
           title={section.title}
-          settingsTogglable={section.settingsTogglable}
           updateBasicsSettings={self.props.updateBasicsSettings}
           timezone={timezoneName}
           trackMetric={self.props.trackMetric} />
