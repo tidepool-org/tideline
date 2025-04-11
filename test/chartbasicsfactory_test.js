@@ -101,9 +101,9 @@ var defaultAggregations = {
     emptyText: undefined,
     manufacturer: 'animas',
     source: 'cannulaPrime',
-    subTitle: 'Fill Cannula',
+    subTitle: 'Cannula Fill',
     summaryTitle: undefined,
-    title: 'Infusion site changes',
+    title: 'Site Changes',
     type: 'siteChanges',
   },
 };

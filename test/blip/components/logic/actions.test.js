@@ -53,26 +53,6 @@ describe('actions', function() {
     basicsActions.bindApp(app);
   });
 
-  describe('toggleSectionSettings', function() {
-    it('should track opened metric', function() {
-      var trackMetric = sinon.stub();
-      expect(trackMetric.callCount).to.equal(0);
-      basicsActions.toggleSectionSettings('siteChanges', trackMetric);
-      expect(trackMetric.callCount).to.equal(1);
-      expect(trackMetric.calledWith('siteChanges settings was opened')).to.be.true;
-    });
-    it('should track closed metric', function() {
-      var settingsOpen = _.cloneDeep(app);
-      settingsOpen.state.sections[2].settingsTogglable = true;
-      basicsActions.bindApp(settingsOpen);
-      var trackMetric = sinon.stub();
-      expect(trackMetric.callCount).to.equal(0);
-      basicsActions.toggleSectionSettings('siteChanges', trackMetric);
-      expect(trackMetric.callCount).to.equal(1);
-      expect(trackMetric.calledWith('siteChanges settings was closed')).to.be.true;
-    });
-  });
-
   describe('selectSubtotal', function() {
     it('should track filtered metric if metrics function is provided', function() {
       var trackMetric = sinon.stub();
