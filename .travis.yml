@@ -11,6 +11,7 @@ cache:
     - node_modules
 
 before_install:
+  # - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
   - corepack enable
   - yarn set version 3.6.4
 
@@ -18,5 +19,4 @@ install:
   - yarn install --immutable
 
 script:
-  - google-chrome-stable --headless --disable-renderer-backgrounding --remote-debugging-port=9222 http://localhost &
   - "npm test"
