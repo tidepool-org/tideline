@@ -32,7 +32,8 @@ module.exports = function (config) {
         base: 'ChromeHeadless',
         flags: [
           '--headless',
-          '--remote-debugging-port=9220',
+          '--disable-renderer-backgrounding',
+          '--remote-debugging-port=9222',
         ],
       },
     },
