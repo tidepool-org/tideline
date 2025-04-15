@@ -5,13 +5,14 @@ language: node_js
 node_js:
   - "20.8.0"
 
+services: xvfb
+
 cache:
   yarn: true
   directories:
     - node_modules
 
 before_install:
-  # - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
   - corepack enable
   - yarn set version 3.6.4
 
