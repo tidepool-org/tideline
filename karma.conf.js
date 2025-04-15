@@ -18,7 +18,7 @@ module.exports = function (config) {
   config.set({
     autoWatch: true,
     browserNoActivityTimeout: 60000,
-    browsers: ['Chrome', 'ChromeHeadless', 'CustomChromeHeadless'],
+    browsers: ['CustomChromeHeadless'],
     captureTimeout: 60000,
     client: {
       mocha: {
@@ -34,6 +34,7 @@ module.exports = function (config) {
           '--headless',
           '--disable-gpu',
           '--no-sandbox',
+          '--ignore-gpu-blocklist ',
           '--remote-debugging-port=9222',
         ],
       },

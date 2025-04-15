@@ -6,7 +6,7 @@ node_js:
   - "20.8.0"
 
 addons:
-  chrome: beta
+  chrome: stable
 
 cache:
   yarn: true
@@ -14,7 +14,7 @@ cache:
     - node_modules
 
 before_install:
-  - google-chrome-beta --headless --no-sandbox --remote-debugging-port=9222 http://localhost &
+  - google-chrome-stable --headless --no-sandbox --ignore-gpu-blocklist --remote-debugging-port=9222 http://localhost &
   - corepack enable
   - yarn set version 3.6.4
 
