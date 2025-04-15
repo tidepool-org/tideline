@@ -32,7 +32,7 @@ module.exports = function (config) {
         base: 'ChromeHeadless',
         flags: [
           '--headless',
-          '--remote-debugging-port=9222',
+          '--remote-debugging-port=9220',
         ],
       },
     },
