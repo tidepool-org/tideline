@@ -34,7 +34,6 @@ module.exports = function (config) {
           '--headless',
           '--enable-automation',
           '--no-sandbox',
-          '--disable-dev-shm-usage',
           '--remote-debugging-port=9222',
         ],
       },
