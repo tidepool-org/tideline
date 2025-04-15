@@ -13,7 +13,7 @@
   "main": "js/index.js",
   "license": "BSD-2-Clause",
   "scripts": {
-    "test": "TZ=UTC NODE_ENV=test WEBPACK_DEBUG=true DEBUG=* yarn karma start --log-level debug",
+    "test": "TZ=UTC NODE_ENV=test WEBPACK_DEBUG=true yarn karma start",
     "test-super-verbose": "TZ=UTC NODE_ENV=test WEBPACK_DEBUG=true DEBUG=* yarn karma start --log-level debug",
     "test-webpack-debug": "TZ=UTC NODE_ENV=test WEBPACK_DEBUG=true DEBUG=webpack:* yarn karma start --log-level debug --karma-debug",
     "test-webpack-profile": "TZ=UTC NODE_ENV=test WEBPACK_DEBUG=true DEBUG=webpack:* NODE_OPTIONS='--max-old-space-size=4096' yarn karma start --log-level debug --karma-debug",
