@@ -5,8 +5,6 @@ language: node_js
 node_js:
   - "20.8.0"
 
-services: xvfb
-
 cache:
   yarn: true
   directories:
