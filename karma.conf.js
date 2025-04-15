@@ -18,7 +18,7 @@ module.exports = function (config) {
   config.set({
     autoWatch: true,
     browserNoActivityTimeout: 60000,
-    browsers: ['CustomChromeHeadless'],
+    browsers: ['Chrome', 'ChromeHeadless', 'CustomChromeHeadless'],
     captureTimeout: 60000,
     client: {
       mocha: {
