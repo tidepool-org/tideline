@@ -31,10 +31,10 @@ module.exports = function (config) {
       CustomChromeHeadless: {
         base: 'ChromeHeadless',
         flags: [
-          // '--headless',
-          // '--disable-gpu',
+          '--headless',
+          '--disable-gpu',
           '--no-sandbox',
-          // '--remote-debugging-port=9222',
+          '--remote-debugging-port=9222',
         ],
       },
     },
