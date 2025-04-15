@@ -1,9 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 const appDirectory = path.resolve(__dirname);
 const isDev = (process.env.NODE_ENV === 'development');
 const isTest = (process.env.NODE_ENV === 'test');
+const isWebpackDebug = process.env.WEBPACK_DEBUG === 'true';
 
 // Enzyme as of v2.4.1 has trouble with classes
 // that do not start and *end* with an alpha character
@@ -13,7 +16,7 @@ const localIdentName = process.env.NODE_ENV === 'test'
   ? '[name]--[local]'
   : '[name]--[local]--[hash:base64:5]';
 
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+// NodePolyfillPlugin is already imported at the top
 
 const styleLoaderConfiguration = [
   {
@@ -25,9 +28,9 @@ const styleLoaderConfiguration = [
         options: {
           modules: {
             localIdentName,
+            mode: 'local'
           },
           importLoaders: 1,
-          modules: true,
           sourceMap: true,
         },
       },
@@ -100,6 +103,24 @@ const plugins = [
     __DEV__: isDev,
   }),
   new NodePolyfillPlugin(),
+  // Add progress plugin to show compilation progress
+  new webpack.ProgressPlugin({
+    activeModules: true,
+    entries: true,
+    modules: true,
+    modulesCount: 100,
+    profile: true,
+    dependencies: true,
+    dependenciesCount: 10000,
+  }),
+  // Add bundle analyzer plugin when in debug mode
+  ...(isWebpackDebug ? [new BundleAnalyzerPlugin({
+    analyzerMode: 'static',
+    reportFilename: 'report.html',
+    openAnalyzer: false,
+    generateStatsFile: true,
+    statsFilename: 'stats.json',
+  })] : []),
 ];
 
 const entry = {
@@ -129,6 +150,29 @@ module.exports = {
   entry,
   devtool: isDev || isTest ? 'cheap-source-map' : 'source-map',
   mode: isDev ? 'development' : 'production',
+  stats: isWebpackDebug ? {
+    colors: true,
+    hash: true,
+    version: true,
+    timings: true,
+    assets: true,
+    chunks: true,
+    modules: true,
+    reasons: true,
+    children: true,
+    source: true,
+    errors: true,
+    errorDetails: true,
+    warnings: true,
+    publicPath: true,
+    cachedAssets: true,
+    performance: true,
+    moduleTrace: true,
+    logging: 'verbose',
+    loggingTrace: true,
+    loggingDebug: true,
+    all: true
+  } : 'errors-only',
   module: {
     rules: [
       babelLoaderConfiguration,
