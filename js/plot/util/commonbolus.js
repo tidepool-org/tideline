@@ -149,22 +149,24 @@ module.exports = {
   },
 
   isOverride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
     const self = module.exports;
     const amountRecommended = self.getRecommended(d);
     const amountProgrammed = self.getProgrammed(d);
 
     if (!amountRecommended) return false;
 
-    return self.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed > amountRecommended;
+    return (amountProgrammed - amountRecommended) >= MINIMUM_THRESHOLD;
   },
 
   isUnderride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
     const self = module.exports;
     const amountRecommended = self.getRecommended(d);
     const amountProgrammed = self.getProgrammed(d);
 
     if (!amountRecommended) return false;
 
-    return self.isDifferentBeyondPrecision(amountRecommended, amountProgrammed, 2) && amountProgrammed < amountRecommended;
-  }
+    return (amountRecommended - amountProgrammed) >= MINIMUM_THRESHOLD;
+  },
 };
