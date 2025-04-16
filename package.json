@@ -54,7 +54,7 @@
     "babel-plugin-rewire": "1.2.0",
     "babel-preset-react-app": "10.0.1",
     "chai": "4.3.10",
-    "chromedriver": "119.0.1",
+    "chromedriver": "135.0.2",
     "create-react-class": "15.7.0",
     "css-loader": "6.8.1",
     "enzyme": "3.11.0",
