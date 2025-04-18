@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.31.0-rc.5",
+  "version": "1.31.0-rc.7",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
