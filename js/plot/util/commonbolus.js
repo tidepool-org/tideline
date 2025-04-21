@@ -144,10 +144,6 @@ module.exports = {
     return d.expectedDuration || d.duration;
   },
 
-  isDifferentBeyondPrecision: (a, b, precision) => {
-    return _.round(a, precision) !== _.round(b, precision);
-  },
-
   isOverride: (d) => {
     const MINIMUM_THRESHOLD = 0.01;
     const self = module.exports;
