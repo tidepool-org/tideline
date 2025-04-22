@@ -409,6 +409,22 @@ describe('common bolus functions', function() {
       })).to.be.true;
     });
 
+    it('should return true when Recommended is less than Programmed by >= 0.01', function() {
+      expect(commonbolus.isOverride({
+        type: 'wizard',
+        bolus: { normal: 1.512 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.true;
+    });
+
+    it('should return false when Recommended is less than Programmed by < 0.01', function() {
+      expect(commonbolus.isOverride({
+        type: 'wizard',
+        bolus: { normal: 1.508 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.false;
+    });
+
     it('should return false when Recommended is the same as Programmed', function() {
       expect(commonbolus.isOverride({
         type: 'wizard',
@@ -433,6 +449,22 @@ describe('common bolus functions', function() {
         bolus: { normal: 2, type: 'bolus', source: 'Medtronic' },
         recommended: { carb: 2.8, correction: 0.2, net: 3 },
       })).to.be.true;
+    });
+
+    it('should return true when Recommended is greater than Programmed by >= 0.01', function() {
+      expect(commonbolus.isUnderride({
+        type: 'wizard',
+        bolus: { normal: 1.489 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.true;
+    });
+
+    it('should return false when Recommended is greater than Programmed by < 0.01', function() {
+      expect(commonbolus.isUnderride({
+        type: 'wizard',
+        bolus: { normal: 1.492 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.false;
     });
 
     it('should return false when Recommended equals Programmed', function() {
