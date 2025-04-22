@@ -396,48 +396,6 @@ describe('common bolus functions', function() {
     });
   });
 
-  describe('isDifferentBeyondPrecision', function() {
-    it('should be a function', function() {
-      assert.isFunction(commonbolus.isDifferentBeyondPrecision);
-    });
-
-    it('should return false when not different beyond the precision arg', function() {
-      expect(commonbolus.isDifferentBeyondPrecision(1.0, 1.1, 0)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(2.00, 2.01, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(2.01, 2.00, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.01, 3.01, 0)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.01, 3.01, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.01, 3.01, 2)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3, 3, 0)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3, 3, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3, 3, 2)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.08, 3.08, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.08, 3.08, 2)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.08, 3.08, 3)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(3.08, 3.08, 4)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(4, 4.01, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(4.01, 4, 1)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(5.010, 5.011, 2)).to.be.false;
-      expect(commonbolus.isDifferentBeyondPrecision(5.011, 5.010, 2)).to.be.false;
-    });
-
-    it('should return true when different beyond the precision arg', function() {
-      expect(commonbolus.isDifferentBeyondPrecision(1, 2, 0)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(1, 2, 1)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(1, 2, 2)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(2, 1, 0)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(2, 1, 1)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(2, 1, 2)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(3.00, 2.00, 0)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(3.00, 2.00, 1)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(3.00, 2.00, 2)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(4.1, 4.2, 1)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(4.2, 4.1, 1)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(5.01, 5.00, 2)).to.be.true;
-      expect(commonbolus.isDifferentBeyondPrecision(5.00, 5.01, 2)).to.be.true;
-    });
-  });
-
   describe('isOverride', function() {
     it('should be a function', function() {
       assert.isFunction(commonbolus.isOverride);
@@ -449,6 +407,22 @@ describe('common bolus functions', function() {
         bolus: { expectedExtended: 5.7, extended: 1.05, normal: 3.8, source: 'Insulet' },
         recommended: { carb: 8.65, correction: 1.7, net: 8.55 },
       })).to.be.true;
+    });
+
+    it('should return true when Recommended is less than Programmed by >= 0.01', function() {
+      expect(commonbolus.isOverride({
+        type: 'wizard',
+        bolus: { normal: 1.512 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.true;
+    });
+
+    it('should return false when Recommended is less than Programmed by < 0.01', function() {
+      expect(commonbolus.isOverride({
+        type: 'wizard',
+        bolus: { normal: 1.508 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.false;
     });
 
     it('should return false when Recommended is the same as Programmed', function() {
@@ -469,16 +443,28 @@ describe('common bolus functions', function() {
   });
 
   describe('isUnderride', function() {
-    it('should be a function', function() {
-      assert.isFunction(commonbolus.isDifferentBeyondPrecision);
-    });
-
     it('should return true when Recommended is greater than Programmed', function() {
       expect(commonbolus.isUnderride({
         type: 'wizard',
         bolus: { normal: 2, type: 'bolus', source: 'Medtronic' },
         recommended: { carb: 2.8, correction: 0.2, net: 3 },
       })).to.be.true;
+    });
+
+    it('should return true when Recommended is greater than Programmed by >= 0.01', function() {
+      expect(commonbolus.isUnderride({
+        type: 'wizard',
+        bolus: { normal: 1.489 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.true;
+    });
+
+    it('should return false when Recommended is greater than Programmed by < 0.01', function() {
+      expect(commonbolus.isUnderride({
+        type: 'wizard',
+        bolus: { normal: 1.492 },
+        recommended: { carb: 1.0, correction: 0.5 },
+      })).to.be.false;
     });
 
     it('should return false when Recommended equals Programmed', function() {
