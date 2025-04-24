@@ -66,6 +66,10 @@ describe('constants', function() {
         physicalActivity: { label: 'Workout', marker: 'W' },
         preprandial: { label: 'Premeal', marker: 'P' },
       },
+      twiist: {
+        physicalActivity: { label: 'Workout', marker: 'W' },
+        preprandial: { label: 'Premeal', marker: 'P' },
+      },
     });
   });
 

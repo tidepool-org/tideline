@@ -142,5 +142,27 @@ module.exports = {
       return NaN;
     }
     return d.expectedDuration || d.duration;
+  },
+
+  isOverride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
+
+    if (!amountRecommended) return false;
+
+    return (amountProgrammed - amountRecommended) >= MINIMUM_THRESHOLD;
+  },
+
+  isUnderride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
+
+    if (!amountRecommended) return false;
+
+    return (amountRecommended - amountProgrammed) >= MINIMUM_THRESHOLD;
   }
 };

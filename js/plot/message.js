@@ -17,6 +17,7 @@
 
 var d3 = require('d3');
 var _ = require('lodash');
+var { sanitize } = require('dompurify');
 
 var format = require('../data/util/format');
 
@@ -128,7 +129,7 @@ module.exports = function(pool, opts) {
       .attr('class', 'messageTooltip')
       .append('span')
       .attr('class', 'secondary')
-      .html('<span class="value">' + format.nameForDisplay(d.user.fullName) + '</span> ' + format.textPreview(d.messageText));
+      .html('<span class="value">' + sanitize(format.nameForDisplay(d.user.fullName)) + '</span> ' + sanitize(format.textPreview(d.messageText)));
 
     var dims = tooltips.foreignObjDimensions(foGroup);
     // foGroup.node().parentNode is the <foreignObject> itself

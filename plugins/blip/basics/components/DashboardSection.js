@@ -34,11 +34,6 @@ class DashboardSection extends React.Component {
     days: PropTypes.array.isRequired,
     name: PropTypes.string.isRequired,
     onSelectDay: PropTypes.func.isRequired,
-    settingsTogglable: PropTypes.oneOf([
-      togglableState.open,
-      togglableState.closed,
-      togglableState.off,
-    ]).isRequired,
     section: PropTypes.object.isRequired,
     timezone: PropTypes.string.isRequired,
     title: PropTypes.oneOfType([
@@ -60,7 +55,6 @@ class DashboardSection extends React.Component {
           chartWidth={this.props.chartWidth}
           data={this.props.data}
           days={this.props.days}
-          excludeDaysWithoutBolus={this.props.excludeDaysWithoutBolus}
           hasHover={section.hasHover}
           hoverDisplay={section.hoverDisplay}
           manufacturer={section.manufacturer}
@@ -69,7 +63,6 @@ class DashboardSection extends React.Component {
           selector={section.selector}
           selectorOptions={section.selectorOptions}
           selectorMetaData={section.selectorMetaData}
-          settingsTogglable={this.props.settingsTogglable}
           source={section.source}
           timezone={this.props.timezone}
           type={section.type}
@@ -81,13 +74,6 @@ class DashboardSection extends React.Component {
     else {
       dataDisplay = (
         <NoDataContainer message={section.emptyText} moreInfo={section.noDataMessage || null} />
-      );
-    }
-
-    var settingsToggle;
-    if (this.props.settingsTogglable !== togglableState.off) {
-      settingsToggle = (
-        <i className="icon-settings icon--toggle" onClick={this.handleToggleSettings}/>
       );
     }
 
@@ -104,7 +90,6 @@ class DashboardSection extends React.Component {
       titleContainer = (
         <h3 className={headerClasses}>
           {this.props.title}
-          {settingsToggle}
         </h3>
       );
     }

@@ -53,11 +53,6 @@ var CalendarContainer = createReactClass({
     selector: PropTypes.func,
     selectorOptions: PropTypes.object,
     selectorMetaData: PropTypes.object,
-    settingsTogglable: PropTypes.oneOf([
-      togglableState.open,
-      togglableState.closed,
-      togglableState.off,
-    ]).isRequired,
     source: PropTypes.string,
     timezone: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
@@ -124,7 +119,7 @@ var CalendarContainer = createReactClass({
 
     var selector = null;
 
-    if (this.props.selector && this.props.selectorOptions && this.props.settingsTogglable !== togglableState.closed) {
+    if (this.props.selector && this.props.selectorOptions) {
       selector = this.renderSelector();
     }
 
@@ -186,7 +181,6 @@ var CalendarContainer = createReactClass({
       var nextDay = self.props.days[index + 1] || {};
       var dateData = _.get(data, day.date, {});
       var type = self.props.source || self.props.type;
-      var isExcludedBolusDay = (type === 'boluses' && _.isEmpty(dateData) && self.props.excludeDaysWithoutBolus);
 
       if (!_.isEmpty(dateData) && self.props.hasHover && self.state.hoverDate === day.date) {
         return (
@@ -212,7 +206,7 @@ var CalendarContainer = createReactClass({
             data={dateData}
             date={day.date}
             manufacturer={self.props.manufacturer}
-            outOfRange={day.type === 'outOfRange' || isExcludedBolusDay}
+            outOfRange={day.type === 'outOfRange'}
             isFirst={index === 0}
             mostRecent={day.type === 'inRange' && nextDay.type === 'outOfRange'}
             onHover={self.onHover}
