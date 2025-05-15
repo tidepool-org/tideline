@@ -18,7 +18,16 @@
 /* jshint esversion:6 */
 
 var _ = require('lodash');
-var { MGDL_UNITS, DEFAULT_BG_BOUNDS } = require('../../data/util/constants');
+var { MGDL_UNITS, MMOLL_UNITS, DEFAULT_BG_BOUNDS } = require('../../data/util/constants');
+
+var bankersRound = function (value, precision = 0) {
+  /* eslint-disable no-nested-ternary */
+  const x = value * (10 ** precision);
+  const r = Math.round(x);
+  const br = Math.abs(x) % 1 === 0.5 ? (r % 2 === 0 ? r : r - 1) : r;
+  return br / (10 ** precision);
+  /* eslint-enable no-nested-ternary */
+};
 
 var Categorizer = function(bgClasses = {}, bgUnits = MGDL_UNITS){
   var classes = _.cloneDeep(bgClasses);
@@ -34,22 +43,27 @@ var Categorizer = function(bgClasses = {}, bgUnits = MGDL_UNITS){
   return function(d) {
     if (d.value < classes['very-low'].boundary) {
       return 'verylow';
-    }
-    else if (d.value >= classes['very-low'].boundary &&
-      d.value < classes.low.boundary) {
-      return 'low';
-    }
-    else if (d.value >= classes.low.boundary &&
-      d.value <= classes.target.boundary) {
-      return 'target';
-    }
-    else if (d.value > classes.target.boundary &&
-      d.value <= classes.high.boundary) {
-      return 'high';
-    }
-    else if (d.value > classes.high.boundary) {
+    } else if (d.value > classes.high.boundary) {
       return 'veryhigh';
     }
+
+    // Low, Target, and High ranges are non-contiguous in the ADA Standardized CGM metrics.
+    // We ensure that values falling between these ranges are rounded into an appropriate
+    // range before trying to classify them. See the unit tests for examples of scenarios
+    var precision = 0;
+    if (bgUnits === MMOLL_UNITS) {
+      precision = 1;
+    }
+
+    var roundedValue = bankersRound(d.value, precision);
+
+    if (roundedValue < classes.low.boundary) {
+      return 'low';
+    } else if (roundedValue > classes.target.boundary) {
+      return 'high';
+    }
+
+    return 'target';
   };
 };
 
