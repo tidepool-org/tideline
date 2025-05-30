@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.32.0-web-3501-range-thresholds.2",
+  "version": "1.32.1-web-3698-dosing-decision-bolus-normal",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
