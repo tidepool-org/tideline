@@ -32,7 +32,7 @@ module.exports = {
     }
 
     const netRecommendation = event.recommendedBolus
-      ? _.get(event, ['recommendedBolus', 'amount'], null)
+      ? _.get(event, ['recommendedBolus', 'normal'], null)
       : _.get(event, ['recommended', 'net'], null);
 
     if (netRecommendation != null) {
