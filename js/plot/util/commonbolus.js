@@ -40,12 +40,8 @@ module.exports = {
     }
 
     var rec = 0;
-    if (event.recommended?.carb) {
-      rec += event.recommended.carb;
-    }
-    if (event.recommended?.correction) {
-      rec += event.recommended.correction;
-    }
+    rec += _.get(event, ['recommended', 'carb'], 0);
+    rec += _.get(event, ['recommended', 'correction'], 0);
 
     return format.fixFloatingPoint(rec);
   },
