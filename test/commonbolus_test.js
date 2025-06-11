@@ -136,7 +136,7 @@ describe('common bolus functions', function() {
       expectedNormal: 6,
       insulinOnBoard: 2.654,
       dosingDecision: {
-        recommendedBolus: { normal: 1.5 },
+        recommendedBolus: { amount: 1.5 },
       },
     },
   };
@@ -176,7 +176,7 @@ describe('common bolus functions', function() {
     });
 
     it('should return net rec when net rec exists within dosingDecision', function() {
-      expect(commonbolus.getRecommended(fixtures.withDosingDecision)).to.equal(fixtures.withDosingDecision.dosingDecision.recommendedBolus.normal);
+      expect(commonbolus.getRecommended(fixtures.withDosingDecision)).to.equal(fixtures.withDosingDecision.dosingDecision.recommendedBolus.amount);
     });
   });
 
