@@ -40,10 +40,10 @@ module.exports = {
     }
 
     var rec = 0;
-    if (event.recommended.carb) {
+    if (event.recommended?.carb) {
       rec += event.recommended.carb;
     }
-    if (event.recommended.correction) {
+    if (event.recommended?.correction) {
       rec += event.recommended.correction;
     }
 
