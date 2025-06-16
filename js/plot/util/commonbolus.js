@@ -32,7 +32,7 @@ module.exports = {
     }
 
     const netRecommendation = event.recommendedBolus
-      ? _.get(event, ['recommendedBolus', 'normal'], null)
+      ? _.get(event, ['recommendedBolus', 'amount'], null)
       : _.get(event, ['recommended', 'net'], null);
 
     if (netRecommendation != null) {
@@ -40,12 +40,8 @@ module.exports = {
     }
 
     var rec = 0;
-    if (event.recommended.carb) {
-      rec += event.recommended.carb;
-    }
-    if (event.recommended.correction) {
-      rec += event.recommended.correction;
-    }
+    rec += _.get(event, ['recommended', 'carb'], 0);
+    rec += _.get(event, ['recommended', 'correction'], 0);
 
     return format.fixFloatingPoint(rec);
   },
