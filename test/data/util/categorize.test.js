@@ -10,11 +10,11 @@ describe('Categorize', () => {
     describe('when units are mg/dL and bgBounds follow ADA Standardized CGM metrics', () => {
       it('should return `verylow` for a value < 54', () => {
         expect(categorize({ value: 50 })).to.equal('verylow');
-        expect(categorize({ value: 53.6 })).to.equal('verylow');
-        expect(categorize({ value: 53.999 })).to.equal('verylow');
+        expect(categorize({ value: 53.45 })).to.equal('verylow');
       });
 
       it('should return `low` for a value between 54 - 69', () => {
+        expect(categorize({ value: 53.999 })).to.equal('low');
         expect(categorize({ value: 54 })).to.equal('low');
         expect(categorize({ value: 57 })).to.equal('low');
         expect(categorize({ value: 62 })).to.equal('low');
@@ -55,11 +55,12 @@ describe('Categorize', () => {
         expect(categorize({ value: 200 })).to.equal('high');
         expect(categorize({ value: 231 })).to.equal('high');
         expect(categorize({ value: 250 })).to.equal('high');
+        expect(categorize({ value: 250.2 })).to.equal('high');
       });
 
 
       it('should return `veryhigh` for a value > 250', () => {
-        expect(categorize({ value: 250.001 })).to.equal('veryhigh');
+        expect(categorize({ value: 250.67 })).to.equal('veryhigh');
         expect(categorize({ value: 251 })).to.equal('veryhigh');
         expect(categorize({ value: 260 })).to.equal('veryhigh');
       });
@@ -72,10 +73,11 @@ describe('Categorize', () => {
         expect(categorize({ value: 2 })).to.equal('verylow');
         expect(categorize({ value: 2.85 })).to.equal('verylow');
         expect(categorize({ value: 2.9 })).to.equal('verylow');
-        expect(categorize({ value: 2.9999 })).to.equal('verylow');
+        expect(categorize({ value: 2.94 })).to.equal('verylow');
       });
 
       it('should return `low` for a value between 3.0 - 3.8', () => {
+        expect(categorize({ value: 2.96 })).to.equal('low');
         expect(categorize({ value: 3 })).to.equal('low');
         expect(categorize({ value: 3.55 })).to.equal('low');
         expect(categorize({ value: 3.8 })).to.equal('low');
@@ -113,11 +115,11 @@ describe('Categorize', () => {
         expect(categorize({ value: 10.1 })).to.equal('high');
         expect(categorize({ value: 12 })).to.equal('high');
         expect(categorize({ value: 13.9 })).to.equal('high');
+        expect(categorize({ value: 13.93 })).to.equal('high');
       });
 
 
       it('should return `veryhigh` for a value > 13.9`', () => {
-        expect(categorize({ value: 13.9001 })).to.equal('veryhigh');
         expect(categorize({ value: 13.95 })).to.equal('veryhigh');
         expect(categorize({ value: 14 })).to.equal('veryhigh');
       });
