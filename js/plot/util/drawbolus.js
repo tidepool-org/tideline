@@ -167,7 +167,7 @@ module.exports = function(pool, opts) {
           width: opts.width,
           height: function(d) {
             d = pluckBolus(d);
-            return opts.yScale(commonbolus.getDelivered(d)) - opts.yScale(commonbolus.getMaxValue(d)) - 1;
+            return opts.yScale(commonbolus.getDelivered(d)) - opts.yScale(commonbolus.getMaxValue(d));
           },
           'class': 'd3-rect-suspended-bolus d3-bolus'
         });
