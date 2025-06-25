@@ -76,28 +76,28 @@ module.exports = function(pool, opts) {
       }));
 
       var extended = boluses.filter(function(d) {
-        return d.tags?.extended;
+        return d.extended || d.expectedExtended;
       });
 
       drawBolus.extended(extended);
 
       // boluses where recommended > programmed
       var underride = boluses.filter(function(d) {
-        return d.tags?.underride;
+        return commonbolus.isUnderride(d);
       });
 
       drawBolus.underride(underride);
 
       // boluses where programmed > recommended
       var override = boluses.filter(function(d) {
-        return d.tags?.override;
+        return commonbolus.isOverride(d);
       });
 
       drawBolus.override(override);
 
       // boluses where programmed differs from delivered
       var suspended = boluses.filter(function(d) {
-        return d.tags?.interrupted;
+        return commonbolus.getDelivered(d) !== commonbolus.getProgrammed(d);
       });
 
       drawBolus.suspended(suspended);

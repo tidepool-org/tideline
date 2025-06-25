@@ -58,8 +58,8 @@ module.exports = {
     }
     var programmedTotal = this.getProgrammed(d);
     var rec = 0;
-    if (wiz || d.dosingDecision) {
-      rec = this.getRecommended(wiz || d);
+    if (wiz) {
+      rec = this.getRecommended(wiz);
     }
     return rec > programmedTotal ? rec : programmedTotal;
   },
@@ -139,4 +139,26 @@ module.exports = {
     }
     return d.expectedDuration || d.duration;
   },
+
+  isOverride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
+
+    if (!amountRecommended) return false;
+
+    return (amountProgrammed - amountRecommended) >= MINIMUM_THRESHOLD;
+  },
+
+  isUnderride: (d) => {
+    const MINIMUM_THRESHOLD = 0.01;
+    const self = module.exports;
+    const amountRecommended = self.getRecommended(d);
+    const amountProgrammed = self.getProgrammed(d);
+
+    if (!amountRecommended) return false;
+
+    return (amountRecommended - amountProgrammed) >= MINIMUM_THRESHOLD;
+  }
 };
