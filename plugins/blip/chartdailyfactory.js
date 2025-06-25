@@ -396,6 +396,17 @@ function chartDailyFactory(el, options) {
       timezone: chart.options.timePrefs.timezoneName
     }), true, true);
 
+    // add pump alarm data to messages pool
+    poolMessages.addPlotType('deviceEvent', tideline.plot.pumpAlarm(poolMessages, {
+      size: 23,
+      emitter: emitter,
+      data: groupedData.deviceEvent,
+      timezoneAware: chart.options.timePrefs.timezoneAware,
+      timezoneName: chart.options.timePrefs.timezoneName,
+      onPumpAlarmHover: options.onPumpAlarmHover,
+      onPumpAlarmOut: options.onPumpAlarmOut,
+    }), true, true);
+
     return chart;
   };
 
