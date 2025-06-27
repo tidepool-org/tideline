@@ -397,14 +397,14 @@ function chartDailyFactory(el, options) {
     }), true, true);
 
     // add pump alarm data to messages pool
-    poolMessages.addPlotType('deviceEvent', tideline.plot.pumpAlarm(poolMessages, {
+    poolMessages.addPlotType('deviceEvent', tideline.plot.alarm(poolMessages, {
       size: 23,
       emitter: emitter,
       data: groupedData.deviceEvent,
       timezoneAware: chart.options.timePrefs.timezoneAware,
       timezoneName: chart.options.timePrefs.timezoneName,
-      onPumpAlarmHover: options.onPumpAlarmHover,
-      onPumpAlarmOut: options.onPumpAlarmOut,
+      onAlarmHover: options.onAlarmHover,
+      onAlarmOut: options.onAlarmOut,
     }), true, true);
 
     return chart;
