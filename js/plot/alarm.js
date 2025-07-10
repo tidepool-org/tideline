@@ -79,9 +79,6 @@ module.exports = function(pool, opts = {}) {
         height: opts.size
       })
       .classed({'d3-image': true, 'd3-alarm': true});
-
-    selection.on('mouseover', alarm._displayTooltip);
-    selection.on('mouseout', alarm._removeTooltip);
   };
 
   alarm.xPositionCorner = function(d) {
