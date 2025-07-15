@@ -87,28 +87,28 @@ module.exports = function(pool, opts) {
       drawBolus.bolus(boluses);
 
       var extended = boluses.filter(function(d) {
-        return d.bolus.extended || d.bolus.expectedExtended;
+        return d.tags?.extended;
       });
 
       drawBolus.extended(extended);
 
       // boluses where recommended > programmed
       var underride = boluses.filter(function(d) {
-        return commonbolus.isUnderride(d);
+        return d.tags?.underride;
       });
 
       drawBolus.underride(underride);
 
       // boluses where programmed > recommended
       var override = boluses.filter(function(d) {
-        return commonbolus.isOverride(d);
+        return d.tags?.override;
       });
 
       drawBolus.override(override);
 
       // boluses where programmed differs from delivered
       var suspended = boluses.filter(function(d) {
-        return commonbolus.getDelivered(d) !== commonbolus.getProgrammed(d);
+        return d.tags?.interrupted;
       });
 
       drawBolus.suspended(suspended);
