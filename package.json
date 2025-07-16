@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.34.0-develop.1",
+  "version": "1.34.0-web-3764-adjust-classification.2",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
