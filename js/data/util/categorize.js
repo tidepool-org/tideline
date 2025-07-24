@@ -41,15 +41,6 @@ var Categorizer = function(bgClasses = {}, bgUnits = MGDL_UNITS){
   _.defaults(classes, defaults);
 
   return function(d) {
-    if (d.value < classes['very-low'].boundary) {
-      return 'verylow';
-    } else if (d.value > classes.high.boundary) {
-      return 'veryhigh';
-    }
-
-    // Low, Target, and High ranges are non-contiguous in the ADA Standardized CGM metrics.
-    // We ensure that values falling between these ranges are rounded into an appropriate
-    // range before trying to classify them. See the unit tests for examples of scenarios
     var precision = 0;
     if (bgUnits === MMOLL_UNITS) {
       precision = 1;
@@ -57,7 +48,11 @@ var Categorizer = function(bgClasses = {}, bgUnits = MGDL_UNITS){
 
     var roundedValue = bankersRound(d.value, precision);
 
-    if (roundedValue < classes.low.boundary) {
+    if (roundedValue < classes['very-low'].boundary) {
+      return 'verylow';
+    } else if (roundedValue > classes.high.boundary) {
+      return 'veryhigh';
+    } else if (roundedValue < classes.low.boundary) {
       return 'low';
     } else if (roundedValue > classes.target.boundary) {
       return 'high';
