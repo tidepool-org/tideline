@@ -48,9 +48,9 @@ var Categorizer = function(bgClasses = {}, bgUnits = MGDL_UNITS){
 
     var roundedValue = bankersRound(d.value, precision);
 
-    if (roundedValue < classes['very-low'].boundary) {
+    if (!!classes['very-low'].boundary && roundedValue < classes['very-low'].boundary) {
       return 'verylow';
-    } else if (roundedValue > classes.high.boundary) {
+    } else if (!!classes.high.boundary && roundedValue > classes.high.boundary) {
       return 'veryhigh';
     } else if (roundedValue < classes.low.boundary) {
       return 'low';
