@@ -30,7 +30,7 @@ module.exports = function(pool, opts) {
     textShiftX: 5,
     textShiftY: 5,
     tickLength: 15,
-    longTickMultiplier: 2.5,
+    longTickMultiplier: 3.75,
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
@@ -47,7 +47,7 @@ module.exports = function(pool, opts) {
     .append('text')
     .attr({
       'class': 'd3-day-label',
-      x: opts.leftEdge,
+      x: opts.leftEdge + 4,
       // this is the same as dailyx.dayYPosition
       // we just don't have a datum to pass here
       y: pool.height() - opts.tickLength * opts.longTickMultiplier
@@ -97,8 +97,8 @@ module.exports = function(pool, opts) {
 
       tickGroups.append('line')
         .attr({
-          x1: dailyx.xPosition,
-          x2: dailyx.xPosition,
+          x1: dailyx.tickXPosition,
+          x2: dailyx.tickXPosition,
           y1: pool.height(),
           y2: dailyx.tickLength
         });
@@ -139,6 +139,10 @@ module.exports = function(pool, opts) {
 
   dailyx.textXPosition = function(d) {
     return dailyx.xPosition(d) + opts.textShiftX;
+  };
+
+  dailyx.tickXPosition = function(d) {
+    return dailyx.xPosition(d) + 1;
   };
 
   dailyx.dayYPosition = function(d) {
