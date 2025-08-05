@@ -64,8 +64,9 @@ svg {
     font-size: @font-size-axes;
     fill: @text;
     &.d3-day-label {
+      font-size: @font-size-medium;
       dominant-baseline: hanging;
-      fill: @text-light;
+      fill: @text;
     }
 
     @media (max-width: @screen-sm-max) {
@@ -115,10 +116,10 @@ svg {
     font-size: @font-size-labels;
     fill: @text;
     &.main {
-      font-weight: 600;
+      font-weight: 700;
     }
     &.light {
-      font-weight: 300;
+      font-weight: 400;
     }
 
     @media (max-width: @screen-sm-max) {
