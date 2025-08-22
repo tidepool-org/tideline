@@ -9510,12 +9510,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sundial@npm:1.7.1":
-  version: 1.7.1
-  resolution: "sundial@npm:1.7.1"
+"sundial@npm:1.7.6-rc.1":
+  version: 1.7.6-rc.1
+  resolution: "sundial@npm:1.7.6-rc.1"
   dependencies:
     moment-timezone: 0.5.43
-  checksum: daca08a80092c47045725319352f8fda3bded465a265c9172263dffec06944584dbab4dfd5ae4c663e3b6f3769ecbffe349170c6ec3993daa4b96bc45bb4afb9
+  checksum: d8c87511a0c17a014b23e5fd12700e64f7fffe8f095682092131817ad27450df915ff2a3d0eff2fa6ae8f89d9f4074747bdb372b3c54534a7db5f73867aa8039
   languageName: node
   linkType: hard
 
@@ -9725,7 +9725,7 @@ __metadata:
     script-loader: 0.7.2
     sinon: 17.0.0
     style-loader: 3.3.3
-    sundial: 1.7.1
+    sundial: 1.7.6-rc.1
     url-loader: 4.1.1
     webpack: 5.89.0
   peerDependencies:
