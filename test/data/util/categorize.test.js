@@ -5,7 +5,7 @@ var categorizer = require('../../../js/data/util/categorize');
 
 describe('Categorize', () => {
   describe('five-way classification (verylow, low, target, high, veryhigh)', () => {
-    var categorize = categorizer({}, MGDL_UNITS);
+    const categorize = categorizer({}, MGDL_UNITS);
 
     describe('when units are mg/dL and bgBounds follow ADA Standardized CGM metrics', () => {
       it('should return `verylow` for a value < 54', () => {
@@ -53,6 +53,34 @@ describe('Categorize', () => {
         expect(categorize({ value: 250.67 })).to.equal('veryhigh');
         expect(categorize({ value: 251 })).to.equal('veryhigh');
         expect(categorize({ value: 260 })).to.equal('veryhigh');
+      });
+    });
+
+    describe('when units are mg/dL and bgBounds do not follow ADA Standardized CGM metrics', () => {
+      it('handles an absent veryLow value', () => {
+        const categorize = categorizer({
+          'very-low': { boundary: null },
+          low: { boundary: 70 },
+          target: { boundary: 180 },
+          high: { boundary: 250 },
+        }, MGDL_UNITS);
+
+        expect(categorize({ value: 10 })).to.equal('low');
+        expect(categorize({ value: 65 })).to.equal('low');
+        expect(categorize({ value: 80 })).to.equal('target');
+      });
+
+      it('handles an absent veryHigh value', () => {
+        const categorize = categorizer({
+          'very-low': { boundary: 54 },
+          low: { boundary: 70 },
+          target: { boundary: 180 },
+          high: { boundary: null },
+        }, MGDL_UNITS);
+
+        expect(categorize({ value: 300 })).to.equal('high');
+        expect(categorize({ value: 185 })).to.equal('high');
+        expect(categorize({ value: 170 })).to.equal('target');
       });
     });
 

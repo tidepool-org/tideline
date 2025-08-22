@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.36.0-develop.2",
+  "version": "1.37.0-web-3830-pregnancy-ranges.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
