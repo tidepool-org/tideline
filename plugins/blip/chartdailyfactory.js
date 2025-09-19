@@ -68,7 +68,7 @@ function chartDailyFactory(el, options) {
   chart.emitter = emitter;
   chart.options = options;
 
-  var poolXAxis, poolMessages, poolBG, poolBolus, poolBasal;
+  var poolXAxis, poolEvents, poolBG, poolBolus, poolBasal;
 
   var SMBG_SIZE = 16;
 
@@ -100,15 +100,15 @@ function chartDailyFactory(el, options) {
       .label('')
       .labelBaseline(options.labelBaseline)
       .index(chart.pools().indexOf(poolXAxis))
-      .heightRatio(0.65)
+      .heightRatio(0.75)
       .gutterWeight(0.0);
 
-    // messages pool
-    poolMessages = chart.newPool()
-      .id('poolMessages', chart.poolGroup())
+    // events pool
+    poolEvents = chart.newPool()
+      .id('poolEvents', chart.poolGroup())
       .label('')
       .labelBaseline(options.labelBaseline)
-      .index(chart.pools().indexOf(poolMessages))
+      .index(chart.pools().indexOf(poolEvents))
       .heightRatio(0.5)
       .gutterWeight(0.0);
 
@@ -166,11 +166,11 @@ function chartDailyFactory(el, options) {
     chart.annotations().addGroup(chart.svg().select('#' + poolBasal.id()), 'basal');
 
     // add tooltips
-    chart.tooltips().addGroup(poolMessages, {
+    chart.tooltips().addGroup(poolEvents, {
       type: 'deviceEvent',
       shape: 'generic'
     });
-    chart.tooltips().addGroup(poolMessages, {
+    chart.tooltips().addGroup(poolEvents, {
       type: 'message',
       shape: 'generic'
     });
@@ -374,30 +374,30 @@ function chartDailyFactory(el, options) {
       onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
     }), true, true);
 
-    // messages pool
-    // add background fill rectangles to messages pool
-    poolMessages.addPlotType('fill', fill(poolMessages, {
+    // events pool
+    // add background fill rectangles to events pool
+    poolEvents.addPlotType('fill', fill(poolEvents, {
       emitter: emitter,
       isDaily: true,
       cursor: 'cell'
     }), true, true);
 
-    // add message images to messages pool
-    poolMessages.addPlotType('message', tideline.plot.message(poolMessages, {
+    // add message images to events pool
+    poolEvents.addPlotType('message', tideline.plot.message(poolEvents, {
       size: 30,
       emitter: emitter,
       timezoneAware: chart.options.timePrefs.timezoneAware
     }), true, true);
 
-    // add timechange images to messages pool
-    poolMessages.addPlotType('deviceEvent', tideline.plot.timechange(poolMessages, {
+    // add timechange images to events pool
+    poolEvents.addPlotType('deviceEvent', tideline.plot.timechange(poolEvents, {
       size: 30,
       emitter: emitter,
       timezone: chart.options.timePrefs.timezoneName
     }), true, true);
 
-    // add pump alarm data to messages pool
-    poolMessages.addPlotType('deviceEvent', tideline.plot.alarm(poolMessages, {
+    // add pump alarm data to events pool
+    poolEvents.addPlotType('deviceEvent', tideline.plot.alarm(poolEvents, {
       size: 23,
       emitter: emitter,
       data: groupedData.deviceEvent,
