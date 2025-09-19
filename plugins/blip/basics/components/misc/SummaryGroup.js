@@ -158,10 +158,10 @@ var SummaryGroup = createReactClass({
         bgUnits: this.props.bgUnits
       });
 
-      var labelOpts = option.labelOpts;
-
       var labelText = option.label ? option.label :
-        labels[labelOpts.type][labelOpts.key];
+        labels?.bg?.[option?.key];
+
+      if (!labelText) return null;
 
       var labelElem = (
         <span className="SummaryGroup-option-label">{labelText}</span>
