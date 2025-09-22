@@ -48,6 +48,7 @@ module.exports = {
     smbg: require('./plot/smbg'),
     suspend: require('./plot/suspend'),
     alarm: require('./plot/alarm'),
+    event: require('./plot/event'),
     pumpSettingsOverride: require('./plot/pumpSettingsOverride'),
     wizard: require('./plot/wizard'),
     carb: require('./plot/carb'),
