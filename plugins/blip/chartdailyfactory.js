@@ -218,6 +218,7 @@ function chartDailyFactory(el, options) {
     );
 
     const groupedData = _.groupBy(combinedData, 'type');
+    const groupedEventData = _.groupBy(_.filter(combinedData, d => _.isString(d.tags?.event)), 'type');
 
     _.each(renderedDataTypes, type => {
       if (!groupedData[type]) groupedData[type] = [];
@@ -406,6 +407,19 @@ function chartDailyFactory(el, options) {
       onAlarmHover: options.onAlarmHover,
       onAlarmOut: options.onAlarmOut,
     }), true, true);
+
+    // add pump events data to events pool
+    _.each(groupedEventData, function(data, type) {
+      poolEvents.addPlotType(type, tideline.plot.event(poolEvents, {
+        size: 18,
+        emitter: emitter,
+        data: data,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        timezoneName: chart.options.timePrefs.timezoneName,
+        onEventHover: options.onEventHover,
+        onEventOut: options.onEventOut,
+      }), true, true);
+    });
 
     return chart;
   };
