@@ -44,6 +44,13 @@ function chartDailyFactory(el, options) {
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
+    },
+    endpoints: null,
+    showPools: {
+      events: true,
+      bg: true,
+      bolus: true,
+      basal: true,
     }
   };
   _.defaults(options, defaults);
@@ -104,7 +111,7 @@ function chartDailyFactory(el, options) {
       .gutterWeight(0.0);
 
     // events pool
-    poolEvents = chart.newPool()
+    if (options.showPools.events) poolEvents = chart.newPool()
       .id('poolEvents', chart.poolGroup())
       .label('')
       .labelBaseline(options.labelBaseline)
@@ -113,7 +120,7 @@ function chartDailyFactory(el, options) {
       .gutterWeight(0.0);
 
     // blood glucose data pool
-    poolBG = chart.newPool()
+    if (options.showPools.bg) poolBG = chart.newPool()
       .id('poolBG', chart.poolGroup())
       .label([{
         'main': t('Glucose'),
@@ -126,7 +133,7 @@ function chartDailyFactory(el, options) {
       .gutterWeight(1.0);
 
     // carbs and boluses data pool
-    poolBolus = chart.newPool()
+    if (options.showPools.bolus) poolBolus = chart.newPool()
       .id('poolBolus', chart.poolGroup())
       .label([{
         'main': t('Bolus'),
@@ -143,7 +150,7 @@ function chartDailyFactory(el, options) {
       .gutterWeight(1.0);
 
     // basal data pool
-    poolBasal = chart.newPool()
+    if (options.showPools.basal) poolBasal = chart.newPool()
       .id('poolBasal', chart.poolGroup())
       .label([{
         main: t('Basal Rates'),
@@ -160,43 +167,43 @@ function chartDailyFactory(el, options) {
     chart.setAnnotation().setTooltip();
 
     // add annotations
-    chart.annotations().addGroup(chart.svg().select('#' + poolBG.id()), 'smbg');
-    chart.annotations().addGroup(chart.svg().select('#' + poolBolus.id()), 'bolus');
-    chart.annotations().addGroup(chart.svg().select('#' + poolBolus.id()), 'wizard');
-    chart.annotations().addGroup(chart.svg().select('#' + poolBasal.id()), 'basal');
+    if (poolBG) chart.annotations().addGroup(chart.svg().select('#' + poolBG.id()), 'smbg');
+    if (poolBolus) chart.annotations().addGroup(chart.svg().select('#' + poolBolus.id()), 'bolus');
+    if (poolBolus) chart.annotations().addGroup(chart.svg().select('#' + poolBolus.id()), 'wizard');
+    if (poolBasal) chart.annotations().addGroup(chart.svg().select('#' + poolBasal.id()), 'basal');
 
     // add tooltips
-    chart.tooltips().addGroup(poolEvents, {
+    if (poolEvents) chart.tooltips().addGroup(poolEvents, {
       type: 'deviceEvent',
       shape: 'generic'
     });
-    chart.tooltips().addGroup(poolEvents, {
+    if (poolEvents) chart.tooltips().addGroup(poolEvents, {
       type: 'message',
       shape: 'generic'
     });
-    chart.tooltips().addGroup(poolBG, {
+    if (poolBG) chart.tooltips().addGroup(poolBG, {
       type: 'cbg',
       classes: ['d3-bg-low', 'd3-bg-target', 'd3-bg-high']
     });
-    chart.tooltips().addGroup(poolBG, {
+    if (poolBG) chart.tooltips().addGroup(poolBG, {
       type: 'smbg'
     });
-    chart.tooltips().addGroup(poolBolus, {
+    if (poolBolus) chart.tooltips().addGroup(poolBolus, {
       type: 'wizard',
       shape: 'generic'
     });
-    chart.tooltips().addGroup(poolBolus, {
+    if (poolBolus) chart.tooltips().addGroup(poolBolus, {
       type: 'bolus',
       shape: 'generic'
     });
-    chart.tooltips().addGroup(poolBasal, {
+    if (poolBasal) chart.tooltips().addGroup(poolBasal, {
       type: 'basal'
     });
 
     return chart;
   };
 
-  chart.load = function(data) {
+  chart.load = function(data, dataIsProcessed = false) {
     const renderedDataTypes = [
       'basal',
       'bolus',
@@ -208,24 +215,33 @@ function chartDailyFactory(el, options) {
       'wizard',
     ];
 
-    const latestDatums = _.pick(_.get(data, 'metaData.latestDatumByType'), renderedDataTypes);
-    const latestDatumTime = _.max(_.map(latestDatums, d => (d.normalEnd || d.normalTime)));
-    const datumCeiling = dt.getLocalizedCeiling(latestDatumTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
+    let processedData;
 
-    const combinedData = _.reject(
-      _.sortBy(_.cloneDeep(_.get(data, 'data.combined', [])), 'normalTime'),
-      d => (d.normalTime >= datumCeiling)
-    );
+    if (dataIsProcessed) {
+      processedData = data;
+    } else {
+      const latestDatums = _.pick(_.get(data, 'metaData.latestDatumByType'), renderedDataTypes);
+      const latestDatumTime = _.max(_.map(latestDatums, d => (d.normalEnd || d.normalTime)));
+      const datumCeiling = dt.getLocalizedCeiling(latestDatumTime, _.get(chart.options.timePrefs, 'timezoneName', 'UTC'));
 
-    const groupedData = _.groupBy(combinedData, 'type');
-    const groupedEventData = _.groupBy(_.filter(combinedData, d => _.isString(d.tags?.event)), 'type');
+      processedData = _.reject(
+        _.sortBy(_.cloneDeep(_.get(data, 'data.combined', data?.data?.current?.data || [])), 'normalTime'),
+        d => (d.normalTime >= datumCeiling)
+      );
+    }
+
+    const groupedData = _.groupBy(processedData, 'type');
+    const groupedEventData = _.groupBy(_.filter(processedData, d => _.isString(d.tags?.event)), 'type');
 
     _.each(renderedDataTypes, type => {
       if (!groupedData[type]) groupedData[type] = [];
     });
 
     // initialize chart with data
-    chart.data(combinedData).setAxes().setNav().setScrollNav();
+    // chart.data(processedData).setAxes().setNav();
+    chart.data(processedData).setAxes();
+    if (!options.endpoints) chart.setNav();
+    if (!options.endpoints) chart.setScrollNav();
 
     // x-axis pools
     // add ticks to top x-axis pool
@@ -236,190 +252,195 @@ function chartDailyFactory(el, options) {
       timePrefs: chart.options.timePrefs
     }), true, true);
 
-    // BG pool
+    if (poolBG) {
+      // BG pool
+      const allBG = _.filter(processedData, d => (d.type === 'cbg' || d.type === 'smbg'));
+      var scaleBG = scales.bg(allBG, poolBG, SMBG_SIZE/2);
+      var bgTickFormat = options.bgUnits === MGDL_UNITS ? 'd' : '.1f';
 
-    const allBG = _.filter(combinedData, d => (d.type === 'cbg' || d.type === 'smbg'));
-    var scaleBG = scales.bg(allBG, poolBG, SMBG_SIZE/2);
-    var bgTickFormat = options.bgUnits === MGDL_UNITS ? 'd' : '.1f';
+      // set up y-axis
+      if (poolBG) poolBG.yAxis(d3.svg.axis()
+        .scale(scaleBG)
+        .orient('left')
+        .outerTickSize(0)
+        .tickValues(scales.bgTicks(allBG))
+        .tickFormat(d3.format(bgTickFormat)));
+      // add background fill rectangles to BG pool
+      if (poolBG) poolBG.addPlotType('fill', fill(poolBG, {
+        endpoints: chart.endpoints,
+        isDaily: true,
+        guidelines: [
+          {
+            'class': 'd3-line-bg-threshold',
+            'height': chart.options.bgClasses.low.boundary
+          },
+          {
+            'class': 'd3-line-bg-threshold',
+            'height': chart.options.bgClasses.target.boundary
+          }
+        ],
+        yScale: scaleBG
+      }), true, true);
 
-    // set up y-axis
-    poolBG.yAxis(d3.svg.axis()
-      .scale(scaleBG)
-      .orient('left')
-      .outerTickSize(0)
-      .tickValues(scales.bgTicks(allBG))
-      .tickFormat(d3.format(bgTickFormat)));
-    // add background fill rectangles to BG pool
-    poolBG.addPlotType('fill', fill(poolBG, {
-      endpoints: chart.endpoints,
-      isDaily: true,
-      guidelines: [
-        {
-          'class': 'd3-line-bg-threshold',
-          'height': chart.options.bgClasses.low.boundary
-        },
-        {
-          'class': 'd3-line-bg-threshold',
-          'height': chart.options.bgClasses.target.boundary
-        }
-      ],
-      yScale: scaleBG
-    }), true, true);
+      // add CBG data to BG pool
+      poolBG.addPlotType('cbg', tideline.plot.cbg(poolBG, {
+        bgUnits: chart.options.bgUnits,
+        classes: chart.options.bgClasses,
+        yScale: scaleBG,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onCBGHover: options.onCBGHover,
+        onCBGOut: options.onCBGOut,
+      }), true, true);
 
-    // add CBG data to BG pool
-    poolBG.addPlotType('cbg', tideline.plot.cbg(poolBG, {
-      bgUnits: chart.options.bgUnits,
-      classes: chart.options.bgClasses,
-      yScale: scaleBG,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      onCBGHover: options.onCBGHover,
-      onCBGOut: options.onCBGOut,
-    }), true, true);
+      // add SMBG data to BG pool
+      poolBG.addPlotType('smbg', tideline.plot.smbg(poolBG, {
+        bgUnits: chart.options.bgUnits,
+        classes: chart.options.bgClasses,
+        yScale: scaleBG,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onSMBGHover: options.onSMBGHover,
+        onSMBGOut: options.onSMBGOut,
+      }), true, true);
+    }
 
-    // add SMBG data to BG pool
-    poolBG.addPlotType('smbg', tideline.plot.smbg(poolBG, {
-      bgUnits: chart.options.bgUnits,
-      classes: chart.options.bgClasses,
-      yScale: scaleBG,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      onSMBGHover: options.onSMBGHover,
-      onSMBGOut: options.onSMBGOut,
-    }), true, true);
+    if (poolBolus) {
+      // bolus & carbs pool
+      var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
+      var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
+      // set up y-axis for bolus
+      poolBolus.yAxis(d3.svg.axis()
+        .scale(scaleBolus)
+        .orient('left')
+        .outerTickSize(0)
+        .ticks(2));
 
-    // TODO: when we bring responsiveness in
-    // decide number of ticks for these scales based on container height?
-    // bolus & carbs pool
-    var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
-    var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
-    // set up y-axis for bolus
-    poolBolus.yAxis(d3.svg.axis()
-      .scale(scaleBolus)
-      .orient('left')
-      .outerTickSize(0)
-      .ticks(2));
+      // add background fill rectangles to bolus pool
+      var scaleHeight = d3.scale.linear()
+        .domain([0, poolBolus.height()])
+        .range([0, poolBolus.height()]);
 
-    // add background fill rectangles to bolus pool
-    var scaleHeight = d3.scale.linear()
-      .domain([0, poolBolus.height()])
-      .range([0, poolBolus.height()]);
+      poolBolus.addPlotType('fill', fill(poolBolus, {
+        endpoints: chart.endpoints,
+        isDaily: true,
+        yScale: scaleHeight
+      }), true, true);
 
-    poolBolus.addPlotType('fill', fill(poolBolus, {
-      endpoints: chart.endpoints,
-      isDaily: true,
-      yScale: scaleHeight
-    }), true, true);
-
-    // add wizard data to wizard pool
-    poolBolus.addPlotType('wizard', tideline.plot.wizard(poolBolus, {
-      yScale: scaleBolus,
-      yScaleCarbs: scaleCarbs,
-      emitter: emitter,
-      subdueOpacity: 0.4,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      onBolusHover: options.onBolusHover,
-      onBolusOut: options.onBolusOut,
-    }), true, true);
-
-    poolBolus.addPlotType('food', tideline.plot.carb(poolBolus, {
-      emitter: emitter,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      onCarbHover: options.onCarbHover,
-      onCarbOut: options.onCarbOut,
-    }), true, true);
-
-    // quick bolus data to wizard pool
-    poolBolus.addPlotType('bolus', tideline.plot.quickbolus(poolBolus, {
-      yScale: scaleBolus,
-      emitter: emitter,
-      subdueOpacity: 0.4,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      onBolusHover: options.onBolusHover,
-      onBolusOut: options.onBolusOut,
-    }), true, true);
-
-    // basal pool
-    var scaleBasal = scales.basal(groupedData.basal, poolBasal);
-    // set up y-axis
-    poolBasal.yAxis(d3.svg.axis()
-      .scale(scaleBasal)
-      .orient('left')
-      .outerTickSize(0)
-      .ticks(2));
-    // add background fill rectangles to basal pool
-    poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: chart.endpoints, isDaily: true}), true, true);
-
-    // add basal data to basal pool
-    poolBasal.addPlotType('basal', tideline.plot.basal(poolBasal, {
-      yScale: scaleBasal,
-      emitter: emitter,
-      data: groupedData.basal,
-      timezoneAware: chart.options.timePrefs.timezoneAware
-    }), true, true);
-
-    // add device suspend data to basal pool
-    poolBasal.addPlotType('deviceEvent', tideline.plot.suspend(poolBasal, {
-      yScale: scaleBasal,
-      emitter: emitter,
-      data: groupedData.deviceEvent,
-      timezoneAware: chart.options.timePrefs.timezoneAware
-    }), true, true);
-
-    // add device settings override data to basal pool
-    poolBasal.addPlotType('deviceEvent', tideline.plot.pumpSettingsOverride(poolBasal, {
-      yScale: scaleBasal,
-      emitter: emitter,
-      data: groupedData.deviceEvent,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      timezoneName: chart.options.timePrefs.timezoneName,
-      onPumpSettingsOverrideHover: options.onPumpSettingsOverrideHover,
-      onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
-    }), true, true);
-
-    // events pool
-    // add background fill rectangles to events pool
-    poolEvents.addPlotType('fill', fill(poolEvents, {
-      emitter: emitter,
-      isDaily: true,
-      cursor: 'cell'
-    }), true, true);
-
-    // add message images to events pool
-    poolEvents.addPlotType('message', tideline.plot.message(poolEvents, {
-      size: 30,
-      emitter: emitter,
-      timezoneAware: chart.options.timePrefs.timezoneAware
-    }), true, true);
-
-    // add timechange images to events pool
-    poolEvents.addPlotType('deviceEvent', tideline.plot.timechange(poolEvents, {
-      size: 30,
-      emitter: emitter,
-      timezone: chart.options.timePrefs.timezoneName
-    }), true, true);
-
-    // add pump alarm data to events pool
-    poolEvents.addPlotType('deviceEvent', tideline.plot.alarm(poolEvents, {
-      size: 23,
-      emitter: emitter,
-      data: groupedData.deviceEvent,
-      timezoneAware: chart.options.timePrefs.timezoneAware,
-      timezoneName: chart.options.timePrefs.timezoneName,
-      onAlarmHover: options.onAlarmHover,
-      onAlarmOut: options.onAlarmOut,
-    }), true, true);
-
-    // add pump events data to events pool
-    _.each(groupedEventData, function(data, type) {
-      poolEvents.addPlotType(type, tideline.plot.event(poolEvents, {
-        size: 18,
+      // add wizard data to wizard pool
+      poolBolus.addPlotType('wizard', tideline.plot.wizard(poolBolus, {
+        yScale: scaleBolus,
+        yScaleCarbs: scaleCarbs,
         emitter: emitter,
-        data: data,
+        subdueOpacity: 0.4,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onBolusHover: options.onBolusHover,
+        onBolusOut: options.onBolusOut,
+      }), true, true);
+
+      poolBolus.addPlotType('food', tideline.plot.carb(poolBolus, {
+        emitter: emitter,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onCarbHover: options.onCarbHover,
+        onCarbOut: options.onCarbOut,
+      }), true, true);
+
+      // quick bolus data to wizard pool
+      poolBolus.addPlotType('bolus', tideline.plot.quickbolus(poolBolus, {
+        yScale: scaleBolus,
+        emitter: emitter,
+        subdueOpacity: 0.4,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onBolusHover: options.onBolusHover,
+        onBolusOut: options.onBolusOut,
+      }), true, true);
+    }
+
+    if (poolBasal) {
+      // basal pool
+      var scaleBasal = scales.basal(groupedData.basal, poolBasal);
+      // set up y-axis
+      poolBasal.yAxis(d3.svg.axis()
+        .scale(scaleBasal)
+        .orient('left')
+        .outerTickSize(0)
+        .ticks(2));
+      // add background fill rectangles to basal pool
+      poolBasal.addPlotType('fill', fill(poolBasal, {endpoints: chart.endpoints, isDaily: true}), true, true);
+
+      // add basal data to basal pool
+      poolBasal.addPlotType('basal', tideline.plot.basal(poolBasal, {
+        yScale: scaleBasal,
+        emitter: emitter,
+        data: groupedData.basal,
+        timezoneAware: chart.options.timePrefs.timezoneAware
+      }), true, true);
+
+      // add device suspend data to basal pool
+      poolBasal.addPlotType('deviceEvent', tideline.plot.suspend(poolBasal, {
+        yScale: scaleBasal,
+        emitter: emitter,
+        data: groupedData.deviceEvent,
+        timezoneAware: chart.options.timePrefs.timezoneAware
+      }), true, true);
+
+      // add device settings override data to basal pool
+      poolBasal.addPlotType('deviceEvent', tideline.plot.pumpSettingsOverride(poolBasal, {
+        yScale: scaleBasal,
+        emitter: emitter,
+        data: groupedData.deviceEvent,
         timezoneAware: chart.options.timePrefs.timezoneAware,
         timezoneName: chart.options.timePrefs.timezoneName,
-        onEventHover: options.onEventHover,
-        onEventOut: options.onEventOut,
+        onPumpSettingsOverrideHover: options.onPumpSettingsOverrideHover,
+        onPumpSettingsOverrideOut: options.onPumpSettingsOverrideOut,
       }), true, true);
-    });
+    }
+
+    if (poolEvents) {
+      // events pool
+      // add background fill rectangles to events pool
+      poolEvents.addPlotType('fill', fill(poolEvents, {
+        emitter: emitter,
+        isDaily: true,
+        cursor: 'cell'
+      }), true, true);
+
+      // add message images to events pool
+      poolEvents.addPlotType('message', tideline.plot.message(poolEvents, {
+        size: 30,
+        emitter: emitter,
+        timezoneAware: chart.options.timePrefs.timezoneAware
+      }), true, true);
+
+      // add timechange images to events pool
+      poolEvents.addPlotType('deviceEvent', tideline.plot.timechange(poolEvents, {
+        size: 30,
+        emitter: emitter,
+        timezone: chart.options.timePrefs.timezoneName
+      }), true, true);
+
+      // add pump alarm data to events pool
+      poolEvents.addPlotType('deviceEvent', tideline.plot.alarm(poolEvents, {
+        size: 23,
+        emitter: emitter,
+        data: groupedData.deviceEvent,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        timezoneName: chart.options.timePrefs.timezoneName,
+        onAlarmHover: options.onAlarmHover,
+        onAlarmOut: options.onAlarmOut,
+      }), true, true);
+
+      // add pump events data to events pool
+      _.each(groupedEventData, function(data, type) {
+        poolEvents.addPlotType(type, tideline.plot.event(poolEvents, {
+          size: 18,
+          emitter: emitter,
+          data: data,
+          timezoneAware: chart.options.timePrefs.timezoneAware,
+          timezoneName: chart.options.timePrefs.timezoneName,
+          onEventHover: options.onEventHover,
+          onEventOut: options.onEventOut,
+        }), true, true);
+      });
+    }
 
     return chart;
   };
@@ -475,7 +496,7 @@ function chartDailyFactory(el, options) {
       pool.render(chart.poolGroup(), chart.renderedData());
     });
 
-    chart.setAtDate(start, atMostRecent);
+    if (!options.endpoints) chart.setAtDate(start, atMostRecent);
 
     return chart;
   };

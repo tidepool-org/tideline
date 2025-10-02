@@ -45,7 +45,7 @@ module.exports = function(emitter, opts) {
     width = minWidth, height = minHeight,
     poolScaleHeight,
     nav = {
-      scrollNav: true,
+      scrollNav: !opts.endpoints,
       scrollNavHeight: 50,
       scrollGutterHeight: 20,
       scrollThumbRadius: 24,
@@ -506,18 +506,23 @@ module.exports = function(emitter, opts) {
   container.data = function(a) {
     if (!arguments.length) return data;
 
-    if (! (a && Array.isArray(a) && a.length > 0)) {
+    data = a;
+
+    if (opts.endpoints) {
+      endpoints = container.endpoints = container.initialEndpoints = opts.endpoints;
+      return container;
+    }
+
+    if (! (data && Array.isArray(data) && data.length > 0)) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything without /some/ data.");
       /* jshint ignore:end */
     }
-    else if (a.length === 1) {
+    else if (data.length === 1) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything with only *one* datapoint.");
       /* jshint ignore:end */
     }
-
-    data = a;
 
     var first = new Date(data[0].normalTime);
     var lastObj = _.sortBy(data, function(d) {
