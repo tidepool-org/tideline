@@ -238,10 +238,8 @@ function chartDailyFactory(el, options) {
     });
 
     // initialize chart with data
-    // chart.data(processedData).setAxes().setNav();
     chart.data(processedData).setAxes();
-    if (!options.endpoints) chart.setNav();
-    if (!options.endpoints) chart.setScrollNav();
+    if (!options.endpoints) chart.setNav().setScrollNav();
 
     // x-axis pools
     // add ticks to top x-axis pool
@@ -287,6 +285,7 @@ function chartDailyFactory(el, options) {
         bgUnits: chart.options.bgUnits,
         classes: chart.options.bgClasses,
         yScale: scaleBG,
+        chartEndpoints: chart.endpoints,
         timezoneAware: chart.options.timePrefs.timezoneAware,
         onCBGHover: options.onCBGHover,
         onCBGOut: options.onCBGOut,
@@ -297,6 +296,7 @@ function chartDailyFactory(el, options) {
         bgUnits: chart.options.bgUnits,
         classes: chart.options.bgClasses,
         yScale: scaleBG,
+        chartEndpoints: chart.endpoints,
         timezoneAware: chart.options.timePrefs.timezoneAware,
         onSMBGHover: options.onSMBGHover,
         onSMBGOut: options.onSMBGOut,
