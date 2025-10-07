@@ -46,12 +46,37 @@ function chartDailyFactory(el, options) {
       timezoneName: dt.getBrowserTimezone(),
     },
     endpoints: null,
-    showPools: {
-      events: true,
-      bg: true,
-      bolus: true,
-      basal: true,
-    }
+    dayLabel: true,
+    pool: {
+      events: {
+        hidden: false,
+        label: true,
+        legend: true,
+        heightRatio: 0.5,
+        gutterWeight: 0
+      },
+      bg: {
+        hidden: false,
+        label: true,
+        legend: true,
+        heightRatio: 2.15,
+        gutterWeight: 1,
+      },
+      bolus: {
+        hidden: false,
+        label: true,
+        legend: true,
+        heightRatio: 1.35,
+        gutterWeight: 1,
+      },
+      basal: {
+        hidden: false,
+        label: true,
+        legend: true,
+        heightRatio: 1.0,
+        gutterWeight: 1,
+      },
+    },
   };
   _.defaults(options, defaults);
 
@@ -111,16 +136,16 @@ function chartDailyFactory(el, options) {
       .gutterWeight(0.0);
 
     // events pool
-    if (options.showPools.events) poolEvents = chart.newPool()
+    if (!options.pool.events.hidden) poolEvents = chart.newPool(options.pool.events)
       .id('poolEvents', chart.poolGroup())
       .label('')
       .labelBaseline(options.labelBaseline)
       .index(chart.pools().indexOf(poolEvents))
-      .heightRatio(0.5)
-      .gutterWeight(0.0);
+      .heightRatio(options.pool.events.heightRatio)
+      .gutterWeight(options.pool.events.gutterWeight);
 
     // blood glucose data pool
-    if (options.showPools.bg) poolBG = chart.newPool()
+    if (!options.pool.bg.hidden) poolBG = chart.newPool(options.pool.bg)
       .id('poolBG', chart.poolGroup())
       .label([{
         'main': t('Glucose'),
@@ -129,11 +154,11 @@ function chartDailyFactory(el, options) {
       .labelBaseline(options.labelBaseline)
       .legend(['bg'])
       .index(chart.pools().indexOf(poolBG))
-      .heightRatio(2.15)
-      .gutterWeight(1.0);
+      .heightRatio(options.pool.bg.heightRatio)
+      .gutterWeight(options.pool.bg.gutterWeight);
 
     // carbs and boluses data pool
-    if (options.showPools.bolus) poolBolus = chart.newPool()
+    if (!options.pool.bolus.hidden) poolBolus = chart.newPool(options.pool.bolus)
       .id('poolBolus', chart.poolGroup())
       .label([{
         'main': t('Bolus'),
@@ -146,11 +171,11 @@ function chartDailyFactory(el, options) {
       .labelBaseline(options.labelBaseline)
       .legend(bolusCarbsLegend)
       .index(chart.pools().indexOf(poolBolus))
-      .heightRatio(1.35)
-      .gutterWeight(1.0);
+      .heightRatio(options.pool.bolus.heightRatio)
+      .gutterWeight(options.pool.bolus.gutterWeight);
 
     // basal data pool
-    if (options.showPools.basal) poolBasal = chart.newPool()
+    if (!options.pool.basal.hidden) poolBasal = chart.newPool(options.pool.basal)
       .id('poolBasal', chart.poolGroup())
       .label([{
         main: t('Basal Rates'),
@@ -159,8 +184,8 @@ function chartDailyFactory(el, options) {
       .labelBaseline(options.labelBaseline)
       .legend(basalLegend)
       .index(chart.pools().indexOf(poolBasal))
-      .heightRatio(1.0)
-      .gutterWeight(1.0);
+      .heightRatio(options.pool.basal.heightRatio)
+      .gutterWeight(options.pool.basal.gutterWeight);
 
     chart.arrangePools();
 
@@ -247,7 +272,8 @@ function chartDailyFactory(el, options) {
       'class': 'd3-top',
       emitter: emitter,
       leftEdge: chart.axisGutter(),
-      timePrefs: chart.options.timePrefs
+      timePrefs: chart.options.timePrefs,
+      dayLabel: options.dayLabel,
     }), true, true);
 
     if (poolBG) {

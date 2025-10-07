@@ -32,22 +32,21 @@ module.exports = function(emitter, opts) {
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
-    }
+    },
+    minHeight: 400,
+    minWidth: 300,
   };
   _.defaults(opts, defaults);
 
-  // constants
-  var MS_IN_24 = 86400000;
-
   // basic attributes
   var id,
-    minWidth = 300, minHeight = 400,
+    minWidth = opts.minWidth, minHeight = opts.minHeight,
     width = minWidth, height = minHeight,
     poolScaleHeight,
     nav = {
       scrollNav: !opts.endpoints,
-      scrollNavHeight: 50,
-      scrollGutterHeight: 20,
+      scrollNavHeight: !opts.endpoints ? 50 : 0,
+      scrollGutterHeight: !opts.endpoints ? 20 : 0,
       scrollThumbRadius: 24,
       currentTranslation: 0
     },
@@ -55,7 +54,7 @@ module.exports = function(emitter, opts) {
     buffer = 2,
     pools = [], poolGroup,
     xScale = d3.time.scale.utc(),
-    currentCenter, data, tidelineData, renderedData = [], endpoints,
+    currentCenter, data, renderedData = [], endpoints,
     mainSVG, mainGroup,
     scrollNav, scrollHandleTrigger = true, mostRecent = false, annotations, tooltips;
 
@@ -155,8 +154,8 @@ module.exports = function(emitter, opts) {
       });
   };
 
-  container.newPool = function() {
-    var p = new Pool(container);
+  container.newPool = function(opts) {
+    var p = new Pool(container, opts);
     pools.push(p);
     return p;
   };
