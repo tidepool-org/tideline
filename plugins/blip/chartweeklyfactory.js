@@ -41,13 +41,6 @@ function chartWeeklyFactory(el, options) {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
     },
-    pool: {
-      default: {
-        hidden: false,
-        label: true,
-        legend: true,
-      },
-    }
   };
   _.defaults(options, defaults);
 
