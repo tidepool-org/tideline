@@ -32,22 +32,21 @@ module.exports = function(emitter, opts) {
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
-    }
+    },
+    minHeight: 400,
+    minWidth: 300,
   };
   _.defaults(opts, defaults);
 
-  // constants
-  var MS_IN_24 = 86400000;
-
   // basic attributes
   var id,
-    minWidth = 300, minHeight = 400,
+    minWidth = opts.minWidth, minHeight = opts.minHeight,
     width = minWidth, height = minHeight,
     poolScaleHeight,
     nav = {
-      scrollNav: true,
-      scrollNavHeight: 50,
-      scrollGutterHeight: 20,
+      scrollNav: !opts.endpoints,
+      scrollNavHeight: !opts.endpoints ? 50 : 0,
+      scrollGutterHeight: !opts.endpoints ? 20 : 0,
       scrollThumbRadius: 24,
       currentTranslation: 0
     },
@@ -55,7 +54,7 @@ module.exports = function(emitter, opts) {
     buffer = 2,
     pools = [], poolGroup,
     xScale = d3.time.scale.utc(),
-    currentCenter, data, tidelineData, renderedData = [], endpoints,
+    currentCenter, data, renderedData = [], endpoints,
     mainSVG, mainGroup,
     scrollNav, scrollHandleTrigger = true, mostRecent = false, annotations, tooltips;
 
@@ -155,8 +154,8 @@ module.exports = function(emitter, opts) {
       });
   };
 
-  container.newPool = function() {
-    var p = new Pool(container);
+  container.newPool = function(opts) {
+    var p = new Pool(container, opts);
     pools.push(p);
     return p;
   };
@@ -506,18 +505,23 @@ module.exports = function(emitter, opts) {
   container.data = function(a) {
     if (!arguments.length) return data;
 
-    if (! (a && Array.isArray(a) && a.length > 0)) {
+    data = a;
+
+    if (opts.endpoints) {
+      endpoints = container.endpoints = container.initialEndpoints = opts.endpoints;
+      return container;
+    }
+
+    if (! (data && Array.isArray(data) && data.length > 0)) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything without /some/ data.");
       /* jshint ignore:end */
     }
-    else if (a.length === 1) {
+    else if (data.length === 1) {
       /* jshint ignore:start */
       throw new Error("Sorry, I can't render anything with only *one* datapoint.");
       /* jshint ignore:end */
     }
-
-    data = a;
 
     var first = new Date(data[0].normalTime);
     var lastObj = _.sortBy(data, function(d) {

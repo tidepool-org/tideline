@@ -4,7 +4,7 @@
     "node": "20.8.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.37.0-web-3680-pump-shutdown-events.1",
+  "version": "1.37.0-web-3986-tide-stacked-daily.2",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",

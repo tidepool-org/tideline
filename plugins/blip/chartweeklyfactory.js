@@ -40,7 +40,7 @@ function chartWeeklyFactory(el, options) {
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
-    }
+    },
   };
   _.defaults(options, defaults);
 
