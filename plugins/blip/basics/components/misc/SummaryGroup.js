@@ -60,6 +60,8 @@ var SummaryGroup = createReactClass({
 
     var optionRows = self.props.selectorOptions.rows;
 
+    console.log('@@@ optionRows', optionRows)
+
     var others = optionRows.map(function(row, id) {
       var options = row.map(self.renderOption);
       return (
