@@ -256,14 +256,16 @@ function chartDailyFactory(el, options) {
     }
 
     const groupedData = _.groupBy(processedData, 'type');
-    const groupedEventData = _.groupBy(_.filter(processedData, d => _.isString(d.tags?.event)), 'type');
+
+    // Set all event data to type 'event' to allow rendering them in all sequential order regardless of actual type
+    const groupedEventData = { event: _.map(_.filter(processedData, d => _.isString(d.tags?.event)), d => ({ ...d, type: 'event' })) };
 
     _.each(renderedDataTypes, type => {
       if (!groupedData[type]) groupedData[type] = [];
     });
 
     // initialize chart with data
-    chart.data(processedData).setAxes();
+    chart.data([...processedData, ...groupedEventData.event]).setAxes();
     if (!options.endpoints) chart.setNav().setScrollNav();
 
     // x-axis pools
@@ -457,7 +459,7 @@ function chartDailyFactory(el, options) {
       // add pump events data to events pool
       _.each(groupedEventData, function(data, type) {
         poolEvents.addPlotType(type, tideline.plot.event(poolEvents, {
-          size: 18,
+          size: 24,
           emitter: emitter,
           data: data,
           timezoneAware: chart.options.timePrefs.timezoneAware,

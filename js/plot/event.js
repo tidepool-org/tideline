@@ -2,6 +2,28 @@ var d3 = require('d3');
 var _ = require('lodash');
 
 var eventImage = require('../../img/event/event.svg');
+var eventHealthImage = require('../../img/event/event-health.svg');
+var eventPhysicalActivityImage = require('../../img/event/event-physical_activity.svg');
+var eventNotesImage = require('../../img/event/event-notes.svg');
+
+export const EVENT_HEALTH = 'health';
+export const EVENT_NOTES = 'notes';
+export const EVENT_PHYSICAL_ACTIVITY = 'physical_activity';
+
+function getEventImageByType(d) {
+  const eventType = d.tags?.event;
+  console.log('d, eventType', d, eventType);
+  switch (eventType) {
+    case EVENT_HEALTH:
+      return eventHealthImage;
+    case EVENT_PHYSICAL_ACTIVITY:
+      return eventPhysicalActivityImage;
+    case EVENT_NOTES:
+      return eventNotesImage;
+    default:
+      return eventImage;
+  }
+}
 
 /**
  * Module for adding event markers to a chart pool
@@ -72,13 +94,13 @@ module.exports = function(pool, opts = {}) {
     opts.xScale = pool.xScale().copy();
     selection.append('image')
       .attr({
-        'xlink:href': eventImage,
+        'xlink:href': getEventImageByType,
         x: event.xPositionCorner,
         y: event.yPositionCorner,
         width: opts.size,
-        height: opts.size
+        height: opts.size,
       })
-      .classed({'d3-image': true, 'd3-event': true});
+      .classed({'d3-image': true, 'd3-event': true, 'd3-image-event': true });
   };
 
   event.xPositionCorner = function(d) {
