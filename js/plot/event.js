@@ -12,7 +12,7 @@ export const EVENT_PHYSICAL_ACTIVITY = 'physical_activity';
 
 function getEventImageByType(d) {
   const eventType = d.tags?.event;
-  console.log('d, eventType', d, eventType);
+
   switch (eventType) {
     case EVENT_HEALTH:
       return eventHealthImage;
