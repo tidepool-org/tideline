@@ -161,7 +161,7 @@ function chartDailyFactory(el, options) {
     if (!options.pool.bolus.hidden) poolBolus = chart.newPool(options.pool.bolus)
       .id('poolBolus', chart.poolGroup())
       .label([{
-        'main': t('Bolus'),
+        'main': t('Insulin'),
         'light': ' U'
       },
       {
