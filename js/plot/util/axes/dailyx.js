@@ -30,7 +30,7 @@ module.exports = function(pool, opts) {
     textShiftX: 5,
     textShiftY: 5,
     tickLength: 15,
-    longTickMultiplier: 3.75,
+    longTickMultiplier: opts.dayLabel ? 3.75 : 1,
     timePrefs: {
       timezoneAware: false,
       timezoneName: dt.getBrowserTimezone(),
@@ -41,43 +41,45 @@ module.exports = function(pool, opts) {
 
   var mainGroup = pool.parent();
 
-  var stickyLabel = mainGroup.select('#tidelineLabels')
-    .append('g')
-    .attr('class', 'd3-axis')
-    .append('text')
-    .attr({
-      'class': 'd3-day-label',
-      x: opts.leftEdge + 4,
-      // this is the same as dailyx.dayYPosition
-      // we just don't have a datum to pass here
-      y: pool.height() - opts.tickLength * opts.longTickMultiplier
+  if (opts.dayLabel) {
+    var stickyLabel = mainGroup.select('#tidelineLabels')
+      .append('g')
+      .attr('class', 'd3-axis')
+      .append('text')
+      .attr({
+        'class': 'd3-day-label',
+        x: opts.leftEdge + 4,
+        // this is the same as dailyx.dayYPosition
+        // we just don't have a datum to pass here
+        y: pool.height() - opts.tickLength * opts.longTickMultiplier
+      });
+
+    opts.emitter.on('zoomstart', function() {
+      stickyLabel.attr('opacity', '0.2');
     });
 
-  opts.emitter.on('zoomstart', function() {
-    stickyLabel.attr('opacity', '0.2');
-  });
+    opts.emitter.on('zoomend', function() {
+      stickyLabel.attr('opacity', '1.0');
+    });
 
-  opts.emitter.on('zoomend', function() {
-    stickyLabel.attr('opacity', '1.0');
-  });
-
-  opts.emitter.on('navigated', function(a) {
-    var offset = 0, d;
-    if (opts.timePrefs.timezoneAware) {
-      offset = -dt.getOffset(a[0].start, opts.timePrefs.timezoneName);
-      d = moment(a[0].start).tz(opts.timePrefs.timezoneName);
-    }
-    else {
-      d = moment(a[0].start).utc();
-    }
-    // when we're close to midnight (where close = five hours on either side)
-    // remove the sticky label so it doesn't overlap with the midnight-anchored day label
-    if ((d.hours() >= 19) || (d.hours() <= 4)) {
-      stickyLabel.text('');
-      return;
-    }
-    stickyLabel.text(format.xAxisDayText(d.toISOString(), offset));
-  });
+    opts.emitter.on('navigated', function(a) {
+      var offset = 0, d;
+      if (opts.timePrefs.timezoneAware) {
+        offset = -dt.getOffset(a[0].start, opts.timePrefs.timezoneName);
+        d = moment(a[0].start).tz(opts.timePrefs.timezoneName);
+      }
+      else {
+        d = moment(a[0].start).utc();
+      }
+      // when we're close to midnight (where close = five hours on either side)
+      // remove the sticky label so it doesn't overlap with the midnight-anchored day label
+      if ((d.hours() >= 19) || (d.hours() <= 4)) {
+        stickyLabel.text('');
+        return;
+      }
+      stickyLabel.text(format.xAxisDayText(d.toISOString(), offset));
+    });
+  }
 
   function dailyx(selection) {
 
@@ -112,7 +114,7 @@ module.exports = function(pool, opts) {
           return format.xAxisTickText(d.normalTime, d.displayOffset);
         });
 
-      tickGroups.filter(function(d) {
+      if (opts.dayLabel) tickGroups.filter(function(d) {
         var date = new Date(d.normalTime);
         date = new Date(dt.applyOffset(date, d.displayOffset));
         if (date.getUTCHours() === 0) {
