@@ -47,6 +47,9 @@ module.exports = {
   },
   getMaxValue: function(d) {
     var wiz;
+    if (d.type === 'insulin') {
+      return this.getDelivered(d);
+    }
     if (d.type === 'wizard') {
       if (d.bolus) {
         wiz = _.clone(d);
@@ -64,6 +67,9 @@ module.exports = {
     return rec > programmedTotal ? rec : programmedTotal;
   },
   getDelivered: function(d) {
+    if (d.type === 'insulin') {
+      return d?.dose?.total || NaN;
+    }
     if (d.type === 'wizard') {
       if (d.bolus) {
         d = d.bolus;

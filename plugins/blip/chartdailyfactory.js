@@ -221,6 +221,10 @@ function chartDailyFactory(el, options) {
       type: 'bolus',
       shape: 'generic'
     });
+    if (poolBolus) chart.tooltips().addGroup(poolBolus, {
+      type: 'insulin',
+      shape: 'generic'
+    });
     if (poolBasal) chart.tooltips().addGroup(poolBasal, {
       type: 'basal'
     });
@@ -235,6 +239,7 @@ function chartDailyFactory(el, options) {
       'cbg',
       'deviceEvent',
       'food',
+      'insulin',
       'message',
       'smbg',
       'wizard',
@@ -333,7 +338,7 @@ function chartDailyFactory(el, options) {
 
     if (poolBolus) {
       // bolus & carbs pool
-      var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
+      var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard).concat(groupedData.insulin), poolBolus);
       var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
       // set up y-axis for bolus
       poolBolus.yAxis(d3.svg.axis()
@@ -353,7 +358,17 @@ function chartDailyFactory(el, options) {
         yScale: scaleHeight
       }), true, true);
 
-      // add wizard data to wizard pool
+      // add insulin data to bolus pool
+      poolBolus.addPlotType('insulin', tideline.plot.insulin(poolBolus, {
+        yScale: scaleBolus,
+        emitter: emitter,
+        subdueOpacity: 0.4,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onBolusHover: options.onBolusHover,
+        onBolusOut: options.onBolusOut,
+      }), true, true);
+
+      // add wizard data to bolus pool
       poolBolus.addPlotType('wizard', tideline.plot.wizard(poolBolus, {
         yScale: scaleBolus,
         yScaleCarbs: scaleCarbs,
@@ -371,7 +386,7 @@ function chartDailyFactory(el, options) {
         onCarbOut: options.onCarbOut,
       }), true, true);
 
-      // quick bolus data to wizard pool
+      // quick bolus data to bolus pool
       poolBolus.addPlotType('bolus', tideline.plot.quickbolus(poolBolus, {
         yScale: scaleBolus,
         emitter: emitter,
