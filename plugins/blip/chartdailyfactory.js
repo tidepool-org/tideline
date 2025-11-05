@@ -90,6 +90,7 @@ function chartDailyFactory(el, options) {
   const bolusCarbsLegend = ['bolus', 'carbs'];
   if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
   if (options.automatedBolus) bolusCarbsLegend.unshift('bolusAutomated');
+  if (options.insulinBolus) bolusCarbsLegend.unshift('bolusInsulin');
 
   const basalLegend = ['basal'];
   if (options.automatedBasal) basalLegend.unshift('basalAutomated');
