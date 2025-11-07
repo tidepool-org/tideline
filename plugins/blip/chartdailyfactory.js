@@ -281,7 +281,7 @@ function chartDailyFactory(el, options) {
       let allBG = _.filter(processedData, d => (d.type === 'cbg' || d.type === 'smbg'));
 
       // Use a dummy BG value when there is no BG data to ensure that the scale is created properly
-      if (allBG.length === 0) allBG = [{ value: scales.TARGET_BG_BOUNDARY }];
+      if (allBG.length === 0) allBG = [{ value: chart.options.bgClasses.target.boundary }];
 
       var scaleBG = scales.bg(allBG, poolBG, SMBG_SIZE/2);
       var bgTickFormat = options.bgUnits === MGDL_UNITS ? 'd' : '.1f';
