@@ -286,19 +286,24 @@ function chartDailyFactory(el, options) {
 
     if (poolBG) {
       // BG pool
-      const allBG = _.filter(processedData, d => (d.type === 'cbg' || d.type === 'smbg'));
+      let allBG = _.filter(processedData, d => (d.type === 'cbg' || d.type === 'smbg'));
+
+      // Use a dummy BG value when there is no BG data to ensure that the scale is created properly
+      if (allBG.length === 0) allBG = [{ value: chart.options.bgClasses.target.boundary }];
+
       var scaleBG = scales.bg(allBG, poolBG, SMBG_SIZE/2);
       var bgTickFormat = options.bgUnits === MGDL_UNITS ? 'd' : '.1f';
 
       // set up y-axis
-      if (poolBG) poolBG.yAxis(d3.svg.axis()
+      poolBG.yAxis(d3.svg.axis()
         .scale(scaleBG)
         .orient('left')
         .outerTickSize(0)
         .tickValues(scales.bgTicks(allBG))
         .tickFormat(d3.format(bgTickFormat)));
+
       // add background fill rectangles to BG pool
-      if (poolBG) poolBG.addPlotType('fill', fill(poolBG, {
+      poolBG.addPlotType('fill', fill(poolBG, {
         endpoints: chart.endpoints,
         isDaily: true,
         guidelines: [
