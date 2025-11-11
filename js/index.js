@@ -41,6 +41,7 @@ module.exports = {
   plot: {
     basal: require('./plot/basal'),
     quickbolus: require('./plot/quickbolus'),
+    insulin: require('./plot/insulin'),
     cbg: require('./plot/cbg'),
     message: require('./plot/message'),
     timechange: require('./plot/timechange'),
@@ -48,6 +49,7 @@ module.exports = {
     smbg: require('./plot/smbg'),
     suspend: require('./plot/suspend'),
     alarm: require('./plot/alarm'),
+    event: require('./plot/event'),
     pumpSettingsOverride: require('./plot/pumpSettingsOverride'),
     wizard: require('./plot/wizard'),
     carb: require('./plot/carb'),

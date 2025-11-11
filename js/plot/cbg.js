@@ -157,7 +157,8 @@ module.exports = function(pool, opts) {
       opts.onCBGHover({
         data: d,
         rect: rect,
-        class: categorizer(opts.classes, opts.bgUnits)(d)
+        class: categorizer(opts.classes, opts.bgUnits)(d),
+        chartEndpoints: opts.chartEndpoints,
       });
     }
   };

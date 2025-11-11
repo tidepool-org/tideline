@@ -29,4 +29,17 @@ module.exports = {
   isAutomatedBasalDevice: (pumpUpload = {}) => {
     return _.includes(_.get(AUTOMATED_BASAL_DEVICE_MODELS, pumpUpload.source, []), pumpUpload.deviceModel);
   },
+
+  getUppercasedManufacturer: (manufacturer = '') => {
+    return _.map(manufacturer.split(' '), part => {
+      switch (part) {
+        case 'diy':
+          return _.upperCase(part);
+        case 'twiist':
+          return part;
+        default:
+          return _.upperFirst(part);
+      }
+    }).join(' ');
+  },
 };

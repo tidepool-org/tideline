@@ -139,6 +139,12 @@ describe('common bolus functions', function() {
         recommendedBolus: { amount: 1.5 },
       },
     },
+    insulin: {
+      type: 'insulin',
+      dose: {
+        total: 3.0,
+      },
+    },
   };
 
   describe('getRecommended', function() {
@@ -243,6 +249,10 @@ describe('common bolus functions', function() {
       var rec = commonbolus.getRecommended(fixtures.dualUnderrideCancelled);
       expect(commonbolus.getMaxValue(fixtures.dualUnderrideCancelled)).to.equal(rec);
     });
+
+    it('should return the value of a manual insulin entry', function() {
+      expect(commonbolus.getMaxValue(fixtures.insulin)).to.equal(fixtures.insulin.dose.total);
+    });
   });
 
   describe('getDelivered', function() {
@@ -304,6 +314,10 @@ describe('common bolus functions', function() {
     it('should return the delivered of a cancelled dual-wave underride', function() {
       var total = fixtures.dualUnderrideCancelled.bolus.normal + fixtures.dualUnderrideCancelled.bolus.extended;
       expect(commonbolus.getDelivered(fixtures.dualUnderrideCancelled)).to.equal(total);
+    });
+
+    it('should return the delivered of a manual insulin entry', function() {
+      expect(commonbolus.getDelivered(fixtures.insulin)).to.equal(fixtures.insulin.dose.total);
     });
   });
 
