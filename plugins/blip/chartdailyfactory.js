@@ -271,7 +271,7 @@ function chartDailyFactory(el, options) {
     });
 
     // initialize chart with data
-    chart.data([...processedData, ...groupedEventData.event]).setAxes();
+    chart.data([...processedData, ...(groupedEventData.event || [])]).setAxes();
     if (!options.endpoints) chart.setNav().setScrollNav();
 
     // x-axis pools
