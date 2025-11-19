@@ -264,7 +264,10 @@ function chartDailyFactory(el, options) {
     const groupedData = _.groupBy(processedData, 'type');
 
     // Set all event data to type 'event' to allow rendering them in all sequential order regardless of actual type
-    const groupedEventData = { event: _.map(_.filter(processedData, d => _.isString(d.tags?.event)), d => ({ ...d, type: 'event' })) };
+    const groupedEventData = { event: _.map(
+      _.filter(processedData, d => _.isString(d.tags?.event)),
+      d => ({ ...d, type: 'event', originalType: d.type })
+    ) };
 
     _.each(renderedDataTypes, type => {
       if (!groupedData[type]) groupedData[type] = [];
