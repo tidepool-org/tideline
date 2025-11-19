@@ -6,9 +6,9 @@ var eventHealthImage = require('../../img/event/event-health.svg');
 var eventPhysicalActivityImage = require('../../img/event/event-physical_activity.svg');
 var eventNotesImage = require('../../img/event/event-notes.svg');
 
-export const EVENT_HEALTH = 'health';
-export const EVENT_NOTES = 'notes';
-export const EVENT_PHYSICAL_ACTIVITY = 'physical_activity';
+const EVENT_HEALTH = 'health';
+const EVENT_NOTES = 'notes';
+const EVENT_PHYSICAL_ACTIVITY = 'physical_activity';
 
 function getEventImageByType(d) {
   const eventType = d.tags?.event;
