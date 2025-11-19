@@ -33,28 +33,37 @@ module.exports = function(pool, opts) {
           id: function(d) { return 'insulin_group_' + d.id; }
         });
 
-      var defs = insulinGroups.append('defs');
-      defs.append('pattern')
-        .attr('id', 'diagonalStripes')
-        .attr('patternUnits', 'userSpaceOnUse')
-        .attr('width', 5)
-        .attr('height', 5)
-        .attr('patternTransform', 'rotate(45)');
+// Add shared pattern definition to the top-level SVG if not already present
+      var svg = d3.select(this).node().ownerSVGElement
+        ? d3.select(this).node().ownerSVGElement
+        : d3.select(this).node();
+      var svgSelection = d3.select(svg);
 
-      defs.select('#diagonalStripes')
-        .append('rect')
-        .attr('width', 5)
-        .attr('height', 5)
-        .attr('fill', '#7CD0F0');
+      // Check if pattern already exists
+      if (svgSelection.select('defs #diagonalStripes').empty()) {
+        var defs = svgSelection.select('defs');
+        if (defs.empty()) {
+          defs = svgSelection.append('defs');
+        }
+        var pattern = defs.append('pattern')
+          .attr('id', 'diagonalStripes')
+          .attr('patternUnits', 'userSpaceOnUse')
+          .attr('width', 5)
+          .attr('height', 5)
+          .attr('patternTransform', 'rotate(45)');
 
-      defs.select('#diagonalStripes')
-        .append('rect')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', 2)
-        .attr('height', 5)
-        .attr('fill', 'rgba(0, 0, 0, 0.15)');
+        pattern.append('rect')
+          .attr('width', 5)
+          .attr('height', 5)
+          .attr('fill', '#7CD0F0');
 
+        pattern.append('rect')
+          .attr('x', 0)
+          .attr('y', 0)
+          .attr('width', 2)
+          .attr('height', 5)
+          .attr('fill', 'rgba(0, 0, 0, 0.15)');
+      }
       // sort by size so smaller insulin doses are drawn last
       insulinGroups = insulinGroups.sort(function(a,b){
         const aDose = commonbolus.getDelivered(a);
