@@ -33,18 +33,21 @@ module.exports = function(pool, opts) {
           id: function(d) { return 'insulin_group_' + d.id; }
         });
 
-// Add shared pattern definition to the top-level SVG if not already present
+      // Add shared pattern definition to the top-level SVG if not already present
       var svg = d3.select(this).node().ownerSVGElement
         ? d3.select(this).node().ownerSVGElement
         : d3.select(this).node();
+
       var svgSelection = d3.select(svg);
 
       // Check if pattern already exists
       if (svgSelection.select('defs #diagonalStripes').empty()) {
         var defs = svgSelection.select('defs');
+
         if (defs.empty()) {
           defs = svgSelection.append('defs');
         }
+
         var pattern = defs.append('pattern')
           .attr('id', 'diagonalStripes')
           .attr('patternUnits', 'userSpaceOnUse')
@@ -64,6 +67,7 @@ module.exports = function(pool, opts) {
           .attr('height', 5)
           .attr('fill', 'rgba(0, 0, 0, 0.15)');
       }
+
       // sort by size so smaller insulin doses are drawn last
       insulinGroups = insulinGroups.sort(function(a,b){
         const aDose = commonbolus.getDelivered(a);
