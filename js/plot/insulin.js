@@ -75,7 +75,7 @@ module.exports = function(pool, opts) {
 
       insulinData.exit().remove();
 
-      var highlight = pool.highlight('.d3-wizard-group, .d3-insulin-group', opts);
+      var highlight = pool.highlight('.d3-wizard-group, .d3-bolus-group, .d3-insulin-group', opts);
 
       // tooltips
       selection.selectAll('.d3-insulin-group').on('mouseover', function(d) {
