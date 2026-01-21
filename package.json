@@ -29,7 +29,7 @@
     "duration-js": "4.0.0",
     "i18next": "23.6.0",
     "intl": "1.2.5",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "moment": "2.29.4",
     "moment-timezone": "0.5.43",
     "react": "16.14.0",
