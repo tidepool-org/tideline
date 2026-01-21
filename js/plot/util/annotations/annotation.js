@@ -49,7 +49,7 @@ module.exports = function(container, annotationsGroup) {
     var hoverTarget;
 
     if (opts && opts.d && !_.isEmpty(opts.d.annotations)) {
-      if (opts.d.annotations[0].code.slice(0, 6) === 'stats-') {
+      if (opts.d.annotations[0].code?.slice(0, 6) === 'stats-') {
         // NB: this (temporarily) disables the new explainer tooltips
         // for all stats widget components when stats are active
         if (opts.d.annotations[0].code !== 'stats-insufficient-data') {
@@ -97,7 +97,7 @@ module.exports = function(container, annotationsGroup) {
   annotation.tooltip = function(opts, selection, hoverTarget) {
     opts = opts || {};
 
-    if (opts.d.annotations[0].code.slice(0, 6) === 'stats-') {
+    if (opts.d.annotations[0].code?.slice(0, 6) === 'stats-') {
       if (container.type === 'daily') {
         opts.x = opts.x - (container.currentTranslation() - container.axisGutter());
       }
