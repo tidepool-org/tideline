@@ -145,7 +145,11 @@ module.exports = function(pool, opts) {
           },
           'class': function(d) {
             d = pluckBolus(d);
+            if (d.type === 'insulin') return 'd3-rect-insulin d3-bolus';
             return d.subType === 'automated' ? 'd3-bolus-automated d3-bolus' : 'd3-rect-bolus d3-bolus';
+          },
+          'fill': function(d) {
+            return (d.type === 'insulin') ? 'url(#diagonalStripes)' : null;
           },
           id: function(d) {
             d = pluckBolus(d);

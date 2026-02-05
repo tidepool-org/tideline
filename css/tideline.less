@@ -256,6 +256,11 @@ svg {
     .d3-bolus-automated;
     stroke-width: 1.5;
   }
+  &.d3-rect-bolus-insulin-legend {
+    fill: url(#diagonalStripes);
+    stroke: url(#diagonalStripes);
+    stroke-width: 1.5;
+  }
   &.d3-path-bolus {
     stroke: @bolus;
     fill: none;
@@ -861,4 +866,9 @@ text.d3-tabular-ui {
       width: auto;
     }
   }
+}
+
+.d3-image-event {
+  outline: 1px solid #E9EFF1;
+  border-radius: 12px;
 }

@@ -113,7 +113,7 @@ module.exports = function(pool, opts) {
 
       boluses.exit().remove();
 
-      var highlight = pool.highlight('.d3-wizard-group, .d3-bolus-group', opts);
+      var highlight = pool.highlight('.d3-wizard-group, .d3-bolus-group, .d3-insulin-group', opts);
 
       // tooltips
       selection.selectAll('.d3-bolus-group').on('mouseover', function(d) {

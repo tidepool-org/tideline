@@ -25,6 +25,7 @@ var cx = require('classnames');
 
 var basicsActions = require('../../logic/actions');
 var BasicsUtils = require('../BasicsUtils');
+var { getUppercasedManufacturer } = require('../../../../../js/data/util/device');
 
 var constants = require('../../logic/constants');
 
@@ -137,7 +138,7 @@ var Selector = createReactClass({
       }
     };
 
-    const manufacturer = _.capitalize(_.get(pump, 'manufacturer', ''));
+    const manufacturer = getUppercasedManufacturer(_.get(pump, 'manufacturer', ''));
 
     if (pumpVocabulary.hasOwnProperty(manufacturer)) {
       return (

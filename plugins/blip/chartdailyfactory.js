@@ -90,6 +90,7 @@ function chartDailyFactory(el, options) {
   const bolusCarbsLegend = ['bolus', 'carbs'];
   if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
   if (options.automatedBolus) bolusCarbsLegend.unshift('bolusAutomated');
+  if (options.insulinBolus) bolusCarbsLegend.unshift('bolusInsulin');
 
   const basalLegend = ['basal'];
   if (options.automatedBasal) basalLegend.unshift('basalAutomated');
@@ -161,7 +162,7 @@ function chartDailyFactory(el, options) {
     if (!options.pool.bolus.hidden) poolBolus = chart.newPool(options.pool.bolus)
       .id('poolBolus', chart.poolGroup())
       .label([{
-        'main': t('Bolus'),
+        'main': t('Insulin'),
         'light': ' U'
       },
       {
@@ -221,6 +222,10 @@ function chartDailyFactory(el, options) {
       type: 'bolus',
       shape: 'generic'
     });
+    if (poolBolus) chart.tooltips().addGroup(poolBolus, {
+      type: 'insulin',
+      shape: 'generic'
+    });
     if (poolBasal) chart.tooltips().addGroup(poolBasal, {
       type: 'basal'
     });
@@ -235,6 +240,7 @@ function chartDailyFactory(el, options) {
       'cbg',
       'deviceEvent',
       'food',
+      'insulin',
       'message',
       'smbg',
       'wizard',
@@ -256,14 +262,19 @@ function chartDailyFactory(el, options) {
     }
 
     const groupedData = _.groupBy(processedData, 'type');
-    const groupedEventData = _.groupBy(_.filter(processedData, d => _.isString(d.tags?.event)), 'type');
+
+    // Set all event data to type 'event' to allow rendering them in all sequential order regardless of actual type
+    const groupedEventData = { event: _.map(
+      _.filter(processedData, d => _.isString(d.tags?.event)),
+      d => ({ ...d, type: 'event', originalType: d.type })
+    ) };
 
     _.each(renderedDataTypes, type => {
       if (!groupedData[type]) groupedData[type] = [];
     });
 
     // initialize chart with data
-    chart.data(processedData).setAxes();
+    chart.data([...processedData, ...(groupedEventData.event || [])]).setAxes();
     if (!options.endpoints) chart.setNav().setScrollNav();
 
     // x-axis pools
@@ -336,7 +347,7 @@ function chartDailyFactory(el, options) {
 
     if (poolBolus) {
       // bolus & carbs pool
-      var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard), poolBolus);
+      var scaleBolus = scales.bolus(groupedData.bolus.concat(groupedData.wizard).concat(groupedData.insulin), poolBolus);
       var scaleCarbs = options.dynamicCarbs ? scales.carbs(groupedData.wizard, poolBolus) : null;
       // set up y-axis for bolus
       poolBolus.yAxis(d3.svg.axis()
@@ -356,7 +367,17 @@ function chartDailyFactory(el, options) {
         yScale: scaleHeight
       }), true, true);
 
-      // add wizard data to wizard pool
+      // add insulin data to bolus pool
+      poolBolus.addPlotType('insulin', tideline.plot.insulin(poolBolus, {
+        yScale: scaleBolus,
+        emitter: emitter,
+        subdueOpacity: 0.4,
+        timezoneAware: chart.options.timePrefs.timezoneAware,
+        onBolusHover: options.onBolusHover,
+        onBolusOut: options.onBolusOut,
+      }), true, true);
+
+      // add wizard data to bolus pool
       poolBolus.addPlotType('wizard', tideline.plot.wizard(poolBolus, {
         yScale: scaleBolus,
         yScaleCarbs: scaleCarbs,
@@ -374,7 +395,7 @@ function chartDailyFactory(el, options) {
         onCarbOut: options.onCarbOut,
       }), true, true);
 
-      // quick bolus data to wizard pool
+      // quick bolus data to bolus pool
       poolBolus.addPlotType('bolus', tideline.plot.quickbolus(poolBolus, {
         yScale: scaleBolus,
         emitter: emitter,
@@ -462,7 +483,7 @@ function chartDailyFactory(el, options) {
       // add pump events data to events pool
       _.each(groupedEventData, function(data, type) {
         poolEvents.addPlotType(type, tideline.plot.event(poolEvents, {
-          size: 18,
+          size: 24,
           emitter: emitter,
           data: data,
           timezoneAware: chart.options.timePrefs.timezoneAware,

@@ -41,6 +41,7 @@ module.exports = {
   plot: {
     basal: require('./plot/basal'),
     quickbolus: require('./plot/quickbolus'),
+    insulin: require('./plot/insulin'),
     cbg: require('./plot/cbg'),
     message: require('./plot/message'),
     timechange: require('./plot/timechange'),
