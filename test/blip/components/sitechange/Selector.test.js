@@ -16,7 +16,6 @@
  */
 
 /* global chai */
-/* global sinon */
 
 var React = require('react');
 var { render, fireEvent } = require('@testing-library/react');
@@ -29,22 +28,12 @@ var basicsActions = require('../../../../plugins/blip/basics/logic/actions');
 var Selector = require('../../../../plugins/blip/basics/components/sitechange/Selector');
 
 describe('SiteChangeSelector', function () {
-  var mockSetSiteChangeEvent = sinon.stub();
-  var originalSetSiteChangeEvent;
-
-  before(function() {
-    originalSetSiteChangeEvent = basicsActions.setSiteChangeEvent;
-    basicsActions.setSiteChangeEvent = mockSetSiteChangeEvent;
-  });
-
-  after(function() {
-    basicsActions.setSiteChangeEvent = originalSetSiteChangeEvent;
-  });
+  var mockSetSiteChangeEvent;
 
   var testProps;
 
   beforeEach(function() {
-    mockSetSiteChangeEvent.resetHistory();
+    mockSetSiteChangeEvent = jest.spyOn(basicsActions, 'setSiteChangeEvent').mockImplementation(() => {});
     testProps = {
       selectedSubtotal: '',
       selectorOptions: {
@@ -61,10 +50,14 @@ describe('SiteChangeSelector', function () {
         canUpdateSettings: true,
         patientName: 'Jill Jellyfish',
       },
-      updateBasicsSettings: sinon.stub(),
+      updateBasicsSettings: jest.fn(),
       sectionId: 'siteChanges',
-      trackMetric: sinon.stub(),
+      trackMetric: jest.fn(),
     };
+  });
+
+  afterEach(function() {
+    jest.restoreAllMocks();
   });
 
   it('should be a function', function() {
@@ -145,14 +138,14 @@ describe('SiteChangeSelector', function () {
       var cannulaOptionElem = container.querySelector('.SiteChangeSelector-option--selected');
       expect(cannulaOptionElem.textContent).to.equal('Cannula Fill');
 
-      expect(mockSetSiteChangeEvent.callCount).to.equal(0);
+      expect(mockSetSiteChangeEvent.mock.calls.length).to.equal(0);
 
       // Click the tubing radio button to trigger onChange -> handleSelectSubtotal
       var tubingRadio = container.querySelector('input[value="' + constants.SITE_CHANGE_TUBING + '"]');
       fireEvent.click(tubingRadio);
 
-      expect(mockSetSiteChangeEvent.callCount).to.equal(1);
-      expect(mockSetSiteChangeEvent.calledWith('siteChanges', constants.SITE_CHANGE_TUBING, 'Tube Primes', testProps.trackMetric, testProps.updateBasicsSettings)).to.be.true;
+      expect(mockSetSiteChangeEvent.mock.calls.length).to.equal(1);
+      expect(mockSetSiteChangeEvent.mock.calls[0]).to.deep.equal(['siteChanges', constants.SITE_CHANGE_TUBING, 'Tube Primes', testProps.trackMetric, testProps.updateBasicsSettings]);
     });
   });
 });

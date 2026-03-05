@@ -155,11 +155,12 @@ describe('BasicsChart', function() {
   it('should console.error when required props are missing', function() {
     console.error = sinon.stub();
     try {
-      render(<BasicsChart.inner {...props()} />);
+      render(<BasicsChart.inner />);
     }
     catch(e) {
-      expect(console.error.callCount).to.equal(11);
+
     }
+    expect(console.error.callCount).to.equal(14);
   });
 
   describe('_insulinDataAvailable', function() {
