@@ -49,7 +49,9 @@ module.exports = function(pool, opts) {
     const yPos = opts.r + opts.carbPadding;
     opts.xScale = pool.xScale().copy();
     selection.each(function(currentData) {
-      const filteredData = currentData.filter(data => data?.nutrition?.carbohydrate?.net);
+      const filteredData = currentData.filter(data =>
+        data?.nutrition?.carbohydrate?.net || data?.tags?.carbsEdited
+      );
       const allCarbs = d3
         .select(this)
         .selectAll('.d3-carbs-only')
@@ -92,17 +94,18 @@ module.exports = function(pool, opts) {
             .text(Math.round(original))
             .attr({
               x: xPos(d),
-              y: cy - 6,
+              y: cy - 5,
               class: 'd3-carbs-text d3-carbs-text-original',
             });
 
           // Manual strikethrough line (getBBox works here since element is in live DOM)
           const bbox = originalText.node().getBBox();
+          const strikepadding = 2;
           group.append('line').attr({
-            x1: bbox.x,
-            y1: bbox.y + bbox.height / 2,
-            x2: bbox.x + bbox.width,
-            y2: bbox.y + bbox.height / 2,
+            x1: bbox.x - strikepadding,
+            y1: bbox.y + bbox.height / 2 - 1,
+            x2: bbox.x + bbox.width + strikepadding,
+            y2: bbox.y + bbox.height / 2 - 1,
             class: 'd3-carbs-strikethrough',
           });
 
@@ -111,7 +114,7 @@ module.exports = function(pool, opts) {
             .text(Math.round(current))
             .attr({
               x: xPos(d),
-              y: cy + 6,
+              y: cy + 7,
               class: 'd3-carbs-text d3-carbs-text-current d3-carbs-text-current-bold',
             });
 
