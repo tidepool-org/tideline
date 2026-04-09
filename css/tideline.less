@@ -218,6 +218,27 @@ svg {
   dominant-baseline: central;
   text-anchor: middle;
 }
+// special carb indicators: carbsEdited oblong + entryTimeDiffers circle
+.d3-carbs-edited {
+  fill: @carbs-edited-bg;
+  stroke: @carbs-edited-border;
+  stroke-width: 1.5;
+  stroke-dasharray: 4, 3;
+}
+// struck-through original value (carbsEdited only)
+.d3-carbs-text-original {
+  fill: @carbs-edited-original-text;
+  font-size: @font-size-small;
+}
+// manual strikethrough line (rendered in JS via getBBox)
+.d3-carbs-strikethrough {
+  stroke: @carbs-edited-strikethrough;
+  stroke-width: 1;
+}
+// current carb value in both special variants
+.d3-carbs-text-current {
+  fill: @carbs-edited-current-text;
+}
 
 // carb exchanges
 .d3-rect-carb-exchanges {
