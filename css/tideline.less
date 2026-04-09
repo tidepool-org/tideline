@@ -215,6 +215,7 @@ svg {
 .d3-carbs-text {
   fill: @text;
   font-size: @font-size-small;
+  font-weight: 500;
   dominant-baseline: central;
   text-anchor: middle;
 }
@@ -238,6 +239,10 @@ svg {
 // current carb value in both special variants
 .d3-carbs-text-current {
   fill: @carbs-edited-current-text;
+}
+// bold current value — carbsEdited oblong only
+.d3-carbs-text-current-bold {
+  font-weight: 900;
 }
 
 // carb exchanges

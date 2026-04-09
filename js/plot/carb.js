@@ -106,13 +106,13 @@ module.exports = function(pool, opts) {
             class: 'd3-carbs-strikethrough',
           });
 
-          // Current value — lower half
+          // Current value — lower half (bold)
           group.append('text')
             .text(Math.round(current))
             .attr({
               x: xPos(d),
               y: cy + 6,
-              class: 'd3-carbs-text d3-carbs-text-current',
+              class: 'd3-carbs-text d3-carbs-text-current d3-carbs-text-current-bold',
             });
 
         } else if (hasEntryTimeDiffers(d)) {
