@@ -98,14 +98,13 @@ module.exports = function(pool, opts) {
               class: 'd3-carbs-text d3-carbs-text-original',
             });
 
-          // Manual strikethrough line (getBBox works here since element is in live DOM)
-          const bbox = originalText.node().getBBox();
-          const strikepadding = 2;
-          group.append('line').attr({
-            x1: bbox.x - strikepadding,
-            y1: bbox.y + bbox.height / 2 - 1,
-            x2: bbox.x + bbox.width + strikepadding,
-            y2: bbox.y + bbox.height / 2 - 1,
+          // Strikethrough line: spans the text width, rendered beneath the text
+          const textBBox = originalText.node().getBBox();
+          group.insert('line', 'text').attr({
+            x1: textBBox.x - 3,
+            y1: cy - 6,
+            x2: textBBox.x + textBBox.width + 3,
+            y2: cy - 6,
             class: 'd3-carbs-strikethrough',
           });
 
@@ -132,7 +131,7 @@ module.exports = function(pool, opts) {
             .text(Math.round(d.nutrition.carbohydrate.net))
             .attr({
               x: xPos(d),
-              y: yPos,
+              y: yPos + 1,
               class: 'd3-carbs-text d3-carbs-text-current',
             });
 
@@ -151,7 +150,7 @@ module.exports = function(pool, opts) {
             .text(Math.round(d.nutrition.carbohydrate.net))
             .attr({
               x: xPos(d),
-              y: yPos,
+              y: yPos + 1,
               class: 'd3-carbs-text',
             });
         }
