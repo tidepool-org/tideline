@@ -129,7 +129,7 @@ var scales = function(opts) {
         .domain([0, d3.max(data, function(d) {
           return commonbolus.getMaxValue(d);
         })])
-        .range([pool.height(), Math.max(opts.bolusRatio * pool.height(), carbTopHeight)]);
+        .range([pool.height(), Math.min(pool.height(), Math.max(opts.bolusRatio * pool.height(), carbTopHeight))]);
       return scale;
     },
     basal: function(data, pool) {

@@ -54,7 +54,7 @@ module.exports = function(pool, opts) {
       );
       const allCarbs = d3
         .select(this)
-        .selectAll('.d3-carbs-only')
+        .selectAll('g.d3-carb-group')
         .data(filteredData, d => d.id);
       const carbGroup = allCarbs.enter()
         .append('g')
