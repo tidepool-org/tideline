@@ -36,9 +36,6 @@ var scales = function(opts) {
     MAX_CBG: 401,
     TARGET_BG_BOUNDARY: DEFAULT_BG_BOUNDS[bgUnits].targetUpper,
     carbRadius: 14,
-    // Minimum px from the top of the bolus pool reserved for carb indicators.
-    // carbPadding(4) + ovalHeight(40) + 4px gap = 48
-    carbTopHeight: 48,
   };
   _.defaults(opts, defaults);
 
@@ -124,12 +121,15 @@ var scales = function(opts) {
       return scale;
     },
     bolus: function(data, pool) {
+      // When editedCarbs are enabled, reserve enough headroom for the taller oblong
+      // indicator: carbPadding(4) + ovalHeight(40) + 4px top/bottom gap = 48px minimum.
+      var carbTopHeight = opts.editedCarbs ? 48 : 0;
       var scale = d3.scale.linear()
         // for boluses the recommended can exceed the value
         .domain([0, d3.max(data, function(d) {
           return commonbolus.getMaxValue(d);
         })])
-        .range([pool.height(), Math.max(opts.bolusRatio * pool.height(), opts.carbTopHeight)]);
+        .range([pool.height(), Math.max(opts.bolusRatio * pool.height(), carbTopHeight)]);
       return scale;
     },
     basal: function(data, pool) {
