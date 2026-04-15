@@ -1,15 +1,15 @@
 /*
  * == BSD2 LICENSE ==
  * Copyright (c) 2014, Tidepool Project
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the associated License, which is identical to the BSD 2-Clause
  * License as published by the Open Source Initiative at opensource.org.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the License for more details.
- * 
+ *
  * You should have received a copy of the License along with this program; if
  * not, you can obtain one from Tidepool Project at tidepool.org.
  * == BSD2 LICENSE ==
@@ -25,10 +25,15 @@ var legend = require('./plot/util/legend');
 var log = require('bows')('Pool');
 
 
-function Pool (container) {
+function Pool (container, opts) {
+  opts = _.defaults(opts || {}, {
+    hidden: false,
+    label: true,
+    legend: true
+  });
 
   var id, label, labelBaseline = 4, legends = [],
-    index, heightRatio, gutterWeight, hidden = false, yPosition,
+    index, heightRatio, gutterWeight, hidden = opts.hidden, yPosition,
     height, minHeight = 20, maxHeight = 300,
     group,
     mainSVG = d3.select('#' + container.id()),
@@ -60,14 +65,8 @@ function Pool (container) {
 
     this.drawAxes();
     this.updateAxes();
-    if (__DEV__ === true) {
-      var that = this;
-      setTimeout(function() { that.drawLabel(); that.drawLegend(); }, 250);
-    }
-    else {
-      this.drawLabel();
-      this.drawLegend();
-    }
+    opts.label && this.drawLabel();
+    opts.legend && this.drawLegend();
   };
 
   this.clear = function() {

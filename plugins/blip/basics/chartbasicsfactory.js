@@ -199,6 +199,11 @@ class BasicsChart extends React.Component {
           if (hasAutomatedSuspends && hasAutomatedStops) section.perRow = 2;
         }
 
+        if (section.type === 'boluses' && section.perRow === 3) {
+          const hasManualBoluses = _.get(props, 'data.data.aggregationsByDate.boluses.summary.subtotals.manual.count', 0) > 0;
+          if (hasManualBoluses) section.perRow = 4;
+        }
+
         if (_.isArray(selectorOptions.rows)) selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), section.perRow || 3);
       }
 

@@ -257,6 +257,32 @@ var legend = {
       type: 'text'
     },
   ],
+  bolusInsulin: [
+    {
+      create: function(opts) {
+        opts.widths.push(opts.SHAPE_WIDTH);
+        return opts.selection.append('rect')
+          .attr({
+            'class': 'd3-bolus d3-rect-bolus-insulin-legend'
+          });
+      },
+      type: 'rect'
+    },
+    {
+      create: function(opts) {
+        return opts.selection.append('text')
+          .attr({
+            'class': 'd3-pool-legend'
+          })
+          .text(EMPTY_SPACE + t('other'))
+          .each(function() {
+            opts.widths.push(this.getBoundingClientRect().width);
+            opts.textHeight = this.getBoundingClientRect().height;
+          });
+      },
+      type: 'text'
+    },
+  ],
   carbs: [
     {
       create: function(opts) {
