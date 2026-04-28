@@ -25,11 +25,8 @@ var { DEFAULT_BG_BOUNDS, MGDL_UNITS } = require('../../../../js/data/util/consta
 
 const React = require('react');
 const _ = require('lodash');
-const Enzyme = require('enzyme');
-const shallow = Enzyme.shallow;
-const Adapter = require('enzyme-adapter-react-16');
+const { render, fireEvent } = require('@testing-library/react');
 const SummaryGroup = require('../../../../plugins/blip/basics/components/misc/SummaryGroup');
-Enzyme.configure({adapter: new Adapter()});
 
 describe('SummaryGroup', () => {
   const data = {
@@ -76,15 +73,10 @@ describe('SummaryGroup', () => {
     trackMetric: sinon.stub(),
   };
 
-  let wrapper;
   let selectSubtotalSpy;
 
   before(() => {
     selectSubtotalSpy = sinon.stub(SummaryGroup.prototype.actions, 'selectSubtotal');
-  });
-
-  beforeEach(() => {
-    wrapper = shallow(<SummaryGroup {...props} />);
   });
 
   afterEach(() => {
@@ -97,10 +89,12 @@ describe('SummaryGroup', () => {
 
   describe('render', () => {
     it('should disable options that have a zero value', () => {
-      const option = wrapper.find('.SummaryGroup-info-primary');
-      expect(wrapper.find('.SummaryGroup-info--disabled').length).to.equal(0);
+      var { container, rerender } = render(<SummaryGroup {...props} />);
 
-      wrapper.setProps({
+      expect(container.querySelector('.SummaryGroup-info-primary')).to.be.ok;
+      expect(container.querySelectorAll('.SummaryGroup-info--disabled').length).to.equal(0);
+
+      rerender(<SummaryGroup {..._.assign({}, props, {
         data: _.assign({}, data, {
           smbg: {
             summary: {
@@ -108,15 +102,17 @@ describe('SummaryGroup', () => {
             },
           },
         }),
-      });
+      })} />);
 
-      expect(wrapper.find('.SummaryGroup-info--disabled').length).to.equal(1);
+      expect(container.querySelectorAll('.SummaryGroup-info--disabled').length).to.equal(1);
     });
 
     it('should set an NaN average to zero', () => {
-      expect(wrapper.find('.SummaryGroup-option-count').text()).to.equal('3');
+      var { container, rerender } = render(<SummaryGroup {...props} />);
 
-      wrapper.setProps({
+      expect(container.querySelector('.SummaryGroup-option-count').textContent).to.equal('3');
+
+      rerender(<SummaryGroup {..._.assign({}, props, {
         data: _.assign({}, data, {
           smbg: {
             summary: {
@@ -124,25 +120,26 @@ describe('SummaryGroup', () => {
             },
           },
         }),
-      });
+      })} />);
 
-      expect(wrapper.find('.SummaryGroup-option-count').text()).to.equal('0');
+      expect(container.querySelector('.SummaryGroup-option-count').textContent).to.equal('0');
     });
   });
 
   describe('handleSelectSubtotal', () => {
     it('should call the selectSubtotal action', () => {
-      const option = wrapper.find('.SummaryGroup-info-primary');
+      var { container } = render(<SummaryGroup {...props} />);
 
-      expect(option.length).to.equal(1);
+      var options = container.querySelectorAll('.SummaryGroup-info-primary');
+      expect(options.length).to.equal(1);
 
-      option.simulate('click');
+      fireEvent.click(options[0]);
       sinon.assert.callCount(selectSubtotalSpy, 1);
       sinon.assert.calledWith(selectSubtotalSpy, props.sectionId, props.selectorOptions.primary.key);
     });
 
     it('should not call the selectSubtotal action for disabled options', () => {
-      wrapper.setProps({
+      var { container } = render(<SummaryGroup {..._.assign({}, props, {
         data: _.assign({}, data, {
           smbg: {
             summary: {
@@ -150,13 +147,12 @@ describe('SummaryGroup', () => {
             },
           },
         }),
-      });
+      })} />);
 
-      const disabledOption = wrapper.find('.SummaryGroup-info-primary.SummaryGroup-info--disabled');
+      var disabledOptions = container.querySelectorAll('.SummaryGroup-info-primary.SummaryGroup-info--disabled');
+      expect(disabledOptions.length).to.equal(1);
 
-      expect(disabledOption.length).to.equal(1);
-      disabledOption.simulate('click');
-
+      fireEvent.click(disabledOptions[0]);
       sinon.assert.callCount(selectSubtotalSpy, 0);
     });
   });

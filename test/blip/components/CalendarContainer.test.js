@@ -26,12 +26,8 @@ var { DEFAULT_BG_BOUNDS, MGDL_UNITS, BG_CLAMP_THRESHOLD } = require('../../../js
 
 const React = require('react');
 const _ = require('lodash');
-const Enzyme = require('enzyme');
-const mount = Enzyme.mount;
-const Adapter = require('enzyme-adapter-react-16');
+const { render, cleanup } = require('@testing-library/react');
 const CalendarContainer = require('../../../plugins/blip/basics/components/CalendarContainer');
-
-Enzyme.configure({adapter: new Adapter()});
 
 describe('CalendarContainer', () => {
   const data = {
@@ -93,19 +89,15 @@ describe('CalendarContainer', () => {
     trackMetric: sinon.stub(),
   };
 
-  let wrapper;
   let selectSubtotalSpy;
 
   before(() => {
     selectSubtotalSpy = sinon.stub(CalendarContainer.prototype.actions, 'selectSubtotal');
   });
 
-  beforeEach(() => {
-    wrapper = mount(<CalendarContainer {...props} />);
-  });
-
   afterEach(() => {
     selectSubtotalSpy.reset();
+    cleanup();
   });
 
   after(() => {
@@ -116,7 +108,7 @@ describe('CalendarContainer', () => {
     it('should set an alternative selected option with a value if the current one has no value', () => {
       sinon.assert.callCount(selectSubtotalSpy, 0);
 
-      wrapper.setProps({
+      var newProps = _.assign({}, props, {
         data: _.assign({}, data, {
           summary: {
             total: 0,
@@ -127,7 +119,12 @@ describe('CalendarContainer', () => {
         }),
       });
 
-      wrapper.unmount().mount();
+      // First render with original props, then cleanup and render with new props to trigger componentWillMount
+      render(<CalendarContainer {...props} />);
+      cleanup();
+      selectSubtotalSpy.reset();
+
+      render(<CalendarContainer {...newProps} />);
 
       sinon.assert.callCount(selectSubtotalSpy, 1);
       sinon.assert.calledWith(selectSubtotalSpy, props.sectionId, 'suspend');
