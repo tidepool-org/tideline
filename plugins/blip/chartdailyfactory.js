@@ -89,6 +89,7 @@ function chartDailyFactory(el, options) {
   const showingCarbExchanges = _.includes(options.carbUnits, 'exchanges');
   const bolusCarbsLegend = ['bolus', 'carbs'];
   if (showingCarbExchanges) bolusCarbsLegend.splice(1, 0, 'carbExchanges');
+  if (options.editedCarbs) bolusCarbsLegend.splice(bolusCarbsLegend.indexOf('carbs'), 0, 'carbsEdited');
   if (options.automatedBolus) bolusCarbsLegend.unshift('bolusAutomated');
   if (options.insulinBolus) bolusCarbsLegend.unshift('bolusInsulin');
 

@@ -21,3 +21,5 @@ coverage/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+.opencode
