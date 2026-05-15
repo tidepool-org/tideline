@@ -23,8 +23,7 @@ var chai = require('chai');
 var expect = chai.expect;
 
 var React = require('react');
-var ReactDOM = require('react-dom');
-var TestUtils = require('react-dom/test-utils');
+var { render } = require('@testing-library/react');
 
 var BasicsChart = require('../plugins/blip/basics/chartbasicsfactory');
 var types = require('../dev/testpage/types');
@@ -155,18 +154,19 @@ describe('BasicsChart', function() {
 
   it('should console.error when required props are missing', function() {
     console.error = sinon.stub();
-    var elem = React.createElement(BasicsChart.inner, props());
     try {
-      TestUtils.renderIntoDocument(elem);
+      render(<BasicsChart.inner />);
     }
     catch(e) {
-      expect(console.error.callCount).to.equal(11);
+
     }
+    expect(console.error.callCount).to.equal(14);
   });
 
   describe('_insulinDataAvailable', function() {
     it('should return false if insulin pump data is empty', function() {
-      var elem = React.createElement(BasicsChart.inner, props({
+      var ref = React.createRef();
+      render(<BasicsChart.inner ref={ref} {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -176,14 +176,14 @@ describe('BasicsChart', function() {
             bgSources: defaultData.metaData.bgSources,
           },
         },
-      }));
-      var render = TestUtils.renderIntoDocument(elem);
+      })} />);
 
-      expect(render._insulinDataAvailable()).to.be.false;
+      expect(ref.current._insulinDataAvailable()).to.be.false;
     });
 
     it('should return true if bolus data is present', function() {
-      var elem = React.createElement(BasicsChart.inner, props({
+      var ref = React.createRef();
+      render(<BasicsChart.inner ref={ref} {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -193,14 +193,14 @@ describe('BasicsChart', function() {
             bgSources: defaultData.metaData.bgSources,
           },
         },
-      }));
-      var render = TestUtils.renderIntoDocument(elem);
+      })} />);
 
-      expect(render._insulinDataAvailable()).to.be.true;
+      expect(ref.current._insulinDataAvailable()).to.be.true;
     });
 
     it('should return true if basal data is present', function() {
-      var elem = React.createElement(BasicsChart.inner, props({
+      var ref = React.createRef();
+      render(<BasicsChart.inner ref={ref} {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -210,14 +210,14 @@ describe('BasicsChart', function() {
             bgSources: defaultData.metaData.bgSources,
           },
         },
-      }));
-      var render = TestUtils.renderIntoDocument(elem);
+      })} />);
 
-      expect(render._insulinDataAvailable()).to.be.true;
+      expect(ref.current._insulinDataAvailable()).to.be.true;
     });
 
     it('should return true if wizard data is present', function() {
-      var elem = React.createElement(BasicsChart.inner, props({
+      var ref = React.createRef();
+      render(<BasicsChart.inner ref={ref} {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -227,18 +227,15 @@ describe('BasicsChart', function() {
             bgSources: defaultData.metaData.bgSources,
           },
         },
-      }));
-      var render = TestUtils.renderIntoDocument(elem);
+      })} />);
 
-      expect(render._insulinDataAvailable()).to.be.true;
+      expect(ref.current._insulinDataAvailable()).to.be.true;
     });
   });
 
   describe('componentDidMount', function() {
     it('should track metrics which device data was available to the user when viewing', function() {
-      this.timeout(8000); // Double timeout for this test, as it seems to fail often on travis
-
-      var elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -251,12 +248,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'Pump only'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -267,12 +263,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM only'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -283,12 +278,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'CGM only'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -299,12 +293,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM+CGM'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -317,12 +310,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM+Pump'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -335,12 +327,11 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'CGM+Pump'});
 
       defaultProps.trackMetric.reset();
-      elem = React.createElement(BasicsChart.inner, props({
+      render(<BasicsChart.inner {...props({
         data: {
           ...defaultData,
           metaData: {
@@ -353,9 +344,8 @@ describe('BasicsChart', function() {
             },
           },
         },
-      }));
-      TestUtils.renderIntoDocument(elem);
+      })} />);
       sinon.assert.calledWith(defaultProps.trackMetric, 'web - viewed basics data', {device: 'BGM+CGM+Pump'});
-    });
+    }, 8000);
   });
 });

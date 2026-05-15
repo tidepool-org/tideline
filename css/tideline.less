@@ -209,14 +209,42 @@ svg {
   stroke: @carbs;
   stroke-width: 1.5;
 }
+.d3-rect-carbs-edited-legend {
+  fill: @carbs-edited-bg;
+  stroke: @carbs-edited-border;
+  stroke-width: 1.5;
+  stroke-dasharray: 2.5, 2;
+}
 .d3-circle-carbs {
   fill: @carbs;
 }
 .d3-carbs-text {
   fill: @text;
   font-size: @font-size-small;
+  font-weight: 500;
   dominant-baseline: central;
   text-anchor: middle;
+}
+// special carb indicators: carbsEdited oblong + entryTimeDiffers circle
+.d3-carbs-edited {
+  fill: @carbs-edited-bg;
+  stroke: @carbs-edited-border;
+  stroke-width: 1.5;
+  stroke-dasharray: 6, 5;
+}
+.d3-carbs-text-original {
+  fill: @carbs-edited-original-text;
+  font-size: @font-size-small;
+}
+.d3-carbs-strikethrough {
+  stroke: @carbs-edited-strikethrough;
+  stroke-width: 1.5;
+}
+.d3-carbs-text-current {
+  fill: @carbs-edited-current-text;
+}
+.d3-carbs-text-current-bold {
+  font-weight: 900;
 }
 
 // carb exchanges

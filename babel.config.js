@@ -15,8 +15,7 @@ module.exports = function babelConfig(api) {
     plugins.unshift(
       ['babel-plugin-istanbul', {
         useInlineSourceMaps: false,
-      }],
-      'babel-plugin-rewire',
+      }]
     );
   }
 

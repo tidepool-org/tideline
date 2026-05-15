@@ -19,15 +19,16 @@
 /* global sinon */
 
 var React = require('react');
-var ReactDOM = require('react-dom');
-var TestUtils = require('react-dom/test-utils');
+var { render } = require('@testing-library/react');
 var expect = chai.expect;
 
 var InfusionHoverDisplay = require('../../../../../plugins/blip/basics/components/day/hover/InfusionHoverDisplay');
 
 describe('InfusionHoverDisplay', function () {
+  var testProps;
+
   beforeEach(function() {
-    this.props = {
+    testProps = {
       data: {
         'dataByDate': {
           '2017-01-01': {
@@ -74,16 +75,15 @@ describe('InfusionHoverDisplay', function () {
 
   describe('render and track metric', function() {
     it('should render without problem when props provided', function () {
-      expect(this.props.trackMetric.callCount).to.equal(0);
+      expect(testProps.trackMetric.callCount).to.equal(0);
 
-      var elem = React.createElement(InfusionHoverDisplay, this.props);
-      var renderedElem = TestUtils.renderIntoDocument(elem);
+      var { container } = render(<InfusionHoverDisplay {...testProps} />);
 
-      var compElem = TestUtils.findRenderedDOMComponentWithClass(renderedElem, 'Calendar-day-reservoirChange-times');
+      var compElem = container.querySelector('.Calendar-day-reservoirChange-times');
       expect(compElem).to.be.ok;
       
-      expect(this.props.trackMetric.callCount).to.equal(1);
-      expect(this.props.trackMetric.calledWith('Hovered over Infusion Site')).to.be.true;
+      expect(testProps.trackMetric.callCount).to.equal(1);
+      expect(testProps.trackMetric.calledWith('Hovered over Infusion Site')).to.be.true;
     });
   });
 });
