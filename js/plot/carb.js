@@ -34,10 +34,16 @@ module.exports = function(pool, opts) {
 
   const xPos = (d) => opts.xScale(d.normalTime);
 
-  // Original carb value from either dosingDecision path (mirrors FoodTooltip.js logic)
-  const getOriginalCarbs = (d) =>
-    d?.dosingDecision?.originalFood?.nutrition?.carbohydrate?.net
-    ?? d?.originalDosingDecision?.food?.nutrition?.carbohydrate?.net;
+  // True initial carb value, mirroring FoodTooltip.js / DataUtil.js exactly: read the
+  // EARLIEST dosing decision's immutable `originalFood` snapshot, falling back to its
+  // `food`. The latest dosingDecision has no `originalFood` on multi-edit chains, and
+  // intermediate decisions' `food` has been rewritten to the final value -- so reading
+  // either of those would surface the post-edit number instead of the initial one.
+  const getOriginalCarbs = (d) => {
+    const earliestDosingDecision = d?.originalDosingDecision || d?.dosingDecision;
+    return earliestDosingDecision?.originalFood?.nutrition?.carbohydrate?.net
+      ?? earliestDosingDecision?.food?.nutrition?.carbohydrate?.net;
+  };
 
   // tags.carbsEdited: true → oblong showing original (struck through) + current value
   const hasCarbsEdited = (d) => d?.tags?.carbsEdited === true;
@@ -185,6 +191,9 @@ module.exports = function(pool, opts) {
       });
     }
   };
+
+  // Exposed for unit testing the initial-carb derivation in isolation.
+  carb.getOriginalCarbs = getOriginalCarbs;
 
   return carb;
 };
