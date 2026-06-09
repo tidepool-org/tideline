@@ -23,3 +23,8 @@ coverage/
 !.yarn/versions
 
 .opencode
+
+# ApoVault — ignore entire vault (per /apo:init choice 2026-05-25)
+.apo/
+.pi
+.pi-lens
