@@ -17,82 +17,166 @@
 
 /* jshint esversion:6 */
 
-var d3 = require('d3');
-var _ = require('lodash');
+const d3 = require('d3');
 
 module.exports = function(pool, opts) {
-  var defaults = {
+  const defaults = {
     r: 14,
-    carbPadding: 4
+    carbPadding: 4,
+    // Portrait oblong (stadium shape): rx = ry = ovalWidth/2 makes the short ends
+    // fully semicircular while the long sides remain straight.
+    ovalWidth: 28,     // same as circle diameter; tweak for visual balance
+    ovalHeight: 40,    // taller than wide = portrait orientation
+    ovalWidthWide: 30, // for 3-digit values (≥100)
   };
 
-  _.defaults(opts, defaults);
+  opts = { ...defaults, ...opts };
 
-  var xPos = function(d) {
-    return opts.xScale(d.normalTime);
+  const xPos = (d) => opts.xScale(d.normalTime);
+
+  // True initial carb value, mirroring FoodTooltip.js / DataUtil.js exactly: read the
+  // EARLIEST dosing decision's immutable `originalFood` snapshot, falling back to its
+  // `food`. The latest dosingDecision has no `originalFood` on multi-edit chains, and
+  // intermediate decisions' `food` has been rewritten to the final value -- so reading
+  // either of those would surface the post-edit number instead of the initial one.
+  const getOriginalCarbs = (d) => {
+    const earliestDosingDecision = d?.originalDosingDecision || d?.dosingDecision;
+    return earliestDosingDecision?.originalFood?.nutrition?.carbohydrate?.net
+      ?? earliestDosingDecision?.food?.nutrition?.carbohydrate?.net;
   };
+
+  // tags.carbsEdited: true → oblong showing original (struck through) + current value
+  const hasCarbsEdited = (d) => d?.tags?.carbsEdited === true;
+
+  // tags.entryTimeDiffers: true → circle with special border styling
+  const hasEntryTimeDiffers = (d) => d?.tags?.entryTimeDiffers === true;
 
   function carb(selection) {
-    var yPos = opts.r + opts.carbPadding;
+    const yPos = opts.r + opts.carbPadding;
     opts.xScale = pool.xScale().copy();
     selection.each(function(currentData) {
-      var filteredData = _.filter(currentData, (data) => {
-        return _.get(data, 'nutrition.carbohydrate.net', false);
-      });
-      var allCarbs = d3
+      const filteredData = currentData.filter(data =>
+        data?.nutrition?.carbohydrate?.net || data?.tags?.carbsEdited
+      );
+      const allCarbs = d3
         .select(this)
-        .selectAll('circle.d3-carbs-only')
-        .data(filteredData, function(d) {
-          return d.id;
-        });
-      var carbGroup = allCarbs.enter()
+        .selectAll('g.d3-carb-group')
+        .data(filteredData, d => d.id);
+      const carbGroup = allCarbs.enter()
         .append('g')
         .attr({
           'class': 'd3-carb-group',
-          id: function(d) {
-            return 'carb_group_' + d.id;
-          }
+          id: d => 'carb_group_' + d.id,
         });
 
-      carbGroup.append('circle').attr({
-        cx: xPos,
-        cy: yPos,
-        r: function(d) {
-          return opts.r;
-        },
-        'stroke-width': 0,
-        class: 'd3-circle-carbs d3-carbs-only',
-        id: function(d) {
-          return 'carbs_' + d.id;
+      carbGroup.each(function(d) {
+        const group = d3.select(this);
+
+        if (hasCarbsEdited(d)) {
+          // --- Edited carbs: portrait oblong with original (struck through) + current ---
+          const original = getOriginalCarbs(d);
+          const current = d.nutrition.carbohydrate.net;
+          const w = (Math.round(original) >= 100 || Math.round(current) >= 100)
+            ? opts.ovalWidthWide
+            : opts.ovalWidth;
+          const h = opts.ovalHeight;
+          // rx = ry = w/2: left/right ends are full semicircles; top/bottom stay straight
+          const r = w / 2;
+          const cy = h / 2 + opts.carbPadding;
+
+          group.append('rect').attr({
+            x: xPos(d) - w / 2,
+            y: opts.carbPadding,
+            width: w,
+            height: h,
+            rx: r,
+            ry: r,
+            class: 'd3-circle-carbs d3-carbs-only d3-carbs-edited',
+            id: 'carbs_' + d.id,
+          });
+
+          // Original value — upper half
+          const originalText = group.append('text')
+            .text(Math.round(original))
+            .attr({
+              x: xPos(d),
+              y: cy - 5,
+              class: 'd3-carbs-text d3-carbs-text-original',
+            });
+
+          // Strikethrough line: spans the text width, rendered beneath the text
+          const textBBox = originalText.node().getBBox();
+          group.insert('line', 'text').attr({
+            x1: textBBox.x - 3,
+            y1: cy - 6,
+            x2: textBBox.x + textBBox.width + 3,
+            y2: cy - 6,
+            class: 'd3-carbs-strikethrough',
+          });
+
+          // Current value — lower half (bold)
+          group.append('text')
+            .text(Math.round(current))
+            .attr({
+              x: xPos(d),
+              y: cy + 7,
+              class: 'd3-carbs-text d3-carbs-text-current d3-carbs-text-current-bold',
+            });
+
+        } else if (hasEntryTimeDiffers(d)) {
+          // --- Entry time differs: standard circle with special border styling ---
+          group.append('circle').attr({
+            cx: xPos(d),
+            cy: yPos,
+            r: opts.r,
+            class: 'd3-circle-carbs d3-carbs-only d3-carbs-edited',
+            id: 'carbs_' + d.id,
+          });
+
+          group.append('text')
+            .text(Math.round(d.nutrition.carbohydrate.net))
+            .attr({
+              x: xPos(d),
+              y: yPos + 1,
+              class: 'd3-carbs-text d3-carbs-text-current',
+            });
+
+        } else {
+          // --- Standard carb: unchanged ---
+          group.append('circle').attr({
+            cx: xPos(d),
+            cy: yPos,
+            r: opts.r,
+            'stroke-width': 0,
+            class: 'd3-circle-carbs d3-carbs-only',
+            id: 'carbs_' + d.id,
+          });
+
+          group.append('text')
+            .text(Math.round(d.nutrition.carbohydrate.net))
+            .attr({
+              x: xPos(d),
+              y: yPos + 1,
+              class: 'd3-carbs-text',
+            });
         }
       });
-
-      carbGroup
-        .append('text')
-        .text(function(d) {
-          return Math.round(d.nutrition.carbohydrate.net);
-        })
-        .attr({
-          x: xPos,
-          y: yPos,
-          class: 'd3-carbs-text'
-        });
 
       allCarbs.exit().remove();
 
       // tooltips
       selection.selectAll('.d3-carb-group').on('mouseover', function() {
-        var parentContainer = document
+        const parentContainer = document
           .getElementsByClassName('patient-data')[0]
           .getBoundingClientRect();
-        var container = this.getBoundingClientRect();
+        const container = this.getBoundingClientRect();
         container.y = container.top - parentContainer.top;
 
         carb.addTooltip(d3.select(this).datum(), container);
       });
 
       selection.selectAll('.d3-carb-group').on('mouseout', function() {
-        if (_.get(opts, 'onCarbOut', false)) {
+        if (opts?.onCarbOut) {
           opts.onCarbOut();
         }
       });
@@ -100,13 +184,16 @@ module.exports = function(pool, opts) {
   }
 
   carb.addTooltip = function(d, rect) {
-    if (_.get(opts, 'onCarbHover', false)) {
+    if (opts?.onCarbHover) {
       opts.onCarbHover({
         data: d,
-        rect: rect
+        rect: rect,
       });
     }
   };
+
+  // Exposed for unit testing the initial-carb derivation in isolation.
+  carb.getOriginalCarbs = getOriginalCarbs;
 
   return carb;
 };
