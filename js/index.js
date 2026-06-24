@@ -50,6 +50,7 @@ module.exports = {
     suspend: require('./plot/suspend'),
     alarm: require('./plot/alarm'),
     event: require('./plot/event'),
+    siteChange: require('./plot/sitechange'),
     pumpSettingsOverride: require('./plot/pumpSettingsOverride'),
     wizard: require('./plot/wizard'),
     carb: require('./plot/carb'),
