@@ -31,6 +31,23 @@ var scalesutil = tideline.plot.util.scales;
 var dt = tideline.data.util.datetime;
 var { MGDL_UNITS } = require('../../js/data/util/constants');
 
+// Basics site-change sprites, reused by the Daily site-change plot. Keyed to match
+// the icon keys js/plot/sitechange.js emits (the reservoir icon is the omnipod
+// sprite, mirroring the Basics Change component).
+var sitechangeCannulaImage = require('./basics/components/sitechange/sitechange_cannula.png');
+var sitechangeTubingImage = require('./basics/components/sitechange/sitechange_tubing.png');
+var sitechangeReservoirImage = require('./basics/components/sitechange/sitechange_omnipod.png');
+var sitechangeLoopTubingImage = require('./basics/components/sitechange/sitechange_loop_tubing.png');
+var sitechangeTwiistCassetteImage = require('./basics/components/sitechange/sitechange_twiist_cassette.svg');
+
+var siteChangeIcons = {
+  'cannula': sitechangeCannulaImage,
+  'tubing': sitechangeTubingImage,
+  'reservoir': sitechangeReservoirImage,
+  'loop-tubing': sitechangeLoopTubingImage,
+  'twiist-cassette': sitechangeTwiistCassetteImage,
+};
+
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
   var log = bows('Daily Factory');
@@ -493,6 +510,23 @@ function chartDailyFactory(el, options) {
           onEventOut: options.onEventOut,
         }), true, true);
       });
+
+      // add site-change images to events pool, painted last so they sit on top of
+      // the note/event icons. Gated on the Basics selection threaded in from blip:
+      // no selection means no site-change icons.
+      if (options.siteChangeSource) {
+        poolEvents.addPlotType('deviceEvent', tideline.plot.siteChange(poolEvents, {
+          size: 24,
+          emitter: emitter,
+          data: groupedData.deviceEvent,
+          icons: siteChangeIcons,
+          siteChangeSource: options.siteChangeSource,
+          timezoneAware: chart.options.timePrefs.timezoneAware,
+          timezoneName: chart.options.timePrefs.timezoneName,
+          onEventHover: options.onEventHover,
+          onEventOut: options.onEventOut,
+        }), true, true);
+      }
     }
 
     return chart;
