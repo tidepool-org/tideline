@@ -44,7 +44,7 @@
     "@babel/polyfill": "7.12.1",
     "@babel/preset-env": "7.22.20",
     "@babel/preset-react": "7.22.15",
-    "@babel/runtime": "7.23.1",
+    "@babel/runtime": "7.26.10",
     "@hot-loader/react-dom": "16.11.0",
     "@swc/core": "1.11.24",
     "@swc/jest": "0.2.38",
