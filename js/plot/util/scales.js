@@ -54,6 +54,14 @@ var scales = function(opts) {
         .clamp(true);
     },
     bg: function(data, pool, pad) {
+      // A standardized scale spans the full range of readings a CGM can report rather than
+      // fitting this chart's own data, so that charts rendered as a set (e.g. the stacked daily
+      // charts) share a y-axis and can be read against one another. It is clamped, so a reading
+      // outside the range is drawn at the nearest edge.
+      if (opts.fullRangeBgScale) {
+        return this.bgClamped([this.MIN_CBG, this.MAX_CBG], pool, pad);
+      }
+
       var ext = d3.extent(data, function(d) { return d.value; });
       var targetBoundary = _.get(opts, 'bgClasses.target.boundary', opts.TARGET_BG_BOUNDARY);
 
@@ -94,12 +102,23 @@ var scales = function(opts) {
       }
     },
     bgTicks: function(data) {
-      if ((!data) || (data.length === 0)) {
-        return [];
-      }
       var defaultTicks = _.map(_.values(_.omit(opts.bgClasses, ['very-high', 'very-low'])), function(n) {
         return format.tooltipBGValue(_.get(n, 'boundary'), bgUnits);
       }).sort(function (a, b) { return a - b; });
+
+      // A standardized scale does not depend on the data extent, so neither do its ticks: every
+      // chart renders each boundary that falls within the scale, even on a day with no readings.
+      if (opts.fullRangeBgScale) {
+        var min = this.MIN_CBG;
+        var max = this.MAX_CBG;
+        return _.filter(defaultTicks, function(tick) {
+          return tick >= min && tick <= max;
+        });
+      }
+
+      if ((!data) || (data.length === 0)) {
+        return [];
+      }
 
       var ext = d3.extent(data, function(d) { return d.value; });
       if (ext[0] === ext[1]) {
