@@ -54,10 +54,6 @@ var scales = function(opts) {
         .clamp(true);
     },
     bg: function(data, pool, pad) {
-      // A standardized scale spans the full range of readings a CGM can report rather than
-      // fitting this chart's own data, so that charts rendered as a set (e.g. the stacked daily
-      // charts) share a y-axis and can be read against one another. It is clamped, so a reading
-      // outside the range is drawn at the nearest edge.
       if (opts.fullRangeBgScale) {
         return this.bgClamped([this.MIN_CBG, this.MAX_CBG], pool, pad);
       }
@@ -106,8 +102,6 @@ var scales = function(opts) {
         return format.tooltipBGValue(_.get(n, 'boundary'), bgUnits);
       }).sort(function (a, b) { return a - b; });
 
-      // A standardized scale does not depend on the data extent, so neither do its ticks: every
-      // chart renders each boundary that falls within the scale, even on a day with no readings.
       if (opts.fullRangeBgScale) {
         var min = this.MIN_CBG;
         var max = this.MAX_CBG;
