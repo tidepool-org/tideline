@@ -47,9 +47,6 @@ function chartDailyFactory(el, options) {
     },
     endpoints: null,
     dayLabel: true,
-    // Pin the BG pool's y-axis to the full range of readings a CGM can report instead of fitting
-    // it to this chart's data. Set it when several charts are rendered together and need to be
-    // comparable; leave it off (the regular daily view) to fit the scale to the data.
     fullRangeBgScale: false,
     pool: {
       events: {
