@@ -47,6 +47,7 @@ function chartDailyFactory(el, options) {
     },
     endpoints: null,
     dayLabel: true,
+    fullRangeBgScale: false,
     pool: {
       events: {
         hidden: false,
