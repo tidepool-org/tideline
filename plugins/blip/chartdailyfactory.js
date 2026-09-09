@@ -48,6 +48,8 @@ var siteChangeIcons = {
   'twiist-cassette': sitechangeTwiistCassetteImage,
 };
 
+var SITE_CHANGE_SUBTYPES = ['cannulaPrime', 'tubingPrime', 'reservoirChange'];
+
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
   var log = bows('Daily Factory');
@@ -513,14 +515,15 @@ function chartDailyFactory(el, options) {
 
       // add site-change images to events pool, painted last so they sit on top of
       // the note/event icons. Gated on the Basics selection threaded in from blip:
-      // no selection means no site-change icons.
-      if (options.siteChangeSource) {
+      // 'undeclared' or no selection means no site-change icons.
+      if (_.includes(SITE_CHANGE_SUBTYPES, options.siteChangeSource)) {
         poolEvents.addPlotType('deviceEvent', tideline.plot.siteChange(poolEvents, {
           size: 24,
           emitter: emitter,
           data: groupedData.deviceEvent,
           icons: siteChangeIcons,
           siteChangeSource: options.siteChangeSource,
+          siteChangeSourceLabel: options.siteChangeSourceLabel,
           timezoneAware: chart.options.timePrefs.timezoneAware,
           timezoneName: chart.options.timePrefs.timezoneName,
           onEventHover: options.onEventHover,

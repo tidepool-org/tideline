@@ -1,6 +1,7 @@
 /* global chai */
 
 var d3 = require('d3');
+var _ = require('lodash');
 var expect = chai.expect;
 
 var sitechangeFactory = require('../../js/plot/sitechange');
@@ -238,6 +239,50 @@ describe('sitechange plot', function() {
 
       node.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }));
       expect(onEventOut.mock.calls.length).to.equal(1);
+    });
+
+    // Hover the single icon rendered from `data` and return the onEventHover payload.
+    function hoverPayload(data, opts) {
+      withHoverDom();
+      var onEventHover = jest.fn();
+
+      var host = render(data, _.assign({
+        size: 24,
+        icons: ICONS,
+        siteChangeSource: 'cannulaPrime',
+        onEventHover: onEventHover,
+      }, opts));
+
+      host.node()
+        .querySelector('g.d3-sitechange-group')
+        .dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+
+      return onEventHover.mock.calls[0][0];
+    }
+
+    it('attaches displayLabel from opts.siteChangeSourceLabel to the hover payload', function() {
+      var payload = hoverPayload(
+        [datum('a', 'cannulaPrime', 'Tandem', 100)],
+        { siteChangeSourceLabel: 'Cannula Fill' }
+      );
+
+      expect(payload.data.displayLabel).to.equal('Cannula Fill');
+      expect(payload.data.id).to.equal('a');
+    });
+
+    it('forwards daysSince from the datum unchanged', function() {
+      var d = datum('a', 'cannulaPrime', 'Tandem', 100);
+      d.daysSince = 3;
+
+      var payload = hoverPayload([d], { siteChangeSourceLabel: 'Cannula Fill' });
+
+      expect(payload.data.daysSince).to.equal(3);
+    });
+
+    it('leaves displayLabel undefined when no label option is passed', function() {
+      var payload = hoverPayload([datum('a', 'cannulaPrime', 'Tandem', 100)]);
+
+      expect(payload.data.displayLabel).to.be.undefined;
     });
   });
 });

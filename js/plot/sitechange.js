@@ -64,6 +64,9 @@ function getIconForDatum(d) {
  *
  * @param  {Object} pool the chart pool
  * @param  {Object} opts configuration options
+ * @param  {Object} opts.icons          map of icon key to image URL, injected by the factory
+ * @param  {String} opts.siteChangeSource      the selected site-change deviceEvent subType
+ * @param  {String} opts.siteChangeSourceLabel the resolved display label for that subType
  * @return {Object}      site change object
  */
 module.exports = function(pool, opts = {}) {
@@ -162,7 +165,7 @@ module.exports = function(pool, opts = {}) {
   sitechange.addTooltip = function(d, rect, chartExtents) {
     if (_.get(opts, 'onEventHover', false)) {
       opts.onEventHover({
-        data: d,
+        data: _.assign({}, d, { displayLabel: opts.siteChangeSourceLabel }),
         rect: rect,
         chartExtents,
       });
