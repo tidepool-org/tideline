@@ -102,6 +102,15 @@ describe('sitechange plot', function() {
       var d = { id: 'a', type: 'deviceEvent', source: 'Tandem', normalTime: 0, tags: { tubingPrime: true } };
       expect(plot.getIconForDatum(d)).to.equal('tubing');
     });
+
+    it('maps a punctuated non-loop manufacturer to the generic tubing icon', function() {
+      expect(plot.getIconForDatum(datum('a', 'tubingPrime', 't:slim X2', 0))).to.equal('tubing');
+    });
+
+    it('maps a datum without a source to the base icon for its subtype', function() {
+      var d = { id: 'a', type: 'deviceEvent', subType: 'reservoirChange', normalTime: 0 };
+      expect(plot.getIconForDatum(d)).to.equal('reservoir');
+    });
   });
 
   describe('rendering', function() {
@@ -197,6 +206,35 @@ describe('sitechange plot', function() {
         return Number(node.getAttribute('x'));
       });
       expect(xs).to.deep.equal([0 - 12, 8 * 60 * 1000 - 12]);
+    });
+  });
+
+  describe('dedupeWithinWindow', function() {
+    var plot = sitechangeFactory(poolStub(), {});
+    var WINDOW_MS = 5 * 60 * 1000;
+
+    // Boundary cases for the window: keep the first datum, then measure each
+    // subsequent decision from the last kept one rather than the previous datum.
+    var cases = [
+      { name: 'single', input: [{ id: 'a', normalTime: 0 }], expectedIds: ['a'] },
+      { name: 'exactly-window-apart', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 300000 }], expectedIds: ['a', 'b'] },
+      { name: 'one-ms-inside-window', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 299999 }], expectedIds: ['a'] },
+      { name: 'burst-of-four-inside-window', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 60000 }, { id: 'c', normalTime: 120000 }, { id: 'd', normalTime: 240000 }], expectedIds: ['a'] },
+      { name: 'anchor-on-last-kept-not-previous-datum', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 299999 }, { id: 'c', normalTime: 599998 }], expectedIds: ['a', 'c'] },
+      { name: 'chain-each-just-inside', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 200000 }, { id: 'c', normalTime: 400000 }, { id: 'd', normalTime: 600000 }], expectedIds: ['a', 'c'] },
+      { name: 'unsorted-input', input: [{ id: 'c', normalTime: 600000 }, { id: 'a', normalTime: 0 }, { id: 'b', normalTime: 300000 }], expectedIds: ['a', 'b', 'c'] },
+      { name: 'duplicate-timestamps', input: [{ id: 'a', normalTime: 0 }, { id: 'b', normalTime: 0 }], expectedIds: ['a'] },
+      { name: 'empty', input: [], expectedIds: [] },
+    ];
+
+    it('uses a 5-minute window', function() {
+      expect(plot.DEDUP_WINDOW_MS).to.equal(WINDOW_MS);
+    });
+
+    cases.forEach(function(c) {
+      it(c.name, function() {
+        expect(_.map(plot.dedupeWithinWindow(c.input), 'id')).to.deep.equal(c.expectedIds);
+      });
     });
   });
 

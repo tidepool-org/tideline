@@ -1,15 +1,20 @@
 var d3 = require('d3');
 var _ = require('lodash');
 
-// Site-change deviceEvent subType keys (inlined; js/ must not import from plugins/).
-var SITE_CHANGE_CANNULA = 'cannulaPrime';
-var SITE_CHANGE_TUBING = 'tubingPrime';
-var SITE_CHANGE_RESERVOIR = 'reservoirChange';
+var {
+  SITE_CHANGE_CANNULA,
+  SITE_CHANGE_TUBING,
+  SITE_CHANGE_RESERVOIR,
+  DIY_LOOP,
+  TIDEPOOL_LOOP,
+  TWIIST_LOOP,
+} = require('../../plugins/blip/basics/logic/constants');
+
 var SITE_CHANGE_SUBTYPES = [SITE_CHANGE_CANNULA, SITE_CHANGE_TUBING, SITE_CHANGE_RESERVOIR];
 
 // Manufacturer matches for the loop/twiist icon variants, lower-cased for comparison.
-var LOOP_MANUFACTURERS = _.map(['DIY Loop', 'Tidepool Loop'], _.lowerCase);
-var TWIIST_MANUFACTURER = _.lowerCase('twiist');
+var LOOP_MANUFACTURERS = _.map([DIY_LOOP, TIDEPOOL_LOOP], function(m) { return m.toLowerCase(); });
+var TWIIST_MANUFACTURER = TWIIST_LOOP.toLowerCase();
 
 // Site changes within 5 minutes of one another count as the same change; only the
 // first is drawn, so at most one icon shows per 5-minute window.
@@ -23,9 +28,9 @@ function getSiteChangeSubType(d) {
   if (d.subType === 'prime' && d.primeTarget === 'cannula') return SITE_CHANGE_CANNULA;
   if (d.subType === 'prime' && d.primeTarget === 'tubing') return SITE_CHANGE_TUBING;
   if (_.includes(SITE_CHANGE_SUBTYPES, d.subType)) return d.subType;
-  if (_.get(d, 'tags.reservoirChange')) return SITE_CHANGE_RESERVOIR;
-  if (_.get(d, 'tags.cannulaPrime')) return SITE_CHANGE_CANNULA;
-  if (_.get(d, 'tags.tubingPrime')) return SITE_CHANGE_TUBING;
+  if (_.get(d, ['tags', SITE_CHANGE_RESERVOIR])) return SITE_CHANGE_RESERVOIR;
+  if (_.get(d, ['tags', SITE_CHANGE_CANNULA])) return SITE_CHANGE_CANNULA;
+  if (_.get(d, ['tags', SITE_CHANGE_TUBING])) return SITE_CHANGE_TUBING;
   return null;
 }
 
@@ -34,7 +39,7 @@ function getSiteChangeSubType(d) {
 // cannula/tubing/reservoir icon.
 function getIconForDatum(d) {
   var subType = getSiteChangeSubType(d);
-  var manufacturer = _.lowerCase(_.get(d, 'source', ''));
+  var manufacturer = _.get(d, 'source', '').toLowerCase();
 
   if (subType === SITE_CHANGE_TUBING && _.includes(LOOP_MANUFACTURERS, manufacturer)) {
     return 'loop-tubing';
@@ -182,6 +187,7 @@ module.exports = function(pool, opts = {}) {
 
   // Exposed for unit testing.
   sitechange.getIconForDatum = getIconForDatum;
+  sitechange.DEDUP_WINDOW_MS = DEDUP_WINDOW_MS;
 
   return sitechange;
 };
