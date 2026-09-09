@@ -70,6 +70,7 @@ module.exports = {
       bgboundary: require('./plot/util/bgboundary'),
       commonbolus: require('./plot/util/commonbolus'),
       drawbolus: require('./plot/util/drawbolus'),
+      eventhover: require('./plot/util/eventhover'),
       fill: require('./plot/util/fill'),
       legend: require('./plot/util/legend'),
       scales: require('./plot/util/scales'),

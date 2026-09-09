@@ -1,6 +1,8 @@
 var d3 = require('d3');
 var _ = require('lodash');
 
+var eventhover = require('./util/eventhover');
+
 var {
   SITE_CHANGE_CANNULA,
   SITE_CHANGE_TUBING,
@@ -112,25 +114,9 @@ module.exports = function(pool, opts = {}) {
       groups.exit().remove();
 
       // Reuse the event hover channel so viz's EventTooltip receives site-change hovers.
-      selection.selectAll('.d3-sitechange-group').on('mouseover', function() {
-        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
-        var chartNavContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
-        var container = this.getBoundingClientRect();
-        container.y = container.top - parentContainer.top;
-
-        var chartExtents = {
-          left: chartNavContainer.left,
-          right: chartNavContainer.right,
-          width: chartNavContainer.right - chartNavContainer.left,
-        };
-
-        sitechange.addTooltip(d3.select(this).datum(), container, chartExtents);
-      });
-
-      selection.selectAll('.d3-sitechange-group').on('mouseout', function() {
-        if (_.get(opts, 'onEventOut', false)) {
-          opts.onEventOut();
-        }
+      eventhover(selection, '.d3-sitechange-group', {
+        onHover: sitechange.addTooltip,
+        onOut: opts.onEventOut,
       });
     });
   }
