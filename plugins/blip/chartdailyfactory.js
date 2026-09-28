@@ -48,7 +48,13 @@ var siteChangeIcons = {
   'twiist-cassette': sitechangeTwiistCassetteImage,
 };
 
-var SITE_CHANGE_SUBTYPES = ['cannulaPrime', 'tubingPrime', 'reservoirChange'];
+var {
+  SITE_CHANGE_CANNULA,
+  SITE_CHANGE_TUBING,
+  SITE_CHANGE_RESERVOIR,
+} = require('./basics/logic/constants');
+
+var SITE_CHANGE_SUBTYPES = [SITE_CHANGE_CANNULA, SITE_CHANGE_TUBING, SITE_CHANGE_RESERVOIR];
 
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
