@@ -519,9 +519,11 @@ function chartDailyFactory(el, options) {
         }), true, true);
       });
 
-      // add site-change images to events pool, painted last so they sit on top of
-      // the note/event icons. Gated on the Basics selection threaded in from blip:
-      // 'undeclared' or no selection means no site-change icons.
+      // add site-change images to events pool. They share the deviceEvent group with
+      // alarms, so they paint over alarms and notes but under same-timestamp event
+      // icons, matching the ticket's existing note-overlap behavior. Gated on the
+      // Basics selection threaded in from blip: 'undeclared' or no selection means
+      // no site-change icons.
       if (_.includes(SITE_CHANGE_SUBTYPES, options.siteChangeSource)) {
         poolEvents.addPlotType('deviceEvent', tideline.plot.siteChange(poolEvents, {
           size: 24,
