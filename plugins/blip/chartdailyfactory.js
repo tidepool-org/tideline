@@ -31,6 +31,31 @@ var scalesutil = tideline.plot.util.scales;
 var dt = tideline.data.util.datetime;
 var { MGDL_UNITS } = require('../../js/data/util/constants');
 
+// Basics site-change sprites, reused by the Daily site-change plot. Keyed to match
+// the icon keys js/plot/sitechange.js emits (the reservoir icon is the omnipod
+// sprite, mirroring the Basics Change component).
+var sitechangeCannulaImage = require('./basics/components/sitechange/sitechange_cannula.png');
+var sitechangeTubingImage = require('./basics/components/sitechange/sitechange_tubing.png');
+var sitechangeReservoirImage = require('./basics/components/sitechange/sitechange_omnipod.png');
+var sitechangeLoopTubingImage = require('./basics/components/sitechange/sitechange_loop_tubing.png');
+var sitechangeTwiistCassetteImage = require('./basics/components/sitechange/sitechange_twiist_cassette.svg');
+
+var siteChangeIcons = {
+  'cannula': sitechangeCannulaImage,
+  'tubing': sitechangeTubingImage,
+  'reservoir': sitechangeReservoirImage,
+  'loop-tubing': sitechangeLoopTubingImage,
+  'twiist-cassette': sitechangeTwiistCassetteImage,
+};
+
+var {
+  SITE_CHANGE_CANNULA,
+  SITE_CHANGE_TUBING,
+  SITE_CHANGE_RESERVOIR,
+} = require('./basics/logic/constants');
+
+var SITE_CHANGE_SUBTYPES = [SITE_CHANGE_CANNULA, SITE_CHANGE_TUBING, SITE_CHANGE_RESERVOIR];
+
 // Create a 'One Day' chart object that is a wrapper around Tideline components
 function chartDailyFactory(el, options) {
   var log = bows('Daily Factory');
@@ -493,6 +518,26 @@ function chartDailyFactory(el, options) {
           onEventOut: options.onEventOut,
         }), true, true);
       });
+
+      // add site-change images to events pool. They share the deviceEvent group with
+      // alarms, so they paint over alarms and notes but under same-timestamp event
+      // icons, matching the ticket's existing note-overlap behavior. Gated on the
+      // Basics selection threaded in from blip: 'undeclared' or no selection means
+      // no site-change icons.
+      if (_.includes(SITE_CHANGE_SUBTYPES, options.siteChangeSource)) {
+        poolEvents.addPlotType('deviceEvent', tideline.plot.siteChange(poolEvents, {
+          size: 24,
+          emitter: emitter,
+          data: groupedData.deviceEvent,
+          icons: siteChangeIcons,
+          siteChangeSource: options.siteChangeSource,
+          siteChangeSourceLabel: options.siteChangeSourceLabel,
+          timezoneAware: chart.options.timePrefs.timezoneAware,
+          timezoneName: chart.options.timePrefs.timezoneName,
+          onEventHover: options.onEventHover,
+          onEventOut: options.onEventOut,
+        }), true, true);
+      }
     }
 
     return chart;
