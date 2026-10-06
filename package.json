@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@babel/cli": "7.23.0",
-    "@babel/core": "7.23.0",
+    "@babel/core": "7.29.6",
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@babel/plugin-transform-modules-commonjs": "7.23.0",
     "@babel/polyfill": "7.12.1",
