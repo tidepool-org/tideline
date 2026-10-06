@@ -52,3 +52,17 @@ describe('carb plot getOriginalCarbs', function() {
     expect(carb.getOriginalCarbs({ nutrition: { carbohydrate: { net: 20 } } })).to.equal(undefined);
   });
 });
+
+describe('carb plot getCurrentCarbs', function() {
+  it('returns the net carbohydrate value', function() {
+    expect(carb.getCurrentCarbs(food(42))).to.equal(42);
+  });
+
+  it('returns 0 when nutrition.carbohydrate is absent (deleted edited carb)', function() {
+    expect(carb.getCurrentCarbs({ nutrition: {}, tags: { carbsEdited: true } })).to.equal(0);
+  });
+
+  it('returns 0 when nutrition is absent', function() {
+    expect(carb.getCurrentCarbs({ tags: { carbsEdited: true } })).to.equal(0);
+  });
+});
