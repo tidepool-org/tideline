@@ -45,6 +45,10 @@ module.exports = function(pool, opts) {
       ?? earliestDosingDecision?.food?.nutrition?.carbohydrate?.net;
   };
 
+  // Current carb value. A carbsEdited datum can lack nutrition.carbohydrate,
+  // so default to 0 so the edited oblong shows 0, not NaN.
+  const getCurrentCarbs = (d) => d?.nutrition?.carbohydrate?.net ?? 0;
+
   // tags.carbsEdited: true → oblong showing original (struck through) + current value
   const hasCarbsEdited = (d) => d?.tags?.carbsEdited === true;
 
@@ -75,7 +79,7 @@ module.exports = function(pool, opts) {
         if (hasCarbsEdited(d)) {
           // --- Edited carbs: portrait oblong with original (struck through) + current ---
           const original = getOriginalCarbs(d);
-          const current = d.nutrition.carbohydrate.net;
+          const current = getCurrentCarbs(d);
           const w = (Math.round(original) >= 100 || Math.round(current) >= 100)
             ? opts.ovalWidthWide
             : opts.ovalWidth;
@@ -134,7 +138,7 @@ module.exports = function(pool, opts) {
           });
 
           group.append('text')
-            .text(Math.round(d.nutrition.carbohydrate.net))
+            .text(Math.round(getCurrentCarbs(d)))
             .attr({
               x: xPos(d),
               y: yPos + 1,
@@ -153,7 +157,7 @@ module.exports = function(pool, opts) {
           });
 
           group.append('text')
-            .text(Math.round(d.nutrition.carbohydrate.net))
+            .text(Math.round(getCurrentCarbs(d)))
             .attr({
               x: xPos(d),
               y: yPos + 1,
@@ -192,8 +196,9 @@ module.exports = function(pool, opts) {
     }
   };
 
-  // Exposed for unit testing the initial-carb derivation in isolation.
+  // Exposed for unit testing the carb-value derivations in isolation.
   carb.getOriginalCarbs = getOriginalCarbs;
+  carb.getCurrentCarbs = getCurrentCarbs;
 
   return carb;
 };
