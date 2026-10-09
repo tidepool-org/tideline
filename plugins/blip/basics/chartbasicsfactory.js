@@ -199,9 +199,10 @@ class BasicsChart extends React.Component {
           if (hasAutomatedSuspends && hasAutomatedStops) section.perRow = 2;
         }
 
+        // SummaryGroup chunks the visible options into rows at render time
         if (_.isArray(selectorOptions.rows)) {
           selectorOptions.perRow = section.perRow || 3;
-          selectorOptions.rows = _.chunk(_.orderBy(selectorOptions.rows, 'selectorIndex'), selectorOptions.perRow);
+          selectorOptions.rows = [_.orderBy(selectorOptions.rows, 'selectorIndex')];
         }
       }
 

@@ -58,14 +58,16 @@ var SummaryGroup = createReactClass({
       }
     }
 
-    // Re-chunk only the visible options so hidden empty ones don't leave short rows
+    // Chunk only the visible options so hidden empty ones don't leave short rows
     var visibleOptions = _.reject(_.flatten(self.props.selectorOptions.rows), function(option) {
       return option.hideEmpty && !(self.getOptionValue(option, self.props.data) > 0);
     });
     var perRow = self.props.selectorOptions.perRow;
     // 7 or 8 visible options fit 2 rows of 4; more spill to a 3rd row rather than going 5 wide
     if (visibleOptions.length > 6) perRow = Math.max(perRow, 4);
-    var optionRows = _.chunk(visibleOptions, perRow);
+    // Balance the rows so a leftover never sits alone (4 options at 3 per row render 2+2, not 3+1)
+    var rowCount = Math.ceil(visibleOptions.length / perRow);
+    var optionRows = _.chunk(visibleOptions, Math.ceil(visibleOptions.length / rowCount));
 
     var others = optionRows.map(function(row, id) {
       var options = row.map(self.renderOption);
@@ -88,11 +90,6 @@ var SummaryGroup = createReactClass({
 
   renderOption: function(option) {
     var value = this.getOptionValue(option, this.props.data);
-    var isEmptyValue = !value || value <= 0;
-
-    if (option.hideEmpty && isEmptyValue) {
-      return null;
-    }
 
     var classes = classnames({
       'SummaryGroup-info--selected': (option.key === this.props.selectedSubtotal),

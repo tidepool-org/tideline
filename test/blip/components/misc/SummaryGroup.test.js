@@ -154,7 +154,7 @@ describe('SummaryGroup', () => {
         selectorOptions: {
           primary: { key: 'total', label: 'Avg per day', average: true, path: 'summary', primary: true },
           perRow,
-          rows: _.chunk(options, perRow),
+          rows: [options],
         },
       })} />);
 
@@ -174,9 +174,9 @@ describe('SummaryGroup', () => {
       expect(renderRows(bolusOptions, bolusData())).to.eql([4, 4]);
     });
 
-    it('should render 9 visible options in rows of 4, spilling to a third row', () => {
+    it('should render 9 visible options in 3 balanced rows of 3 rather than a lone option on a third row', () => {
       const options = [...bolusOptions, bolusOption('automated', { percentage: false })];
-      expect(renderRows(options, { summary: { total: 10, subtotals: { ...bolusData().summary.subtotals, automated: { count: 1 } } } }, 4)).to.eql([4, 4, 1]);
+      expect(renderRows(options, { summary: { total: 10, subtotals: { ...bolusData().summary.subtotals, automated: { count: 1 } } } }, 4)).to.eql([3, 3, 3]);
     });
 
     it('should close the row left by a hidden option when the section is already 4 per row', () => {
@@ -191,7 +191,7 @@ describe('SummaryGroup', () => {
         selectorOptions: {
           primary: { key: 'total', label: 'Avg per day', average: true, path: 'summary', primary: true },
           perRow: 3,
-          rows: _.chunk(bolusOptions, 3),
+          rows: [bolusOptions],
         },
       })} />);
 
@@ -201,6 +201,21 @@ describe('SummaryGroup', () => {
 
     it('should not widen sections with 6 or fewer visible options beyond the default 3 per row', () => {
       expect(renderRows(_.take(bolusOptions, 5), bolusData())).to.eql([3, 2]);
+    });
+
+    it('should balance 4 visible options at 3 per row into 2 rows of 2 when a hide-empty option is empty', () => {
+      // Mirrors the BG readings section: meter, manual, calibrations (hide-empty), low, high
+      const options = [bolusOption('meter'), bolusOption('manual'), bolusOption('calibration', { hideEmpty: true }), bolusOption('low'), bolusOption('high')];
+      const data = { summary: { total: 10, subtotals: { meter: { count: 1 }, manual: { count: 1 }, calibration: { count: 0 }, low: { count: 1 }, high: { count: 1 } } } };
+      expect(renderRows(options, data)).to.eql([2, 2]);
+    });
+
+    it('should keep a 2-per-row section at 2 per row', () => {
+      // Mirrors the basals section: temp, suspend, automated stop (hide-empty), automated suspend (hide-empty)
+      const options = [bolusOption('temp'), bolusOption('suspend'), bolusOption('automatedStop', { hideEmpty: true }), bolusOption('automatedSuspend', { hideEmpty: true })];
+      const data = counts => ({ summary: { total: 10, subtotals: _.mapValues(_.keyBy(_.map(options, 'key')), key => ({ count: _.get(counts, key, 1) })) } });
+      expect(renderRows(options, data(), 2)).to.eql([2, 2]);
+      expect(renderRows(options, data({ automatedSuspend: 0 }), 2)).to.eql([2, 1]);
     });
   });
 
