@@ -58,7 +58,14 @@ var SummaryGroup = createReactClass({
       }
     }
 
-    var optionRows = self.props.selectorOptions.rows;
+    // Re-chunk only the visible options so hidden empty ones don't leave short rows
+    var visibleOptions = _.reject(_.flatten(self.props.selectorOptions.rows), function(option) {
+      return option.hideEmpty && !(self.getOptionValue(option, self.props.data) > 0);
+    });
+    var perRow = self.props.selectorOptions.perRow;
+    // 7 or 8 visible options fit 2 rows of 4; more spill to a 3rd row rather than going 5 wide
+    if (visibleOptions.length > 6) perRow = Math.max(perRow, 4);
+    var optionRows = _.chunk(visibleOptions, perRow);
 
     var others = optionRows.map(function(row, id) {
       var options = row.map(self.renderOption);

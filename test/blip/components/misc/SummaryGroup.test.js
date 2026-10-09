@@ -126,6 +126,84 @@ describe('SummaryGroup', () => {
     });
   });
 
+  describe('option rows', () => {
+    const bolusOption = (key, opts = {}) => ({ path: 'summary.subtotals', key, label: key, percentage: true, ...opts });
+
+    const bolusOptions = [
+      bolusOption('wizard'),
+      bolusOption('correction'),
+      bolusOption('override'),
+      bolusOption('manual', { hideEmpty: true }),
+      bolusOption('extended'),
+      bolusOption('interrupted'),
+      bolusOption('underride'),
+      bolusOption('oneButton', { hideEmpty: true }),
+    ];
+
+    const bolusData = counts => ({
+      summary: {
+        total: 10,
+        subtotals: _.mapValues(_.keyBy(_.map(bolusOptions, 'key')), key => ({ count: _.get(counts, key, 1) })),
+      },
+    });
+
+    const renderRows = (options, data, perRow = 3) => {
+      const { container } = render(<SummaryGroup {..._.assign({}, props, {
+        data,
+        sectionId: 'boluses',
+        selectorOptions: {
+          primary: { key: 'total', label: 'Avg per day', average: true, path: 'summary', primary: true },
+          perRow,
+          rows: _.chunk(options, perRow),
+        },
+      })} />);
+
+      return _.map(container.querySelectorAll('.SummaryGroup-row'), row => row.children.length);
+    };
+
+    it('should render 6 visible options in 2 rows of 3 when both hide-empty options are empty', () => {
+      expect(renderRows(bolusOptions, bolusData({ manual: 0, oneButton: 0 }))).to.eql([3, 3]);
+    });
+
+    it('should render 7 visible options in rows of 4 when one hide-empty option is empty', () => {
+      expect(renderRows(bolusOptions, bolusData({ manual: 0 }))).to.eql([4, 3]);
+      expect(renderRows(bolusOptions, bolusData({ oneButton: 0 }))).to.eql([4, 3]);
+    });
+
+    it('should render 8 visible options in 2 rows of 4', () => {
+      expect(renderRows(bolusOptions, bolusData())).to.eql([4, 4]);
+    });
+
+    it('should render 9 visible options in rows of 4, spilling to a third row', () => {
+      const options = [...bolusOptions, bolusOption('automated', { percentage: false })];
+      expect(renderRows(options, { summary: { total: 10, subtotals: { ...bolusData().summary.subtotals, automated: { count: 1 } } } }, 4)).to.eql([4, 4, 1]);
+    });
+
+    it('should close the row left by a hidden option when the section is already 4 per row', () => {
+      const options = [...bolusOptions, bolusOption('automated', { percentage: false })];
+      expect(renderRows(options, { summary: { total: 10, subtotals: { ...bolusData({ oneButton: 0 }).summary.subtotals, automated: { count: 1 } } } }, 4)).to.eql([4, 4]);
+    });
+
+    it('should keep the incoming option order when re-chunking around hidden options', () => {
+      const { container } = render(<SummaryGroup {..._.assign({}, props, {
+        data: bolusData({ manual: 0 }),
+        sectionId: 'boluses',
+        selectorOptions: {
+          primary: { key: 'total', label: 'Avg per day', average: true, path: 'summary', primary: true },
+          perRow: 3,
+          rows: _.chunk(bolusOptions, 3),
+        },
+      })} />);
+
+      const labels = _.map(container.querySelectorAll('.SummaryGroup-row .SummaryGroup-option-label'), 'textContent');
+      expect(labels).to.eql(['wizard', 'correction', 'override', 'extended', 'interrupted', 'underride', 'oneButton']);
+    });
+
+    it('should not widen sections with 6 or fewer visible options beyond the default 3 per row', () => {
+      expect(renderRows(_.take(bolusOptions, 5), bolusData())).to.eql([3, 2]);
+    });
+  });
+
   describe('handleSelectSubtotal', () => {
     it('should call the selectSubtotal action', () => {
       var { container } = render(<SummaryGroup {...props} />);
