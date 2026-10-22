@@ -52,3 +52,49 @@ describe('carb plot getOriginalCarbs', function() {
     expect(carb.getOriginalCarbs({ nutrition: { carbohydrate: { net: 20 } } })).to.equal(undefined);
   });
 });
+
+describe('carb plot getCurrentCarbs', function() {
+  it('returns the net carbohydrate value', function() {
+    expect(carb.getCurrentCarbs(food(42))).to.equal(42);
+  });
+
+  it('returns 0 when nutrition.carbohydrate is absent (deleted edited carb)', function() {
+    expect(carb.getCurrentCarbs({ nutrition: {}, tags: { carbsEdited: true } })).to.equal(0);
+  });
+
+  it('returns 0 when nutrition is absent', function() {
+    expect(carb.getCurrentCarbs({ tags: { carbsEdited: true } })).to.equal(0);
+  });
+});
+
+describe('carb plot render', function() {
+  var d3 = require('d3');
+
+  beforeAll(function() {
+    // jsdom has no SVG layout; the edited branch measures the original-value text
+    window.SVGElement.prototype.getBBox = window.SVGElement.prototype.getBBox
+      || function() { return { x: 0, y: 0, width: 10, height: 10 }; };
+  });
+
+  afterEach(function() {
+    d3.select(document.body).selectAll('svg').remove();
+  });
+
+  it('renders an edited carb with no nutrition.carbohydrate as original / 0', function() {
+    var scale = function(t) { return t; };
+    scale.copy = function() { return scale; };
+    var plot = carbFactory({ xScale: function() { return scale; } }, {});
+    var host = d3.select(document.body).append('svg').append('g').datum([{
+      id: 'a',
+      normalTime: 10,
+      nutrition: {},
+      tags: { carbsEdited: true },
+      dosingDecision: { originalFood: food(30), food: food(30) },
+    }]);
+
+    host.call(plot);
+
+    var texts = Array.from(host.node().querySelectorAll('text')).map(n => n.textContent);
+    expect(texts).to.eql(['30', '0']);
+  });
+});
