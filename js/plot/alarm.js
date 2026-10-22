@@ -1,6 +1,8 @@
 var d3 = require('d3');
 var _ = require('lodash');
 
+var eventhover = require('./util/eventhover');
+
 var alarmImage = require('../../img/alarm/alarm.svg');
 
 /**
@@ -35,25 +37,9 @@ module.exports = function(pool, opts = {}) {
       alarms.exit().remove();
 
       // tooltips
-      selection.selectAll('.d3-alarm-group').on('mouseover', function() {
-        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
-        var chartNavContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
-        var container = this.getBoundingClientRect();
-        container.y = container.top - parentContainer.top;
-
-        var chartExtents = {
-          left: chartNavContainer.left,
-          right: chartNavContainer.right,
-          width: chartNavContainer.right - chartNavContainer.left,
-        };
-
-        alarm.addTooltip(d3.select(this).datum(), container, chartExtents);
-      });
-
-      selection.selectAll('.d3-alarm-group').on('mouseout', function() {
-        if (_.get(opts, 'onAlarmOut', false)) {
-          opts.onAlarmOut();
-        }
+      eventhover(selection, '.d3-alarm-group', {
+        onHover: alarm.addTooltip,
+        onOut: opts.onAlarmOut,
       });
     });
   };

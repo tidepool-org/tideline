@@ -1,6 +1,8 @@
 var d3 = require('d3');
 var _ = require('lodash');
 
+var eventhover = require('./util/eventhover');
+
 var eventImage = require('../../img/event/event.svg');
 var eventHealthImage = require('../../img/event/event-health.svg');
 var eventPhysicalActivityImage = require('../../img/event/event-physical_activity.svg');
@@ -57,25 +59,9 @@ module.exports = function(pool, opts = {}) {
       events.exit().remove();
 
       // tooltips
-      selection.selectAll('.d3-event-group').on('mouseover', function() {
-        var parentContainer = document.getElementsByClassName('patient-data')[0].getBoundingClientRect();
-        var chartNavContainer = document.getElementById('tidelineScrollNav').getBoundingClientRect();
-        var container = this.getBoundingClientRect();
-        container.y = container.top - parentContainer.top;
-
-        var chartExtents = {
-          left: chartNavContainer.left,
-          right: chartNavContainer.right,
-          width: chartNavContainer.right - chartNavContainer.left,
-        };
-
-        event.addTooltip(d3.select(this).datum(), container, chartExtents);
-      });
-
-      selection.selectAll('.d3-event-group').on('mouseout', function() {
-        if (_.get(opts, 'onEventOut', false)) {
-          opts.onEventOut();
-        }
+      eventhover(selection, '.d3-event-group', {
+        onHover: event.addTooltip,
+        onOut: opts.onEventOut,
       });
     });
   };
