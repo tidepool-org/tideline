@@ -9231,7 +9231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pbkdf2@npm:^3.1.7":
+"pbkdf2@npm:^3.0.3, pbkdf2@npm:^3.1.2":
   version: 3.1.7
   resolution: "pbkdf2@npm:3.1.7"
   dependencies:
