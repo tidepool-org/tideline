@@ -54,7 +54,7 @@ $ npm install
 
 ### Testing
 
-To run the tests in Chrome using [Mocha](http://mochajs.org/ 'Mocha') and the [testem](https://github.com/airportyh/testem 'Test'em') test runner:
+To run the tests with [Jest](https://jestjs.io/ 'Jest'):
 
 ```bash
 $ npm test
@@ -68,16 +68,10 @@ $ npm run test-watch
 
 #### Lint
 
-Run JSHint with:
+Run ESLint with:
 
 ```bash
 $ npm run lint
-```
-
-You can also watch files for changes and re-run automatically by starting:
-
-```bash
-$ npm run lint-watch
 ```
 
 ## Code Philosophy and Organization
@@ -105,7 +99,7 @@ Tideline uses [D3.js](http://d3js.org/ 'D3') to create an [SVG](http://www.w3.or
 
 ### Code Conventions
 
-Tideline makes every attempt to adhere to standard coding conventions. In development, we use the same `.jshintrc` file as tideline's parent application [blip](https://github.com/tidepool-org/blip 'blip').
+Tideline makes every attempt to adhere to standard coding conventions. In development, linting is enforced by the ESLint configuration in `.eslintrc`.
 
 The only coding conventions unique to tideline are conventions of HTML and CSS ID and class names. All of the SVG elements comprising tideline use `camelCase` for IDs, with different parts of the ID separated by an underscore `_`. Class names, in contrast, are all lowercase, prefixed with `d3` and employ hyphen `-` as a separator. These conventions help tideline developers to keep IDs and classes distinct.
 
