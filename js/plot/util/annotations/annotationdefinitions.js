@@ -129,6 +129,14 @@ var definitions = {
     'basal/unknown-duration': function(source, defs) {
       return t('Because of how {{source}} reports the data, we could not determine the duration of this basal rate segment.', {source: source});
     },
+    'final-basal/fabricated-from-schedule': function(source, defs) {
+      source = defs.sourceText(source);
+      return t('We are estimating the duration of this basal rate using the active basal schedule, because {{source}} had not yet reported when it ended at the time of upload.', {source: source});
+    },
+    'status/incomplete-tuple': function(source, defs) {
+      source = defs.sourceText(source);
+      return t("{{source}} reported this suspend or resume without its matching event, so we can't tell how long insulin delivery was suspended.", {source: source});
+    },
     'stats-insufficient-data': function() {
       return t('There is not enough data to show this statistic.');
     },
