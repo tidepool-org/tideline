@@ -50,6 +50,20 @@ describe('annotation definitions', function() {
         expect(annotations.default('demo')).to.equal(expected);
       });
     });
+
+    describe('final-basal/fabricated-from-schedule', function() {
+      it('should return the final basal text with the source', function() {
+        var expected = 'We are estimating the duration of this basal rate using the active basal schedule, because Demo had not yet reported when it ended at the time of upload.';
+        expect(annotations.main({code: 'final-basal/fabricated-from-schedule'}, 'demo')).to.equal(expected);
+      });
+    });
+
+    describe('status/incomplete-tuple', function() {
+      it('should return the incomplete tuple text with the source', function() {
+        var expected = 'Demo reported this suspend or resume without its matching event, so we can\'t tell how long insulin delivery was suspended.';
+        expect(annotations.main({code: 'status/incomplete-tuple'}, 'demo')).to.equal(expected);
+      });
+    });
   });
 
   describe('lead text', function() {
