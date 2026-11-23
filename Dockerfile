@@ -10,12 +10,7 @@ RUN corepack enable \
 
 ### Stage: Test
 FROM base as test
-ENV \
-  CHROME_BIN=/usr/bin/chromium-browser \
-  NODE_ENV=test
-USER root
-RUN apk add --no-cache chromium && rm -rf /var/cache/apk/* /tmp/*
-USER node
+ENV NODE_ENV=test
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=yarn.lock,target=yarn.lock \
     --mount=type=bind,source=.yarnrc.yml,target=.yarnrc.yml \

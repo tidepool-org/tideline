@@ -54,6 +54,10 @@ var scales = function(opts) {
         .clamp(true);
     },
     bg: function(data, pool, pad) {
+      if (opts.fullRangeBgScale) {
+        return this.bgClamped([this.MIN_CBG, this.MAX_CBG], pool, pad);
+      }
+
       var ext = d3.extent(data, function(d) { return d.value; });
       var targetBoundary = _.get(opts, 'bgClasses.target.boundary', opts.TARGET_BG_BOUNDARY);
 
@@ -94,12 +98,21 @@ var scales = function(opts) {
       }
     },
     bgTicks: function(data) {
-      if ((!data) || (data.length === 0)) {
-        return [];
-      }
       var defaultTicks = _.map(_.values(_.omit(opts.bgClasses, ['very-high', 'very-low'])), function(n) {
         return format.tooltipBGValue(_.get(n, 'boundary'), bgUnits);
       }).sort(function (a, b) { return a - b; });
+
+      if (opts.fullRangeBgScale) {
+        var min = this.MIN_CBG;
+        var max = this.MAX_CBG;
+        return _.filter(defaultTicks, function(tick) {
+          return tick >= min && tick <= max;
+        });
+      }
+
+      if ((!data) || (data.length === 0)) {
+        return [];
+      }
 
       var ext = d3.extent(data, function(d) { return d.value; });
       if (ext[0] === ext[1]) {
