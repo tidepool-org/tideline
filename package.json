@@ -4,7 +4,7 @@
     "node": "24.15.0"
   },
   "packageManager": "yarn@3.6.4",
-  "version": "1.43.0",
+  "version": "1.44.0-web-4751-one-button-basics-boluses.1",
   "description": "Tidepool's timeline data visualization",
   "repository": {
     "type": "git",
